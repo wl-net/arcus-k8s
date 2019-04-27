@@ -1,0 +1,90 @@
+# Please edit the object below. Lines beginning with a '#' will be ignored,
+# and an empty file will abort the edit. If an error occurs while saving this file will be
+# reopened with the relevant failures.
+#
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  annotations:
+    deployment.kubernetes.io/revision: "18"
+  labels:
+    app: alarm-service
+  name: alarm-service
+  namespace: default
+spec:
+  progressDeadlineSeconds: 2147483647
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: alarm-service
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: alarm-service
+    spec:
+      containers:
+      - env:
+        - name: BILLING_URL
+          valueFrom:
+            configMapKeyRef:
+              key: BILLING_URL
+              name: arcus-config
+        - name: BILLING_API_KEY
+          valueFrom:
+            secretKeyRef:
+              key: billing.api.key
+              name: shared
+        - name: IRIS_AES_SECRET
+          valueFrom:
+            secretKeyRef:
+              key: iris.aes.secret
+              name: shared
+        - name: IRIS_AES_IV
+          valueFrom:
+            secretKeyRef:
+              key: iris.aes.iv
+              name: shared
+        - name: QUESTIONS_AES_SECRET
+          valueFrom:
+            secretKeyRef:
+              key: questions.aes.secret
+              name: shared
+        - name: CASSANDRA_CONTACTPOINTS
+          valueFrom:
+            configMapKeyRef:
+              key: CASSANDRA_CONTACTPOINTS
+              name: arcus-config
+        - name: CASSANDRA_KEYSPACE
+          valueFrom:
+            configMapKeyRef:
+              key: CASSANDRA_KEYSPACE
+              name: arcus-config
+        - name: BOOTSTRAP_SERVERS
+          valueFrom:
+            configMapKeyRef:
+              key: BOOTSTRAP_SERVERS
+              name: arcus-config
+              name: arcus-config
+        - name: OPS_BOOTSTRAP_SERVERS
+          valueFrom:
+            configMapKeyRef:
+              key: OPS_BOOTSTRAP_SERVERS
+              name: arcus-config
+        image: gcr.io/arcus-238802/eyeris/alarm-service@sha256:dd353ce7e16c95fd297497d92675792afe940e4e3a5bfc4d8d4bd8578c9f178c 
+        imagePullPolicy: IfNotPresent
+        name: alarm-service-sha256
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30

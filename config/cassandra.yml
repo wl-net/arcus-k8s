@@ -1,0 +1,48 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: cassandra
+  name: cassandra
+  namespace: default
+spec:
+  progressDeadlineSeconds: 2147483647
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: cassandra
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: cassandra
+    spec:
+      containers:
+      - env:
+        - name: CASSANDRA_HOST1
+          valueFrom:
+            configMapKeyRef:
+              key: CASSANDRA_HOST
+              name: arcus-config
+        - name: CASSANDRA_SINGLE_NODE
+          valueFrom:
+            configMapKeyRef:
+              key: CASSANDRA_SINGLE_NODE
+              name: arcus-config
+        image: gcr.io/arcus-238802/eyeris/cassandra:latest
+        imagePullPolicy: IfNotPresent
+        name: cassandra-sha256
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
