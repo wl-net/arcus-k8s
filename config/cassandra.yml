@@ -1,21 +1,18 @@
-apiVersion: extensions/v1beta1
-kind: Deployment
+apiVersion: apps/v1
+kind: StatefulSet
 metadata:
   labels:
     app: cassandra
   name: cassandra
   namespace: default
 spec:
-  progressDeadlineSeconds: 2147483647
+  serviceName: cassandra
   replicas: 1
   revisionHistoryLimit: 10
   selector:
     matchLabels:
       app: cassandra
-  strategy:
-    rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 1
+  updateStrategy:
     type: RollingUpdate
   template:
     metadata:
@@ -41,8 +38,20 @@ spec:
         resources: {}
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: "/data"
+          name: cassandra-storage
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
       securityContext: {}
       terminationGracePeriodSeconds: 30
+
+  volumeClaimTemplates:
+  - metadata:
+      name: cassandra-storage
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 10Gi
