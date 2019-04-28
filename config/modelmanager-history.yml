@@ -30,15 +30,28 @@ spec:
       containers:
       - env:
         - name: MODELMANAGER_HOME
-          value: /modelmanager-2018.10.2/history-resources
+          value: /modelmanager-2018.10.2/history-resources/
         - name: MODELMANAGER_SCHEMA
           value: history
         - name: MODELMANAGER_AUTO
           value: "true"
         - name: CASSANDRA_PLATFORM_CONTACTPOINTS
           value: cassandra-service.default.svc.cluster.local
+        - name: BOOTSTRAP_SERVERS
+          valueFrom:
+            configMapKeyRef:
+              key: BOOTSTRAP_SERVERS
+              name: arcus-config
+              name: arcus-config
+        - name: OPS_BOOTSTRAP_SERVERS
+          valueFrom:
+            configMapKeyRef:
+              key: OPS_BOOTSTRAP_SERVERS
+              name: arcus-config
         image: gcr.io/arcus-238802/eyeris/modelmanager:2018.10.2
-        #        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
+        command: ["/modelmanager-2018.10.2/bin/modelmanager"]
+        args: ["-c", "/modelmanager-2018.10.2/conf/arcus-modelmanager.properties"]
         name: modelmanager-history-sha256
         resources: {}
         terminationMessagePath: /dev/termination-log
