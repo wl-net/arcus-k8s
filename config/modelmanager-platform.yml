@@ -1,48 +1,48 @@
-# Please edit the object below. Lines beginning with a '#' will be ignored,
-# and an empty file will abort the edit. If an error occurs while saving this file will be
-# reopened with the relevant failures.
-#
-apiVersion: extensions/v1beta1
-kind: Deployment
+apiVersion: batch/v1
+kind: Job
 metadata:
   labels:
     app: modelmanager-platform
+    app.kubernetes.io/version: 2018.10.2
   name: modelmanager-platform
   namespace: default
 spec:
-  progressDeadlineSeconds: 2147483647
-  replicas: 1
-  revisionHistoryLimit: 10
-  selector:
-    matchLabels:
-      app: modelmanager-platform
-  strategy:
-    rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 1
-    type: RollingUpdate
   template:
     metadata:
-      creationTimestamp: null
       labels:
         app: modelmanager-platform
     spec:
       containers:
       - env:
         - name: MODELMANAGER_HOME
-          value: /modelmanager-2018.10.2/history-resources
+          value: /modelmanager-2018.10.2/
+        - name: MODELMANAGER_SCHEMA
+          value: platform
         - name: MODELMANAGER_AUTO
           value: "true"
         - name: CASSANDRA_PLATFORM_CONTACTPOINTS
           value: cassandra-service.default.svc.cluster.local
+        - name: BOOTSTRAP_SERVERS
+          valueFrom:
+            configMapKeyRef:
+              key: BOOTSTRAP_SERVERS
+              name: arcus-config
+              name: arcus-config
+        - name: OPS_BOOTSTRAP_SERVERS
+          valueFrom:
+            configMapKeyRef:
+              key: OPS_BOOTSTRAP_SERVERS
+              name: arcus-config
         image: gcr.io/arcus-238802/eyeris/modelmanager:2018.10.2
-        #        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
+        command: ["/modelmanager-2018.10.2/bin/modelmanager"]
+        args: ["-c", "/modelmanager-2018.10.2/conf/arcus-modelmanager.properties"]
         name: modelmanager-platform-sha256
         resources: {}
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
       dnsPolicy: ClusterFirst
-      restartPolicy: Always
+      restartPolicy: OnFailure
       schedulerName: default-scheduler
       securityContext: {}
       terminationGracePeriodSeconds: 30
