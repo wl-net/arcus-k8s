@@ -20,8 +20,10 @@ spec:
           value: platform
         - name: MODELMANAGER_AUTO
           value: "true"
-        - name: CASSANDRA_PLATFORM_CONTACTPOINTS
+        - name: cassandra_contactPoints
           value: cassandra-service.default.svc.cluster.local
+        - name: cassandra_keyspace
+          value: production
         - name: BOOTSTRAP_SERVERS
           valueFrom:
             configMapKeyRef:
@@ -36,7 +38,7 @@ spec:
         image: gcr.io/arcus-238802/eyeris/modelmanager:2018.10.2
         imagePullPolicy: Always
         command: ["/modelmanager-2018.10.2/bin/modelmanager"]
-        args: ["-c", "/modelmanager-2018.10.2/conf/arcus-modelmanager.properties"]
+        args: ["-c", "/modelmanager-2018.10.2/conf/arcus-modelmanager.properties", "-P", "production"]
         name: modelmanager-platform-sha256
         resources: {}
         terminationMessagePath: /dev/termination-log
