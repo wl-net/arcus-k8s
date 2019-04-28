@@ -1,29 +1,14 @@
-# Please edit the object below. Lines beginning with a '#' will be ignored,
-# and an empty file will abort the edit. If an error occurs while saving this file will be
-# reopened with the relevant failures.
-#
-apiVersion: extensions/v1beta1
-kind: Deployment
+apiVersion: batch/v1
+kind: Job
 metadata:
   labels:
     app: modelmanager-history
+    app.kubernetes.io/version: 2018.10.2
   name: modelmanager-history
   namespace: default
 spec:
-  progressDeadlineSeconds: 2147483647
-  replicas: 1
-  revisionHistoryLimit: 10
-  selector:
-    matchLabels:
-      app: modelmanager-history
-  strategy:
-    rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 1
-    type: RollingUpdate
   template:
     metadata:
-      creationTimestamp: null
       labels:
         app: modelmanager-history
     spec:
@@ -57,7 +42,7 @@ spec:
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
       dnsPolicy: ClusterFirst
-      restartPolicy: Always
+      restartPolicy: OnFailure
       schedulerName: default-scheduler
       securityContext: {}
       terminationGracePeriodSeconds: 30
