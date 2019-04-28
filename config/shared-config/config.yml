@@ -25,6 +25,10 @@ data:
   VIDEO_PREVIEW_UPLOAD_URL: https://video.arcus.wl-net.net
   ZOOKEEPER: zookeeper-service.default.svc.cluster.local:2181
   ZOOKEEPEROPS: zookeeper-service.default.svc.cluster.local:2181
+  NEST_LOGIN_BASE_URL: http://example.com
+  NEST_CLIENT_ID: "12345"
+  DEVICE-OTA-FIRMWARE_DOWNLOAD_HOST: https://tools.arcus.wl-net.net
+  INVOICE_URL: htpts://arcus.wl-net.net
 kind: ConfigMap
 metadata:
   annotations:
