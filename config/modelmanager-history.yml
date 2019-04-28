@@ -20,7 +20,7 @@ spec:
           value: history
         - name: MODELMANAGER_AUTO
           value: "true"
-        - name: CASSANDRA_PLATFORM_CONTACTPOINTS
+        - name: cassandra_history_contactPoints
           value: cassandra-service.default.svc.cluster.local
         - name: BOOTSTRAP_SERVERS
           valueFrom:
