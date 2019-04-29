@@ -29,7 +29,9 @@ data:
   NEST_CLIENT_ID: "12345"
   DEVICE-OTA-FIRMWARE_DOWNLOAD_HOST: https://tools.arcus.wl-net.net
   HUB_FIRMWARE_DOWNLOAD_HOST: https://tools.arcus.wl-net.net
-  INVOICE_URL: htpts://arcus.wl-net.net
+  INVOICE_URL: https://arcus.wl-net.net
+  ARCUS_WS_URI: wss://arcus.wl-net.net
+  ARCUS_HTTP_URI: https://arcus.wl-net.net
 kind: ConfigMap
 metadata:
   annotations:
