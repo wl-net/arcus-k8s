@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: client-bridge
+  name: client-bridge-service
+spec:
+  externalTrafficPolicy: Cluster
+  ports:
+  - nodePort: 31803
+    port: 8081
+    protocol: TCP
+    targetPort: 8081
+  selector:
+    app: client-bridge
+  sessionAffinity: None
+  type: LoadBalancer
+

@@ -1,0 +1,39 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: cassandra
+  name: cassandra-service
+spec:
+  externalTrafficPolicy: Cluster
+  ports:
+  - name: 7000-to-7000-tcp
+    nodePort: 31287
+    port: 7000
+    protocol: TCP
+    targetPort: 7000
+  - name: 7001-to-7001-tcp
+    nodePort: 31914
+    port: 7001
+    protocol: TCP
+    targetPort: 7001
+  - name: 7199-to-7199-tcp
+    nodePort: 32251
+    port: 7199
+    protocol: TCP
+    targetPort: 7199
+  - name: 9042-to-9042-tcp
+    nodePort: 32178
+    port: 9042
+    protocol: TCP
+    targetPort: 9042
+  - name: 9160-to-9160-tcp
+    nodePort: 31262
+    port: 9160
+    protocol: TCP
+    targetPort: 9160
+  selector:
+    app: cassandra
+  sessionAffinity: None
+  type: NodePort
+
