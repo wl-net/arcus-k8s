@@ -1,0 +1,60 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: kafka
+  name: kafka
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafka
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: kafka
+    spec:
+      containers:
+      - env:
+        - name: ZOOKEEPER
+          valueFrom:
+            configMapKeyRef:
+              key: ZOOKEEPER
+              name: arcus-config
+        - name: ZOOKEEPEROPS
+          valueFrom:
+            configMapKeyRef:
+              key: ZOOKEEPEROPS
+              name: arcus-config
+        - name: KAFKA_HSIZE
+          valueFrom:
+            configMapKeyRef:
+              key: KAFKA_HSIZE
+              name: arcus-config
+        - name: KAFKAOPS_REPLICATION
+          valueFrom:
+            configMapKeyRef:
+              key: KAFKAOPS_REPLICATION
+              name: arcus-config
+        image: gcr.io/arcus-238802/eyeris/kafka@sha256:30553ef964e65c8547e9853238e0b904a3bd075ab34130378ddf39b46e42c8ae
+        imagePullPolicy: IfNotPresent
+        name: kafka-sha256
+        resources:
+          limits:
+            cpu: "1"
+          requests:
+            cpu: "0.1"
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
