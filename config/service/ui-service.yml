@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: ui-server
+  name: ui-server-service
+  namespace: default
+spec:
+  externalTrafficPolicy: Cluster
+  ports:
+  - nodePort: 30787
+    port: 8096
+    protocol: TCP
+    targetPort: 8096
+  selector:
+    app: ui-server
+  sessionAffinity: None
+  type: LoadBalancer
+
