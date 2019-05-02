@@ -43,7 +43,7 @@ spec:
             configMapKeyRef:
               key: KAFKAOPS_REPLICATION
               name: arcus-config
-        image: gcr.io/arcus-238802/eyeris/kafka@sha256:30553ef964e65c8547e9853238e0b904a3bd075ab34130378ddf39b46e42c8ae
+        image: gcr.io/arcus-238802/eyeris/kafka@sha256:latest
         imagePullPolicy: IfNotPresent
         name: kafka-sha256
         resources:
