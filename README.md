@@ -11,5 +11,15 @@ You need to set the configuration options in config/shared-config.
 
 # Deploy
 
-`kubectl apply -f config/`
+`kubectl apply -f config/ -R`
+
+
+# Alternative: microk8s
+
+As an alernative (mostly for local testing), you can run Kubernetes locally and run Arcus there.
+
+`$ sudo snap install microk8s --classic`
+`$ microk8s.enable dns`
+`$ microk8s.enable storage`
+`$ microk8s.kubectl apply -f config/ -R`
 
