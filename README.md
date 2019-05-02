@@ -19,6 +19,7 @@ You need to set the configuration options in config/shared-config.
 As an alernative (mostly for local testing), you can run Kubernetes locally and run Arcus there.
 
 First install microk8s (you may need to install snap if you haven't already)
+
 `$ sudo snap install microk8s --classic`
 
 Then enable the DNS and storage components
