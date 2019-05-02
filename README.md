@@ -22,4 +22,5 @@ As an alernative (mostly for local testing), you can run Kubernetes locally and 
 `$ microk8s.enable dns`
 `$ microk8s.enable storage`
 `$ microk8s.kubectl apply -f config/ -R`
+`$ kubectl exec cassandra-0 --stdin --tty -- '/bin/sh' '-c' 'CASSANDRA_KEYSPACE=production /usr/bin/cassandra-provision'`
 
