@@ -39,5 +39,3 @@ metadata:
     app: arcus
   name: arcus-config
   namespace: default
-  selfLink: /api/v1/namespaces/default/configmaps/arcus-config
-  uid: 1040bd41-6881-11e9-90e9-42010a800116
