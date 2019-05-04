@@ -13,6 +13,7 @@ resources:
 - service/client-bridge.yml
 - service/kafka.yml
 - service/ui-service.yml
+- service/ui-service-ingress.yml
 - service/zookeeper.yml
 - certprovider/letsencrypt-production.yml
 - certprovider/letsencrypt-staging.yml
