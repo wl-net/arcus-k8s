@@ -15,6 +15,12 @@ If something fails, wait a few minutes and try again.
 
 It will takes about 5-10 minutes for everything to come up. When `microk8s.kubectl get pods` shows a list of pods in the running or completed state, you are good to go.
 
+## Viewing pod status
+
+`microk8s.kubectl describe pod $POD`
+
+where $POD is something like "alarm-service"
+
 ## Starting over
 
 If you'd like to start over (including wiping any data, or configuration):
