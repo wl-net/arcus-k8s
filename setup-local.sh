@@ -8,6 +8,26 @@ if [[ ! -e kustomize ]]; then
   . kustomize-install.sh
 fi
 
+function retry {
+  local retries=$1
+  shift
+
+  local count=0
+  until "$@"; do
+    exit=$?
+    wait=$((2 ** $count))
+    count=$(($count + 1))
+    if [ $count -lt $retries ]; then
+      echo "Retry $count/$retries exited $exit, retrying in $wait seconds..."
+      sleep $wait
+    else
+      echo "Retry $count/$retries exited $exit, no more retries left."
+      return $exit
+    fi
+  done
+  return 0
+}
+
 function prompt() {
   local  __resultvar=$1
   echo -n "${2} "
@@ -25,11 +45,20 @@ fi
 cp -r overlays/local-production overlays/local-production-local
 sed -i "s/me@example.com/$ARCUS_ADMIN_EMAIL/" overlays/local-production-local/cert-provider.yaml
 
-/snap/bin/microk8s.enable dns
+function check_k8 {
+  echo > /dev/tcp/localhost/16443 >/dev/null 2>&1
+}
+
+retry 6 check_k8
+
+retry 15 /snap/bin/microk8s.enable dns
 /snap/bin/microk8s.enable storage
 /snap/bin/microk8s.kubectl apply -f https://raw.githubusercontent.com/google/metallb/v0.7.3/manifests/metallb.yaml
 /snap/bin/microk8s.kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/mandatory.yaml
 /snap/bin/microk8s.kubectl apply -f https://raw.githubusercontent.com/jetstack/cert-manager/release-0.7/deploy/manifests/cert-manager.yaml --validate=false
+
+/snap/bin/microk8s.kubectl apply -f localk8/metallb.yml
+/snap/bin/microk8s.kubectl apply -f localk8/cloud-generic.yaml
 
 mkdir -p secret
 if [[ ! -e secret/billing.api.key ]]; then
@@ -77,7 +106,14 @@ set +e
 /snap/bin/microk8s.kubectl create secret generic shared --from-file secret/
 set -e
 
-./kustomize build overlays/local-production-local/ | /snap/bin/microk8s.kubectl apply -f -
+function apply {
+  ./kustomize build overlays/local-production-local/ | /snap/bin/microk8s.kubectl apply -f -
+}
+retry 10 apply
 
 echo "Setting up schema"
-/snap/bin/microk8s.kubectl exec cassandra-0 --stdin --tty -- '/bin/sh' '-c' 'CASSANDRA_KEYSPACE=production CASSANDRA_REPLICATION=1 /usr/bin/cassandra-provision'
+retry 10 /snap/bin/microk8s.kubectl exec cassandra-0 --stdin --tty -- '/bin/sh' '-c' 'CASSANDRA_KEYSPACE=production CASSANDRA_REPLICATION=1 /usr/bin/cassandra-provision'
+
+IPADDRESS=$(/snap/bin/microk8s.kubectl describe service -n ingress-nginx | grep 'LoadBalancer Ingress:' | awk '{print $3}')
+echo "Done with setup. Please wait a few more minutes for Arcus to start. In the mean time, please make sure you configure your DNS accordingly:"
+echo "dev.arcus.wl-net.net A $IPADDRESS"
