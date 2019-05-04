@@ -42,7 +42,7 @@ if [ "$ARCUS_ADMIN_EMAIL" = "me@example.com" ]; then
   prompt ARCUS_ADMIN_EMAIL "Please enter your admin email address (or set ARCUS_ADMIN_EMAIL): "
 fi
 
-cp -r overlays/local-production overlays/local-production-local
+cp -r overlays/local-production/ overlays/local-production-local
 sed -i "s/me@example.com/$ARCUS_ADMIN_EMAIL/" overlays/local-production-local/cert-provider.yaml
 
 ARCUS_DOMAIN_NAME=${ARCUS_DOMAIN_NAME:-example.com}
@@ -62,7 +62,7 @@ if [ "$ARCUS_SUBNET" = "unconfigured" ]; then
   prompt ARCUS_SUBNET "Please enter your subnet for Arcus services to be exposed on (or set ARCUS_SUBNET): "
 fi
 cp localk8/metallb.yml overlays/local-production-local/metallb.yml
-sed -i "s/PLACEHOLDER_1/$ARCUS_SUBNET/" overlays/local-production-local/metallb.yml
+sed -i "s!PLACEHOLDER_1!$ARCUS_SUBNET!" overlays/local-production-local/metallb.yml
 
 
 function check_k8 {
@@ -120,6 +120,20 @@ if [[ ! -e secret/tls.server.truststore.password ]]; then
   echo "Using *KNOWN DEFAULT* secret for tls.server.truststore.password"
   # note: the utility of truststore and keystore passwords is quesitonable.
   echo "8EFJhxm7aRs2hmmKwVuM9RPSwhNCtMpC" > secret/tls.server.truststore.password 
+fi
+
+echo "Arcus requires a verified address. In order to verify your address, you will need to create an account on https://smartystreets.com/"
+echo "Please go and create an account now, as you will be required to provide some details"
+echo "Make sure to create secret keys, since these credentials will only be used on the Arcus server, and never exposed to users"
+
+if [[ ! -e secret/smartystreets.authid ]]; then
+  prompt authid "Please enter your smartystreets authid:"
+  echo "$authid" > secret/smartystreets.authid
+fi
+
+if [[ ! -e secret/smartystreets.authtoken ]]; then
+  prompt authtoken "Please enter your smartystreets authtoken:"
+  echo "$authtoken" > secret/smartystreets.authtoken
 fi
 
 set +e
