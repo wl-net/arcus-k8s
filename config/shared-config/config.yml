@@ -2,36 +2,36 @@ apiVersion: v1
 data:
   ADVERTISED_HSTN: kafka-service.default.svc.cluster.local
   BILLING_TOKEN_URL: https://api.recurly.com/js/v1/token
-  BILLING_URL: https://arcus.wl-net.net
+  BILLING_URL: https://arcussmarthome.com
   BOOTSTRAP_SERVERS: kafka-service.default.svc.cluster.local:9092
-  BOUNCE_ANDROID_URL: https://arcus.wl-net.net
-  BOUNCE_APP_URL: https://arcus.wl-net.net
-  BOUNCE_APPLE_URL: https://arcus.wl-net.net
-  BOUNCE_HELP_URL: https://arcus.wl-net.net
+  BOUNCE_ANDROID_URL: https://arcussmarthome.com
+  BOUNCE_APP_URL: https://arcussmarthome.com
+  BOUNCE_APPLE_URL: https://arcussmarthome.com
+  BOUNCE_HELP_URL: https://arcussmarthome.com
   BOUNCE_IOS_APP_IDS: "12345"
-  BOUNCE_REDIRECT_URL: https://arcus.wl-net.net
-  BOUNCE_WEB_URL: https://arcus.wl-net.net
-  CAMERA_PREVIEW_BASEURL: https://camera.preview.arcus.wl-net.net
+  BOUNCE_REDIRECT_URL: https://arcussmarthome.com
+  BOUNCE_WEB_URL: https://arcussmarthome.com
+  CAMERA_PREVIEW_BASEURL: https://camera.preview.arcussmarthome.com
   CASSANDRA_CONTACTPOINTS: cassandra-service.default.svc.cluster.local
   CASSANDRA_HOST: cassandra-service.default.svc.cluster.local
   CASSANDRA_KEYSPACE: production
   CASSANDRA_SINGLE_NODE: "true"
-  INVOICE_RESOURCE_BASE_URL: https://invoice.arcus.wl-net.net
+  INVOICE_RESOURCE_BASE_URL: https://invoice.arcussmarthome.com
   KAFKA_HSIZE: "512"
   KAFKAOPS_REPLICATION: "1"
   OPS_BOOTSTRAP_SERVERS: kafka-service.default.svc.cluster.local
-  REDIRECT_BASE_URL: https://arcus.wl-net.net
-  SECURE_STATIC_RESOURCE_BASE_URL: https://static.arcus.wl-net.net
-  VIDEO_PREVIEW_UPLOAD_URL: https://video.arcus.wl-net.net
+  REDIRECT_BASE_URL: https://arcussmarthome.com
+  SECURE_STATIC_RESOURCE_BASE_URL: https://static.arcussmarthome.com
+  VIDEO_PREVIEW_UPLOAD_URL: https://video.arcussmarthome.com
   ZOOKEEPER: zookeeper-service.default.svc.cluster.local:2181
   ZOOKEEPEROPS: zookeeper-service.default.svc.cluster.local:2181
   NEST_LOGIN_BASE_URL: http://example.com
   NEST_CLIENT_ID: "12345"
-  DEVICE-OTA-FIRMWARE_DOWNLOAD_HOST: https://tools.arcus.wl-net.net
-  HUB_FIRMWARE_DOWNLOAD_HOST: https://tools.arcus.wl-net.net
-  INVOICE_URL: https://arcus.wl-net.net
-  ARCUS_WS_URI: wss://arcus.wl-net.net
-  ARCUS_HTTP_URI: https://arcus.wl-net.net
+  DEVICE-OTA-FIRMWARE_DOWNLOAD_HOST: https://tools.arcussmarthome.com
+  HUB_FIRMWARE_DOWNLOAD_HOST: https://tools.arcussmarthome.com
+  INVOICE_URL: https://arcussmarthome.com
+  ARCUS_WS_URI: wss://client.arcussmarthome.com
+  ARCUS_HTTP_URI: https://arcussmarthome.com
 kind: ConfigMap
 metadata:
   annotations:

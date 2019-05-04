@@ -45,6 +45,15 @@ fi
 cp -r overlays/local-production overlays/local-production-local
 sed -i "s/me@example.com/$ARCUS_ADMIN_EMAIL/" overlays/local-production-local/cert-provider.yaml
 
+ARCUS_DOMAIN_NAME=${ARCUS_DOMAIN_NAME:-example.com}
+
+if [ "$ARCUS_DOMAIN_NAME" = "example.com" ]; then
+  prompt ARCUS_DOMAIN_NAME "Please enter your domain name (or set ARCUS_DOMAIN_NAME): "
+fi
+cp config/shared-config/config.yml overlays/local-production-local/shared-config.yaml
+sed -i "s/arcussmarthome.com/$ARCUS_DOMAIN_NAME/" overlays/local-production-local/shared-config.yaml
+
+
 function check_k8 {
   echo > /dev/tcp/localhost/16443 >/dev/null 2>&1
 }
@@ -116,4 +125,4 @@ retry 10 /snap/bin/microk8s.kubectl exec cassandra-0 --stdin --tty -- '/bin/sh' 
 
 IPADDRESS=$(/snap/bin/microk8s.kubectl describe service -n ingress-nginx | grep 'LoadBalancer Ingress:' | awk '{print $3}')
 echo "Done with setup. Please wait a few more minutes for Arcus to start. In the mean time, please make sure you configure your DNS accordingly:"
-echo "dev.arcus.wl-net.net A $IPADDRESS"
+echo "${ARCUS_DOMAIN_NAME} A $IPADDRESS"
