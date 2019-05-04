@@ -2,6 +2,7 @@
 resources:
 - deployments/alarm-service.yml
 - deployments/client-bridge.yml
+- deployments/history-service.yml
 - deployments/kafka.yml
 - deployments/platform-services.yml
 - deployments/rule-service.yml
