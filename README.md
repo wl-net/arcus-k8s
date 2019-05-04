@@ -27,6 +27,13 @@ Then enable the DNS and storage components
 $ microk8s.enable dns
 $ microk8s.enable storage
 ```
+## Install Kustomize:
+See https://github.com/kubernetes-sigs/kustomize/blob/master/docs/INSTALL.md or you can use the included installer (linux only):
+
+```
+$ ./kustomize-installer.sh
+```
+
 Apply the configuration: 
 
 ```
