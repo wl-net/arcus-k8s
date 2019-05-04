@@ -159,6 +159,11 @@ spec:
             configMapKeyRef:
               key: CAMERA_PREVIEW_BASEURL
               name: arcus-config
+        - name: CORS_ORIGINS
+          valueFrom:
+            configMapKeyRef:
+              key: CORS_ORIGINS
+              name: arcus-config
 
         image: gcr.io/arcus-238802/eyeris/client-bridge:2018.10.2
         imagePullPolicy: Always
