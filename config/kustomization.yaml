@@ -1,0 +1,24 @@
+
+resources:
+- deployments/alarm-service.yml
+- deployments/client-bridge.yml
+- deployments/kafka.yml
+- deployments/platform-services.yml
+- deployments/rule-service.yml
+- deployments/scheduler-service.yml
+- deployments/subsystem-service.yml
+- deployments/ui-server.yml
+- deployments/zookeeper.yml
+- service/cassandra.yml
+- service/client-bridge.yml
+- service/kafka.yml
+- service/ui-service.yml
+- service/zookeeper.yml
+- certprovider/letsencrypt-production.yml
+- certprovider/letsencrypt-staging.yml
+- shared-config/config.yml
+- stateful/cassandra.yaml
+- jobs/modelmanager-history.yml
+- jobs/modelmanager-platform.yml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
