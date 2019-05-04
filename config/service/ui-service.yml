@@ -15,5 +15,5 @@ spec:
   selector:
     app: ui-server
   sessionAffinity: None
-  type: ClusterIP
+  type: NodePort
 
