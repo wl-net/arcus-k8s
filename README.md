@@ -11,6 +11,8 @@ Simply execute:
 
 `./setup-local.sh`
 
+If something fails, wait a few minutes and try again.
+
 It will takes about 5-10 minutes for everything to come up. When `microk8s.kubectl get pods` shows a list of pods in the running or completed state, you are good to go.
 
 ## Starting over
