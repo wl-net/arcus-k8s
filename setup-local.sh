@@ -54,6 +54,17 @@ cp config/shared-config/config.yml overlays/local-production-local/shared-config
 sed -i "s/arcussmarthome.com/$ARCUS_DOMAIN_NAME/" overlays/local-production-local/shared-config.yaml
 
 
+ARCUS_SUBNET=${ARCUS_SUBNET:-unconfigured}
+
+if [ "$ARCUS_SUBNET" = "unconfigured" ]; then
+  echo "Arcus requires a pre-defined subnet for services to be served behind. This subnet must be unallocated (e.g. no IP addresses are used, *and* reserved for static clients)."
+  echo "Examples: 192.168.1.200/29, 192.168.1.200-192.168.1.207"
+  prompt ARCUS_SUBNET "Please enter your subnet for Arcus services to be exposed on (or set ARCUS_SUBNET): "
+fi
+cp localk8/metallb.yml overlays/local-production-local/metallb.yml
+sed -i "s/PLACEHOLDER_1/$ARCUS_SUBNET/" overlays/local-production-local/metallb.yml
+
+
 function check_k8 {
   echo > /dev/tcp/localhost/16443 >/dev/null 2>&1
 }
@@ -125,4 +136,6 @@ retry 10 /snap/bin/microk8s.kubectl exec cassandra-0 --stdin --tty -- '/bin/sh' 
 
 IPADDRESS=$(/snap/bin/microk8s.kubectl describe service -n ingress-nginx | grep 'LoadBalancer Ingress:' | awk '{print $3}')
 echo "Done with setup. Please wait a few more minutes for Arcus to start. In the mean time, please make sure you configure your DNS accordingly:"
-echo "${ARCUS_DOMAIN_NAME} A $IPADDRESS"
+echo "If these IP addresses are private, you are responsible for setting up port forwarding"
+echo "${ARCUS_DOMAIN_NAME}:80 $IPADDRESS:80"
+echo "${ARCUS_DOMAIN_NAME}:443 $IPADDRESS:443"

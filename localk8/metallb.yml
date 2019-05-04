@@ -9,4 +9,4 @@ data:
     - name: arcus-ip-space
       protocol: layer2
       addresses:
-      - 172.16.6.1-172.16.6.15  # configure to your needs.
+      - PLACEHOLDER_1
