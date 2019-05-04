@@ -31,7 +31,7 @@ data:
   HUB_FIRMWARE_DOWNLOAD_HOST: https://tools.arcussmarthome.com
   INVOICE_URL: https://arcussmarthome.com
   ARCUS_WS_URI: wss://client.arcussmarthome.com
-  ARCUS_HTTP_URI: https://arcussmarthome.com
+  ARCUS_HTTP_URI: https://client.arcussmarthome.com
 kind: ConfigMap
 metadata:
   annotations:

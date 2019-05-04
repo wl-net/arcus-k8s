@@ -9,7 +9,7 @@ spec:
   externalTrafficPolicy: Cluster
   ports:
   - nodePort: 30787
-    port: 8096
+    port: 80
     protocol: TCP
     targetPort: 8096
   selector:

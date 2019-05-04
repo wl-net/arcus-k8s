@@ -14,8 +14,17 @@ spec:
         backend:
           serviceName: ui-server-service
           servicePort: 8096
+  - host: client.dev.arcus.wl-net.net
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: client-bridge-service
+          servicePort: 80
   tls:
   - secretName: nginx-staging-tls
     hosts:
     - dev.arcus.wl-net.net
+    - client.dev.arcus.wl-net.net
+    - hub.dev.arcus.wl-net.net
 
