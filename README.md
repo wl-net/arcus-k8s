@@ -13,6 +13,16 @@ Simply execute:
 
 It will takes about 5-10 minutes for everything to come up. When `microk8s.kubectl get pods` shows a list of pods in the running or completed state, you are good to go.
 
+## Starting over
+
+If you'd like to start over (including wiping any data, or configuration):
+
+`microk8s.reset`
+
+If you experience difficult, you may also need to uninstall microk8s:
+
+`snap remove microk8s`
+
 # In Google Cloud
 
 You need to have a Google Cloud account, and have configured gcloud and docker on your local system. Instructions on how do this are currently beyond the scope of this project.
