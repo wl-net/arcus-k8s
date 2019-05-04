@@ -2,4 +2,4 @@ bases:
 - ../../config
 patchesStrategicMerge:
 - cert-provider.yaml
-
+- shared-config.yaml
