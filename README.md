@@ -21,6 +21,12 @@ It will takes about 5-10 minutes for everything to come up. When `microk8s.kubec
 
 where $POD is something like "alarm-service"
 
+## Adjusting configuration
+
+The first time you setup Arcus, new secrets will be stored in the secrets directory. Once you have completed ./setup-local.sh, feel free to adjust any of these secrets to your needs, and further uses of ./setup-local.sh will not cause you to loose your secrets.
+
+You can also adjust the configuration in overlays/local-production-local/, however your changes will be lost if you run ./setup-local.sh.
+
 ## Starting over
 
 If you'd like to start over (including wiping any data, or configuration):
