@@ -64,6 +64,7 @@ fi
 cp localk8/metallb.yml overlays/local-production-local/metallb.yml
 sed -i "s!PLACEHOLDER_1!$ARCUS_SUBNET!" overlays/local-production-local/metallb.yml
 
+/snap/bin/microk8s.kubectl apply -f overlays/local-production-local/metallb.yml
 
 function check_k8 {
   echo > /dev/tcp/localhost/16443 >/dev/null 2>&1
@@ -77,7 +78,6 @@ retry 15 /snap/bin/microk8s.enable dns
 /snap/bin/microk8s.kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/mandatory.yaml
 /snap/bin/microk8s.kubectl apply -f https://raw.githubusercontent.com/jetstack/cert-manager/release-0.7/deploy/manifests/cert-manager.yaml --validate=false
 
-/snap/bin/microk8s.kubectl apply -f localk8/metallb.yml
 /snap/bin/microk8s.kubectl apply -f localk8/cloud-generic.yaml
 
 mkdir -p secret
@@ -147,6 +147,8 @@ retry 10 apply
 
 echo "Setting up schema"
 retry 10 /snap/bin/microk8s.kubectl exec cassandra-0 --stdin --tty -- '/bin/sh' '-c' 'CASSANDRA_KEYSPACE=production CASSANDRA_REPLICATION=1 /usr/bin/cassandra-provision'
+kafka_id=$(/snap/bin/microk8s.kubectl get pod | grep kafka- | awk '{print $1}')
+retry 10 /snap/bin/microk8s.kubectl exec $kafka_id --stdin --tty -- '/bin/sh' '-c' 'KAFKA_REPLICATION=1 KAFKAOPS_REPLICATION=1 kafka-cmd setup'
 
 IPADDRESS=$(/snap/bin/microk8s.kubectl describe service -n ingress-nginx | grep 'LoadBalancer Ingress:' | awk '{print $3}')
 echo "Done with setup. Please wait a few more minutes for Arcus to start. In the mean time, please make sure you configure your DNS accordingly:"

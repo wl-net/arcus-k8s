@@ -43,6 +43,11 @@ spec:
             configMapKeyRef:
               key: KAFKAOPS_REPLICATION
               name: arcus-config
+        - name: ADVERTISED_HSTN
+          valueFrom:
+            configMapKeyRef:
+              key: ADVERTISED_HSTN
+              name: arcus-config
         image: gcr.io/arcus-238802/eyeris/kafka:latest
         imagePullPolicy: IfNotPresent
         name: kafka-sha256
