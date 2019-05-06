@@ -10,8 +10,11 @@ resources:
 - deployments/subsystem-service.yml
 - deployments/ui-server.yml
 - deployments/zookeeper.yml
+- deployments/hub-bridge.yml
+- deployments/driver-services.yml
 - service/cassandra.yml
 - service/client-bridge.yml
+- service/hub-bridge.yml
 - service/kafka.yml
 - service/ui-service.yml
 - service/ui-service-ingress.yml
