@@ -1,0 +1,101 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: driver-services
+  name: driver-services
+  namespace: default
+spec:
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: driver-services
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: driver-services
+    spec:
+      containers:
+      - env:
+        - name: BILLING_URL
+          valueFrom:
+            configMapKeyRef:
+              key: BILLING_URL
+              name: arcus-config
+        - name: BILLING_API_KEY
+          valueFrom:
+            secretKeyRef:
+              key: billing.api.key
+              name: shared
+        - name: IRIS_AES_SECRET
+          valueFrom:
+            secretKeyRef:
+              key: iris.aes.secret
+              name: shared
+        - name: IRIS_AES_IV
+          valueFrom:
+            secretKeyRef:
+              key: iris.aes.iv
+              name: shared
+        - name: QUESTIONS_AES_SECRET
+          valueFrom:
+            secretKeyRef:
+              key: questions.aes.secret
+              name: shared
+        - name: cassandra_contactPoints
+          valueFrom:
+            configMapKeyRef:
+              key: CASSANDRA_CONTACTPOINTS
+              name: arcus-config
+        - name: cassandra_history_contactPoints
+          valueFrom:
+            configMapKeyRef:
+              key: CASSANDRA_CONTACTPOINTS
+              name: arcus-config
+        - name: CASSANDRA_KEYSPACE
+          valueFrom:
+            configMapKeyRef:
+              key: CASSANDRA_KEYSPACE
+              name: arcus-config
+        - name: BOOTSTRAP_SERVERS
+          valueFrom:
+            configMapKeyRef:
+              key: BOOTSTRAP_SERVERS
+              name: arcus-config
+              name: arcus-config
+        - name: OPS_BOOTSTRAP_SERVERS
+          valueFrom:
+            configMapKeyRef:
+              key: OPS_BOOTSTRAP_SERVERS
+              name: arcus-config
+        - name: REDIRECT_BASE_URL
+          valueFrom:
+            configMapKeyRef:
+              key: REDIRECT_BASE_URL
+              name: arcus-config              
+        image: gcr.io/arcus-238802/eyeris/driver-services:2018.10.2
+        imagePullPolicy: Always
+        name: driver-services-sha256
+        resources:
+          limits:
+            cpu: "1"
+          requests:
+            cpu: "0.1"
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        livenessProbe:
+          tcpSocket:
+            port: 9000
+          initialDelaySeconds: 3
+          periodSeconds: 300
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
