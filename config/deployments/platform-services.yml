@@ -54,6 +54,16 @@ spec:
             secretKeyRef:
               key: questions.aes.secret
               name: shared
+        - name: SMARTYSTREETS_AUTHID
+          valueFrom:
+            secretKeyRef:
+              key: smartystreets.authid
+              name: shared
+        - name: SMARTYSTREETS_AUTHTOKEN
+          valueFrom:
+            secretKeyRef:
+              key: smartystreets.authtoken
+              name: shared
         - name: cassandra_contactPoints
           valueFrom:
             configMapKeyRef:
