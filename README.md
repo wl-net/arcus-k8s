@@ -47,10 +47,12 @@ This shows that 172.16.6.0 is the IP address of the ui-service and client-bridge
 
 It's beyond the scope of this document to describe how to configure your network, but at a high level you will need to forward traffic to these ports (e.g. port forwarding)
 
+Example (note, you must replace GATEWAY_IP accordingly):
+
 ```
-iptables -t nat -A PREROUTING -p tcp -d 174.127.228.138 --dport 8082 -j DNAT --to-destination 172.16.6.1:8082
-iptables -t nat -A PREROUTING -p tcp -d 174.127.228.138 --dport 443 -j DNAT --to-destination 172.16.6.0:443
-iptables -t nat -A PREROUTING -p tcp -d 174.127.228.138 --dport 8- -j DNAT --to-destination 172.16.6.0:80
+iptables -t nat -A PREROUTING -p tcp -d GATEWAY_IP --dport 8082 -j DNAT --to-destination 172.16.6.1:8082
+iptables -t nat -A PREROUTING -p tcp -d GATEWAY_IP --dport 443 -j DNAT --to-destination 172.16.6.0:443
+iptables -t nat -A PREROUTING -p tcp -d GATEWAY_IP --dport 8- -j DNAT --to-destination 172.16.6.0:80
 iptables -t nat -A POSTROUTING -o eth1 -j MASQUERADE # replace with whatever has the 172.16.6.0 subnet
 iptables -P FORWARD ACCEPT
 sysctl -w net.ipv4.ip_forward=1
