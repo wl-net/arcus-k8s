@@ -24,7 +24,7 @@ spec:
         app: zookeeper
     spec:
       containers:
-      - image: gcr.io/arcus-238802/eyeris/zookeeper@sha256:643166c8c2bf7c0023af08aa6674292176f932c623966d102abf320c9bb5c2b1
+      - image: gcr.io/arcus-238802/eyeris/zookeeper:latest
         imagePullPolicy: IfNotPresent
         name: zookeeper-sha256
         resources:
