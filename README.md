@@ -62,6 +62,23 @@ Or configure something similar in your router.
 
 For cloud hosting, this is very similar, but you can use the 127.0.0.1/24 subnet instead, e.g. 172.0.0.5-127.0.10
 
+## Using a production certificate
+
+Once your network is setup, and you are able to access Arcus (and get a certificate warning from the untrusted LetsEncrypt Staging CA), then it's time to setup a production certificate. Currently, this is done by making changes to config/service/ui-service-ingress.yml:
+
+1. Search for the line `certmanager.k8s.io/cluster-issuer: "letsencrypt-staging"` and change "staging" to "production"
+2. Change secretName from nginx-staging-tls to nginx-production-tls
+
+Now apply the configuration (either re-run setup-local, or just `microk8s.kubectl apply -f config/service/ui-service-ingress.yml`) and wait a few minutes. You should no longer see a certificate warning when navigating to the site.
+
+You can use `microk8s.kubectl -n cert-manager logs $(/snap/bin/microk8s.kubectl get pod -n cert-manager | grep cert-manager- | awk '{print $1}' | grep -v cainject | grep -v webhook) -f` to view the logs for cert-manager if you don't get a certificate.
+
+## Setting up the Hub Trust Store
+
+Unfortunately, the hub-bridge doesn't work out of the box because it expects a Java Key Store, something we can't provide with cert-manager. The wlnet fork of arcusplatform currently has added features to support PKCS#8 keys as well (via netty's internal support for PKCS#8), but the private key that cert-manager generates is in PKCS#1 format. As a result, you'll have to manually convert the private key to PKCS#1.
+
+This can be acomplished by running `./setup-hubkeystore.sh` once you have production certificates (see above).
+
 ## Viewing pod status
 
 `microk8s.kubectl describe pod $POD`
