@@ -167,7 +167,7 @@ spec:
 
         image: gcr.io/arcus-238802/eyeris/client-bridge:2018.10.2
         imagePullPolicy: Always
-        name: client-bridge-sha256
+        name: client-bridge
         resources: {}
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
