@@ -34,12 +34,23 @@ spec:
               name: arcus-config
         image: gcr.io/arcus-238802/eyeris/cassandra:latest
         imagePullPolicy: Always
-        name: cassandra-sha256
+        name: cassandra
         resources:
           limits:
             cpu: "1"
           requests:
             cpu: "0.1"
+        ports:
+        - containerPort: 7000
+          name: tcp-7000
+        - containerPort: 7001
+          name: tcp-7001
+        - containerPort: 7199
+          name: tcp-7199
+        - containerPort: 9042
+          name: tcp-9042
+        - containerPort: 9160
+          name: tcp-9160
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
         volumeMounts:
