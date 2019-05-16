@@ -12,6 +12,8 @@ resources:
 - deployments/zookeeper.yml
 - deployments/hub-bridge.yml
 - deployments/driver-services.yml
+- destinationrules/zookeeper.yml
+- destinationrules/cassandra.yml
 - service/cassandra.yml
 - service/client-bridge.yml
 - service/hub-bridge.yml
