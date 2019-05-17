@@ -72,6 +72,7 @@ retry 6 check_k8
 
 retry 15 /snap/bin/microk8s.enable dns
 /snap/bin/microk8s.enable storage
+/snap/bin/microk8s.enable istio
 /snap/bin/microk8s.kubectl apply -f https://raw.githubusercontent.com/google/metallb/v0.7.3/manifests/metallb.yaml
 /snap/bin/microk8s.kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/mandatory.yaml
 /snap/bin/microk8s.kubectl apply -f https://raw.githubusercontent.com/jetstack/cert-manager/release-0.7/deploy/manifests/cert-manager.yaml --validate=false
