@@ -30,4 +30,3 @@ spec:
   selector:
     app: cassandra
   sessionAffinity: None
-
