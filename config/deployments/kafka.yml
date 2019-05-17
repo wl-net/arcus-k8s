@@ -48,6 +48,8 @@ spec:
             configMapKeyRef:
               key: ADVERTISED_HSTN
               name: arcus-config
+        - name: LISTENERS
+          value: PLAINTEXT://localhost:9092
         ports:
         - containerPort: 9092
           name: tcp-9092

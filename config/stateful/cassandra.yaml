@@ -32,6 +32,8 @@ spec:
             configMapKeyRef:
               key: CASSANDRA_SINGLE_NODE
               name: arcus-config
+        - name: CASSANDRA_LISTEN_ADDRESS
+          value: localhost
         image: gcr.io/arcus-238802/eyeris/cassandra:latest
         imagePullPolicy: Always
         name: cassandra

@@ -32,6 +32,9 @@ spec:
             cpu: "1"
           requests:
             cpu: "0.1"
+        env:
+        - name: CLIENT_PORT_ADDRESS
+          value: 127.0.0.1
         ports:
         - containerPort: 2181
           name: tcp-2181
