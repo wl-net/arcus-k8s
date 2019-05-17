@@ -64,8 +64,6 @@ fi
 cp localk8/metallb.yml overlays/local-production-local/metallb.yml
 sed -i "s!PLACEHOLDER_1!$ARCUS_SUBNET!" overlays/local-production-local/metallb.yml
 
-/snap/bin/microk8s.kubectl apply -f overlays/local-production-local/metallb.yml
-
 function check_k8 {
   echo > /dev/tcp/localhost/16443 >/dev/null 2>&1
 }
@@ -78,6 +76,7 @@ retry 15 /snap/bin/microk8s.enable dns
 /snap/bin/microk8s.kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/mandatory.yaml
 /snap/bin/microk8s.kubectl apply -f https://raw.githubusercontent.com/jetstack/cert-manager/release-0.7/deploy/manifests/cert-manager.yaml --validate=false
 
+/snap/bin/microk8s.kubectl apply -f overlays/local-production-local/metallb.yml
 /snap/bin/microk8s.kubectl apply -f localk8/cloud-generic.yaml
 
 mkdir -p secret
