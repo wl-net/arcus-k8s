@@ -9,7 +9,10 @@ KUBE_EDITOR=cat microk8s.kubectl edit secret nginx-production-tls 2>/dev/null | 
 openssl pkcs8 -in converted/orig.key -topk8 -nocrypt -out converted/tls.key
 rm converted/orig.key
 
+set +e
 microk8s.kubectl delete secret hub-keystore
+microk8s.kubectl create secret generic truststore --from-file irisbylowes/truststore.jks
+set -e
 microk8s.kubectl create secret tls hub-keystore --cert converted/tls.crt --key converted/tls.key 
 
 rm -rf converted
