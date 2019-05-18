@@ -27,5 +27,6 @@ resources:
 - stateful/cassandra.yaml
 - jobs/modelmanager-history.yml
 - jobs/modelmanager-platform.yml
+- istio/smartystreets.yml
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
