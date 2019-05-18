@@ -81,7 +81,7 @@ spec:
               name: arcus-config              
         image: gcr.io/arcus-238802/eyeris/driver-services:2018.10.2
         imagePullPolicy: Always
-        name: driver-services-sha256
+        name: driver-services
         resources:
           limits:
             cpu: "1"

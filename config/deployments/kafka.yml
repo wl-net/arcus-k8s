@@ -55,7 +55,7 @@ spec:
           name: tcp-9092
         image: gcr.io/arcus-238802/eyeris/kafka:latest
         imagePullPolicy: IfNotPresent
-        name: kafka-sha256
+        name: kafka
         resources:
           limits:
             cpu: "1"
