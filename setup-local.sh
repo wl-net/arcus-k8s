@@ -152,7 +152,10 @@ kafka_id=$(/snap/bin/microk8s.kubectl get pod | grep kafka- | awk '{print $1}')
 retry 10 /snap/bin/microk8s.kubectl exec $kafka_id --stdin --tty -- '/bin/sh' '-c' 'KAFKA_REPLICATION=1 KAFKAOPS_REPLICATION=1 kafka-cmd setup'
 
 IPADDRESS=$(/snap/bin/microk8s.kubectl describe service -n ingress-nginx | grep 'LoadBalancer Ingress:' | awk '{print $3}')
+HUB_IPADDRESS=$(/snap/bin/microk8s.kubectl describe service hub-bridge-service | grep 'LoadBalancer Ingress:' | awk '{print $3}')
+
 echo "Done with setup. Please wait a few more minutes for Arcus to start. In the mean time, please make sure you configure your DNS accordingly:"
 echo "If these IP addresses are private, you are responsible for setting up port forwarding"
 echo "${ARCUS_DOMAIN_NAME}:80 $IPADDRESS:80"
 echo "${ARCUS_DOMAIN_NAME}:443 $IPADDRESS:443"
+echo "${ARCUS_DOMAIN_NAME}:8082 $HUB_IPADDRESS:8082"
