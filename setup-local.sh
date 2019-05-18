@@ -140,6 +140,7 @@ set +e
 /snap/bin/microk8s.kubectl create secret generic shared --from-file secret/
 set -e
 
+/snap/bin/microk8s.kubectl label namespace default istio-injection=enabled --overwrite
 function apply {
   ./kustomize build overlays/local-production-local/ | /snap/bin/microk8s.kubectl apply -f -
 }
