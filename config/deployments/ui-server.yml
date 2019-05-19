@@ -23,7 +23,7 @@ spec:
       containers:
       - image: gcr.io/arcus-238802/eyeris/ui-server:latest
         imagePullPolicy: Always
-        name: ui-server-sha256
+        name: ui-server
         resources: {}
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File

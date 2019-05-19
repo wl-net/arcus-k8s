@@ -184,7 +184,7 @@ spec:
           readOnly: true
         image: gcr.io/arcus-238802/eyeris/hub-bridge:2018.10.2
         imagePullPolicy: Always
-        name: hub-bridge-sha256
+        name: hub-bridge
         resources: {}
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File

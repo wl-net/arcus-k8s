@@ -76,7 +76,7 @@ spec:
               name: arcus-config
         image: gcr.io/arcus-238802/eyeris/rule-service:2018.10.2
         imagePullPolicy: Always
-        name: rule-service-sha256
+        name: rule-service
         resources: {}
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File

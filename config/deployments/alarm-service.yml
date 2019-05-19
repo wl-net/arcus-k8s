@@ -76,7 +76,7 @@ spec:
               name: arcus-config
         image: gcr.io/arcus-238802/eyeris/alarm-service:2018.10.2
         imagePullPolicy: Always
-        name: alarm-service-sha256
+        name: alarm-service
         resources:
           limits:
             cpu: "1"
