@@ -87,8 +87,8 @@ spec:
         livenessProbe:
           tcpSocket:
             port: 9008
-          initialDelaySeconds: 3
-          periodSeconds: 3
+          initialDelaySeconds: 15
+          periodSeconds: 15
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
