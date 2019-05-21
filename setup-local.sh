@@ -1,6 +1,10 @@
 #!/bin/bash
 set -euo pipefail
 
+SCRIPT_PATH="$0"
+SCRIPT_DIR=$(dirname ${SCRIPT_PATH})
+. "${SCRIPT_DIR}/script/common.sh"
+
 echo "Installing snap..."
 sudo snap install microk8s --classic
 
