@@ -3,6 +3,7 @@ kind: Service
 metadata:
   labels:
     app: zookeeper
+    service: zookeeper
   name: zookeeper-service
 spec:
   ports:
