@@ -5,7 +5,7 @@ SCRIPT_PATH="$0"
 SCRIPT_DIR=$(dirname ${SCRIPT_PATH})
 . "${SCRIPT_DIR}/script/common.sh"
 
-KUBECTL=/snap/bin/microk8s.kubectl
+KUBECTL=kubectl
 
 if [[ ! -e kustomize ]]; then
   . kustomize-install.sh
@@ -17,6 +17,10 @@ $KUBECTL apply -f https://raw.githubusercontent.com/jetstack/cert-manager/releas
 . "${SCRIPT_DIR}/script/shared-config.sh"
 
 . "${SCRIPT_DIR}/script/shared-secret.sh"
+
+. "${SCRIPT_DIR}/script/gcloud.sh" # exclusively on google cloud
+
+#enable_istio
 
 $KUBECTL label namespace default istio-injection=enabled --overwrite
 function apply {

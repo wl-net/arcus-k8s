@@ -55,3 +55,7 @@ if [[ ! -e secret/smartystreets.authtoken ]]; then
   echo -n "$authtoken" > secret/smartystreets.authtoken
 fi
 
+set +e
+$KUBECTL create secret generic shared --from-file secret/
+set -e
+
