@@ -24,14 +24,20 @@ spec:
         app: zookeeper
     spec:
       containers:
-      - image: gcr.io/arcus-238802/eyeris/zookeeper@sha256:643166c8c2bf7c0023af08aa6674292176f932c623966d102abf320c9bb5c2b1
-        imagePullPolicy: IfNotPresent
-        name: zookeeper-sha256
+      - image: gcr.io/arcus-238802/eyeris/zookeeper:latest
+        imagePullPolicy: Always
+        name: zookeeper
         resources:
           limits:
             cpu: "1"
           requests:
             cpu: "0.1"
+        env:
+        - name: CLIENT_PORT_ADDRESS
+          value: 127.0.0.1
+        ports:
+        - containerPort: 2181
+          name: tcp-2181
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
       dnsPolicy: ClusterFirst

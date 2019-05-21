@@ -2,15 +2,15 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   labels:
-    app: history-service
-  name: history-service
+    app: driver-services
+  name: driver-services
   namespace: default
 spec:
   replicas: 1
   revisionHistoryLimit: 10
   selector:
     matchLabels:
-      app: history-service
+      app: driver-services
   strategy:
     rollingUpdate:
       maxSurge: 1
@@ -19,7 +19,7 @@ spec:
   template:
     metadata:
       labels:
-        app: history-service
+        app: driver-services
     spec:
       containers:
       - env:
@@ -74,9 +74,14 @@ spec:
             configMapKeyRef:
               key: OPS_BOOTSTRAP_SERVERS
               name: arcus-config
-        image: gcr.io/arcus-238802/eyeris/history-service:2018.10.2
+        - name: REDIRECT_BASE_URL
+          valueFrom:
+            configMapKeyRef:
+              key: REDIRECT_BASE_URL
+              name: arcus-config              
+        image: gcr.io/arcus-238802/eyeris/driver-services:2018.10.2
         imagePullPolicy: Always
-        name: history-service
+        name: driver-services
         resources:
           limits:
             cpu: "1"
@@ -86,8 +91,8 @@ spec:
         terminationMessagePolicy: File
         livenessProbe:
           tcpSocket:
-            port: 9001
-          initialDelaySeconds: 15
+            port: 9000
+          initialDelaySeconds: 60
           periodSeconds: 15
       dnsPolicy: ClusterFirst
       restartPolicy: Always

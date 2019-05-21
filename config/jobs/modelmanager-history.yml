@@ -37,7 +37,7 @@ spec:
         imagePullPolicy: Always
         command: ["/modelmanager-2018.10.2/bin/modelmanager"]
         args: ["-c", "/modelmanager-2018.10.2/conf/arcus-modelmanager.properties"]
-        name: modelmanager-history-sha256
+        name: modelmanager-history
         resources: {}
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File

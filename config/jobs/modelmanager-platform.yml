@@ -39,7 +39,7 @@ spec:
         imagePullPolicy: Always
         command: ["/modelmanager-2018.10.2/bin/modelmanager"]
         args: ["-c", "/modelmanager-2018.10.2/conf/arcus-modelmanager.properties", "-P", "production"]
-        name: modelmanager-platform-sha256
+        name: modelmanager-platform
         resources: {}
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File

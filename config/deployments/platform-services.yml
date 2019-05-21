@@ -54,6 +54,16 @@ spec:
             secretKeyRef:
               key: questions.aes.secret
               name: shared
+        - name: SMARTYSTREETS_AUTHID
+          valueFrom:
+            secretKeyRef:
+              key: smartystreets.authid
+              name: shared
+        - name: SMARTYSTREETS_AUTHTOKEN
+          valueFrom:
+            secretKeyRef:
+              key: smartystreets.authtoken
+              name: shared
         - name: cassandra_contactPoints
           valueFrom:
             configMapKeyRef:
@@ -92,7 +102,7 @@ spec:
               name: arcus-config
         image: gcr.io/arcus-238802/eyeris/platform-services:2018.10.2
         imagePullPolicy: Always
-        name: platform-services-sha256
+        name: platform-services
         resources: {}
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
