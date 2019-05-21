@@ -3,7 +3,7 @@ kind: Service
 metadata:
   labels:
     app: cassandra
-    service: cassandra
+    service: cassandra-service
   name: cassandra-service
 spec:
   ports:
