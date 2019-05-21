@@ -2,7 +2,7 @@ apiVersion: networking.istio.io/v1alpha3
 kind: DestinationRule
 metadata:
   name: cassandra
-  namesace: default
+  namespace: default
 spec:
   host: cassandra-service.default.svc.cluster.local
   trafficPolicy:

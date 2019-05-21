@@ -2,7 +2,7 @@ apiVersion: networking.istio.io/v1alpha3
 kind: DestinationRule
 metadata:
   name: zookeeper
-  namesace: default
+  namespace: default
 spec:
   host: zookeeper-service.default.svc.cluster.local
   trafficPolicy:
