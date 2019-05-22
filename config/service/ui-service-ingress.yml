@@ -7,14 +7,14 @@ metadata:
     certmanager.k8s.io/cluster-issuer: "letsencrypt-staging"
 spec:
   rules:
-  - host: dev.arcus.wl-net.net
+  - host: arcussmarthome.com
     http:
       paths:
       - path: /
         backend:
           serviceName: ui-server-service
           servicePort: 8096
-  - host: client.dev.arcus.wl-net.net
+  - host: client.arcussmarthome.com
     http:
       paths:
       - path: /
@@ -24,7 +24,7 @@ spec:
   tls:
   - secretName: nginx-staging-tls
     hosts:
-    - dev.arcus.wl-net.net
-    - client.dev.arcus.wl-net.net
-    - hub.dev.arcus.wl-net.net
+    - arcussmarthome.com
+    - client.arcussmarthome.com
+    - hub.arcussmarthome.com
 
