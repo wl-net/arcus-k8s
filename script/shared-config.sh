@@ -16,3 +16,6 @@ if [ "$ARCUS_DOMAIN_NAME" = "example.com" ]; then
 fi
 cp config/shared-config/config.yml overlays/local-production-local/shared-config.yaml
 sed -i "s/arcussmarthome.com/$ARCUS_DOMAIN_NAME/" overlays/local-production-local/shared-config.yaml
+
+cp config/service/ui-service-ingress.yml overlays/local-production-local/ui-service-ingress.yml
+sed -i "s/arcussmarthome.com/$ARCUS_DOMAIN_NAME/" overlays/local-production-local/ui-service-ingress.yml

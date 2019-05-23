@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   labels:
-    app: cassandra
+    app: cassandra-service
     service: cassandra-service
   name: cassandra-service
 spec:
