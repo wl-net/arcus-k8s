@@ -35,6 +35,11 @@ spec:
             configMapKeyRef:
               key: OPS_BOOTSTRAP_SERVERS
               name: arcus-config
+        - name: PARTITION_COUNT
+          valueFrom:
+            configMapKeyRef:
+              key: PARTITION_COUNT
+              name: arcus-config
         image: gcr.io/arcus-238802/eyeris/modelmanager:2018.10.2
         imagePullPolicy: Always
         command: ["/modelmanager-2018.10.2/bin/modelmanager"]
