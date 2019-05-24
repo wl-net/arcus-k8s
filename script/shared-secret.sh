@@ -55,6 +55,30 @@ if [[ ! -e secret/smartystreets.authtoken ]]; then
   echo -n "$authtoken" > secret/smartystreets.authtoken
 fi
 
+echo "Arcus requires a sendgrid API key for email notifications"
+
+if [[ ! -e secret/email.provider.apikey ]]; then
+  prompt apikey "Please enter your sendgrid API key:"
+  echo -n "$apikey" > secret/email.provider.apikey
+fi
+
+echo "Arcus requires Twilio to make phone calls"
+
+if [[ ! -e secret/twilio.account.auth ]]; then
+  prompt apikey "Please enter your twilio auth:"
+  echo -n "$apikey" > secret/twilio.account.auth
+fi
+
+if [[ ! -e secret/twilio.account.sid ]]; then
+  prompt apikey "Please enter your twilio sid:"
+  echo -n "$apikey" > secret/twilio.account.sid
+fi
+
+if [[ ! -e secret/twilio.account.from ]]; then
+  prompt apikey "Please enter your twilio phone number:"
+  echo -n "$apikey" > secret/twilio.account.from
+fi
+
 set +e
 $KUBECTL create secret generic shared --from-file secret/
 set -e

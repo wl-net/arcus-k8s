@@ -33,6 +33,13 @@ data:
   ARCUS_WS_URI: wss://client.arcussmarthome.com
   ARCUS_HTTP_URI: https://client.arcussmarthome.com
   CORS_ORIGINS: https://arcussmarthome.com
+  PARTITION_COUNT: "128"
+  EMAIL_SENDEREMAIL: arcus@arcussmarthome.com
+  EMAIL_REPLYTO: arcus@arcussmarthome.com
+  WEBHOME_BASE_URL: https://arcussmarthome.com
+  NOTIFICATIONSERVICE_SENDER_APNS: noop
+  NOTIFICATIONSERVICE_SENDER_GCM: noop
+  TWILIO_CALLBACK_SERVERURL: https://arcussmarthome.com
 kind: ConfigMap
 metadata:
   annotations:
