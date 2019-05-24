@@ -3,7 +3,6 @@ resources:
 - deployments/alarm-service.yml
 - deployments/client-bridge.yml
 - deployments/history-service.yml
-- deployments/kafka.yml
 - deployments/platform-services.yml
 - deployments/rule-service.yml
 - deployments/scheduler-service.yml
@@ -25,6 +24,7 @@ resources:
 - certprovider/letsencrypt-staging.yml
 - shared-config/config.yml
 - stateful/cassandra.yaml
+- stateful/kafka.yaml
 - jobs/modelmanager-history.yml
 - jobs/modelmanager-platform.yml
 - istio/smartystreets.yml
