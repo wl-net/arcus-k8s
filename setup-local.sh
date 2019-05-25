@@ -35,7 +35,7 @@ retry 15 /snap/bin/microk8s.enable dns
 /snap/bin/microk8s.enable storage
 /snap/bin/microk8s.enable istio
 $KUBECTL apply -f https://raw.githubusercontent.com/google/metallb/v0.7.3/manifests/metallb.yaml
-$KUBECTL apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/mandatory.yaml
+$KUBECTL apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/ce418168f4f20a16a8622f17f756b578c1418d29/deploy/mandatory.yaml
 $KUBECTL apply -f https://raw.githubusercontent.com/jetstack/cert-manager/release-0.7/deploy/manifests/cert-manager.yaml --validate=false
 
 $KUBECTL apply -f overlays/local-production-local/metallb.yml
