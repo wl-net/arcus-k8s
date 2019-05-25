@@ -81,9 +81,18 @@ This can be acomplished by running `./setup-hubkeystore.sh` once you have produc
 
 ## Viewing pod status
 
-`microk8s.kubectl describe pod $POD`
+`T describe pod $POD`
 
 where $POD is something like "alarm-service"
+
+## Troubleshooting
+
+TIP: you may want to create an alias so that kubectl works, e.g. `alias kubectl=microk8s.kubectl`. It is recommended that you read through https://kubernetes.io/docs/reference/kubectl/cheatsheet/
+
+### View pod log
+
+`kubectl log kafka-0 kafka`
+`kubectl log casandra-0 casandra`
 
 ## Adjusting configuration
 
