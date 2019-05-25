@@ -1,10 +1,10 @@
 apiVersion: networking.istio.io/v1alpha3
 kind: ServiceEntry
 metadata:
-  name: smartystreets
+  name: sendgrid
 spec:
   hosts:
-  - us-street.api.smartystreets.com
+  - api.sendgrid.com
   ports:
   - number: 443
     name: https
