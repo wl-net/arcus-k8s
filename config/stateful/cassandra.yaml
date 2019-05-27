@@ -29,6 +29,8 @@ spec:
                 operator: DoesNotExist
       containers:
       - env:
+        - name: JVM_OPTS
+          value: "-Djava.rmi.server.hostname=localhost"
         - name: MAX_HEAP_SIZE
           value: 512M
         - name: HEAP_NEWSIZE
@@ -53,6 +55,7 @@ spec:
             cpu: "1"
           requests:
             cpu: "0.1"
+            memory: "512Mi"
         ports:
         - containerPort: 7000
           name: tcp-7000
