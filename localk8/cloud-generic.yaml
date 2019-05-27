@@ -19,4 +19,7 @@ spec:
     - name: https
       port: 443
       targetPort: https
-
+    - name: hub-https
+      port: 8082
+      targetPort: 8082
+      protocol: TCP
