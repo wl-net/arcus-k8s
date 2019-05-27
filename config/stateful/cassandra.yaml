@@ -20,6 +20,13 @@ spec:
       labels:
         app: cassandra
     spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: cloud.google.com/gke-preemptible
+                operator: DoesNotExist
       containers:
       - env:
         - name: CASSANDRA_HOST1
