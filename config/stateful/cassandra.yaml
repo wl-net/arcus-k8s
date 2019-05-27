@@ -29,6 +29,10 @@ spec:
                 operator: DoesNotExist
       containers:
       - env:
+        - name: MAX_HEAP_SIZE
+          value: 512M
+        - name: HEAP_NEWSIZE
+          value: 512M
         - name: CASSANDRA_HOST1
           valueFrom:
             configMapKeyRef:
