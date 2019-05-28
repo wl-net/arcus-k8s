@@ -1,6 +1,6 @@
 #!/bin/bash
 
-
+KUBECTL=${KUBECTL:-kubectl}
 
 $KUBECTL cp $1 cassandra-0:/data/"cassandra-restore.tar.gz"
 $KUBECTL exec --stdin --tty cassandra-0 /bin/mv /data/cassandra /data/cassandra-old

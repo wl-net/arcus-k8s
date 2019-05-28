@@ -1,5 +1,7 @@
 #!/bin/bash
 
+KUBECTL=${KUBECTL:-kubectl}
+
 DATE=$(date '+%Y-%m-%d_%H-%M-%S')
 
 $KUBECTL exec --stdin --tty cassandra-0 /bin/tar zcvf "/data/cassandra-${DATE}.tar.gz" cassandra
