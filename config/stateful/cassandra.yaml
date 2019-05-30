@@ -47,7 +47,7 @@ spec:
               name: arcus-config
         - name: CASSANDRA_LISTEN_ADDRESS
           value: localhost
-        image: gcr.io/arcus-238802/eyeris/cassandra:latest
+        image: gcr.io/arcus-238802/eyeris/cassandra@sha256:3ffd8977a17c432679a6d98cbb6356a603122c37beb369193b33ce4e0c15826d
         imagePullPolicy: Always
         name: cassandra
         resources:

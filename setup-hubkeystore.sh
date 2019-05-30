@@ -1,6 +1,8 @@
 #!/bin/bash
 set -eu
 
+KUBECTL=${KUBECTL:-kubectl}
+
 echo "Creating hub-keystore..."
 mkdir -p converted
 KUBE_EDITOR=cat $KUBECTL edit secret nginx-production-tls 2>/dev/null | grep tls.key | awk '{print $2}' | base64 -d > converted/orig.key
