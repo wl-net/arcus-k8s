@@ -23,6 +23,8 @@ spec:
     spec:
       containers:
       - env:
+        - name: JAVA_OPTS
+          value: "-Xms64m"
         - name: BILLING_URL
           valueFrom:
             configMapKeyRef:
@@ -188,6 +190,11 @@ spec:
         resources: {}
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
+        livenessProbe:
+          tcpSocket:
+            port: 9082
+          initialDelaySeconds: 15
+          periodSeconds: 15
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
