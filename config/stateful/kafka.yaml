@@ -49,6 +49,8 @@ spec:
               name: arcus-config
         - name: LISTENERS
           value: PLAINTEXT://localhost:9092
+        - name: KAFAOPS_METRICS_LOG_RETENTION_BYTES
+          value: 1073741824
         ports:
         - containerPort: 9092
           name: tcp-9092
