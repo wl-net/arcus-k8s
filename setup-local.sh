@@ -23,7 +23,6 @@ if [ "$ARCUS_SUBNET" = "unconfigured" ]; then
   echo "Examples: 192.168.1.200/29, 192.168.1.200-192.168.1.207"
   prompt ARCUS_SUBNET "Please enter your subnet for Arcus services to be exposed on (or set ARCUS_SUBNET): "
 fi
-mkdir overlays/local-production-local
 
 cp localk8/metallb.yml overlays/local-production-local/metallb.yml
 sed -i "s!PLACEHOLDER_1!$ARCUS_SUBNET!" overlays/local-production-local/metallb.yml
