@@ -6,7 +6,7 @@ if [ "$ARCUS_ADMIN_EMAIL" = "me@example.com" ]; then
   prompt ARCUS_ADMIN_EMAIL "Please enter your admin email address (or set ARCUS_ADMIN_EMAIL): "
 fi
 
-mkdir overlays/local-production-local
+mkdir -p overlays/local-production-local
 cp -r overlays/local-production/* overlays/local-production-local
 sed -i "s/me@example.com/$ARCUS_ADMIN_EMAIL/" overlays/local-production-local/cert-provider.yaml
 
