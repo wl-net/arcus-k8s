@@ -118,7 +118,7 @@ spec:
         - name: NOTIFICATIONSERVICE_SENDER_APNS
           valueFrom:
             configMapKeyRef:
-              key: NOTIFICATIONSERVICE_SENDER_GCM
+              key: NOTIFICATIONSERVICE_SENDER_APNS
               name: arcus-config
         - name: NOTIFICATIONSERVICE_SENDER_GCM
           valueFrom:
@@ -147,6 +147,13 @@ spec:
               name: shared
         - name: TWITTER_UNAME
           value: IrisByLowes
+        - name: APNS_PKCS12_PATH
+          value: /data/secrets/apns.pfx
+        - name: APNS_PKCS12_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: apns.pkcs12.password
+              name: shared
         image: gcr.io/arcus-238802/eyeris/notification-services:2018.10.2
         imagePullPolicy: Always
         name: notification-services
@@ -155,6 +162,9 @@ spec:
             cpu: "1"
           requests:
             cpu: "0.05"
+        volumeMounts:
+        - name: data-secrets
+          mountPath: "/data/secrets"
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
         livenessProbe:
@@ -167,3 +177,10 @@ spec:
       schedulerName: default-scheduler
       securityContext: {}
       terminationGracePeriodSeconds: 30
+      volumes:
+      - name: data-secrets
+        secret:
+          secretName: shared
+          items:
+          - key: apns.pfx
+            path: apns.pfx

@@ -41,6 +41,12 @@ if [[ ! -e secret/tls.server.truststore.password ]]; then
   echo -n "8EFJhxm7aRs2hmmKwVuM9RPSwhNCtMpC" > secret/tls.server.truststore.password
 fi
 
+if [[ ! -e secret/apns.pkcs12.password ]]; then
+  echo "Using *KNOWN DEFAULT* secret for apns.pkcs12.password"
+  # note: the utility of truststore and keystore passwords is quesitonable.
+  echo -n "8EFJhxm7aRs2hmmKwVuM9RPSwhNCtMpC" > secret/apns.pkcs12.password
+fi
+
 echo "Arcus requires a verified address. In order to verify your address, you will need to create an account on https://smartystreets.com/"
 echo "Please go and create an account now, as you will be required to provide some details"
 echo "Make sure to create secret keys, since these credentials will only be used on the Arcus server, and never exposed to users"
