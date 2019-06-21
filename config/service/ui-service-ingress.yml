@@ -14,16 +14,17 @@ spec:
         backend:
           serviceName: ui-server-service
           servicePort: 8096
+      - path: /ivr
+        backend:
+          serviceName: ivr-callback-server-service
+          servicePort: 80
+
   - host: client.arcussmarthome.com
     http:
       paths:
       - path: /
         backend:
           serviceName: client-bridge-service
-          servicePort: 80
-      - path: /ivr
-        backend:
-          serviceName: ivr-callback-server-service
           servicePort: 80
   tls:
   - secretName: nginx-staging-tls
