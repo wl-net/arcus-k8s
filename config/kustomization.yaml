@@ -28,6 +28,7 @@ resources:
 - stateful/kafka.yaml
 - jobs/modelmanager-history.yml
 - jobs/modelmanager-platform.yml
+- jobs/modelmanager-video.yml
 - istio/smartystreets.yml
 - istio/twilio.yml
 - istio/sendgrid.yml
