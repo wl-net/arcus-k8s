@@ -40,6 +40,7 @@ data:
   NOTIFICATIONSERVICE_SENDER_APNS: noop
   NOTIFICATIONSERVICE_SENDER_GCM: noop
   TWILIO_CALLBACK_SERVERURL: https://arcussmarthome.com
+  TWILIO_CALLBACK_HOST: arcussmarthome.com
 kind: ConfigMap
 metadata:
   annotations:

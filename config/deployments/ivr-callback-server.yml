@@ -1,0 +1,118 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: ivr-callback-server
+  name: ivr-callback-server
+  namespace: default
+spec:
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: ivr-callback-server
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: ivr-callback-server
+    spec:
+      containers:
+      - env:
+        - name: JAVA_OPTS
+          value: "-Xms128m"
+        - name: BILLING_URL
+          valueFrom:
+            configMapKeyRef:
+              key: BILLING_URL
+              name: arcus-config
+        - name: BILLING_API_KEY
+          valueFrom:
+            secretKeyRef:
+              key: billing.api.key
+              name: shared
+        - name: IRIS_AES_SECRET
+          valueFrom:
+            secretKeyRef:
+              key: iris.aes.secret
+              name: shared
+        - name: IRIS_AES_IV
+          valueFrom:
+            secretKeyRef:
+              key: iris.aes.iv
+              name: shared
+        - name: QUESTIONS_AES_SECRET
+          valueFrom:
+            secretKeyRef:
+              key: questions.aes.secret
+              name: shared
+        - name: cassandra_contactPoints
+          valueFrom:
+            configMapKeyRef:
+              key: CASSANDRA_CONTACTPOINTS
+              name: arcus-config
+        - name: cassandra_history_contactPoints
+          valueFrom:
+            configMapKeyRef:
+              key: CASSANDRA_CONTACTPOINTS
+              name: arcus-config
+        - name: CASSANDRA_KEYSPACE
+          valueFrom:
+            configMapKeyRef:
+              key: CASSANDRA_KEYSPACE
+              name: arcus-config
+        - name: BOOTSTRAP_SERVERS
+          valueFrom:
+            configMapKeyRef:
+              key: BOOTSTRAP_SERVERS
+              name: arcus-config
+              name: arcus-config
+        - name: OPS_BOOTSTRAP_SERVERS
+          valueFrom:
+            configMapKeyRef:
+              key: OPS_BOOTSTRAP_SERVERS
+              name: arcus-config
+        - name: TLS_SERVER
+          value: "false"
+        - name: USE_SSL
+          value: "false"
+        - name: TWILIO_ACCOUNT_AUTH
+          valueFrom:
+            secretKeyRef:
+              key: twilio.account.auth
+              name: shared
+        - name: TWILIO_ACCOUNT_SID
+          valueFrom:
+            secretKeyRef:
+              key: twilio.account.sid
+              name: shared
+        - name: TWILIO_ACCOUNT_FROM
+          valueFrom:
+            secretKeyRef:
+              key: twilio.account.from
+              name: shared
+        - name: TWILIO_CALLBACK_HOST
+          valueFrom:
+            configMapKeyRef:
+              key: TWILIO_CALLBACK_HOST
+              name: arcus-config
+        image: gcr.io/arcus-238802/eyeris/ivr-callback-server:2018.10.2
+        imagePullPolicy: Always
+        name: ivr-callback-server
+        resources:
+          limits:
+            cpu: "1"
+          requests:
+            cpu: "10m"
+            memory: "128Mi"
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30

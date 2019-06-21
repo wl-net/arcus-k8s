@@ -21,6 +21,10 @@ spec:
         backend:
           serviceName: client-bridge-service
           servicePort: 80
+      - path: /ivr
+        backend:
+          serviceName: ivr-callback-server-service
+          servicePort: 80
   tls:
   - secretName: nginx-staging-tls
     hosts:
