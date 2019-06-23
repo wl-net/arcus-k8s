@@ -35,6 +35,8 @@ spec:
           value: 512M
         - name: HEAP_NEWSIZE
           value: 512M
+        - name: CASSANDRA_COMMITLOG_TOTAL_SPACE_IN_MB
+          value: "512"
         - name: CASSANDRA_HOST1
           valueFrom:
             configMapKeyRef:
