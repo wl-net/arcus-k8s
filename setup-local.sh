@@ -67,4 +67,6 @@ echo "Done with setup. Please wait a few more minutes for Arcus to start. In the
 echo "If these IP addresses are private, you are responsible for setting up port forwarding"
 echo "${ARCUS_DOMAIN_NAME}:80 $IPADDRESS:80"
 echo "${ARCUS_DOMAIN_NAME}:443 $IPADDRESS:443"
-echo "${ARCUS_DOMAIN_NAME}:8082 $HUB_IPADDRESS:8082"
+echo "ipcd.${ARCUS_DOMAIN_NAME}:443 $IPADDRESS:443"
+echo "admin.${ARCUS_DOMAIN_NAME}:443 $IPADDRESS:443"
+echo "hub.${ARCUS_DOMAIN_NAME}:8082 $HUB_IPADDRESS:8082"
