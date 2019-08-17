@@ -37,6 +37,11 @@ spec:
             configMapKeyRef:
               key: KAFKA_HSIZE
               name: arcus-config
+        - name: KAFKA_REPLICATION
+          valueFrom:
+            configMapKeyRef:
+              key: KAFKAOPS_REPLICATION # shared for now
+              name: arcus-config
         - name: KAFKAOPS_REPLICATION
           valueFrom:
             configMapKeyRef:
