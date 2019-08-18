@@ -12,6 +12,7 @@ resources:
 - deployments/hub-bridge.yml
 - deployments/driver-services.yml
 - deployments/notification-services.yml
+- deployments/ivr-callback-server.yml
 - destinationrules/zookeeper.yml
 - destinationrules/cassandra.yml
 - service/cassandra.yml
@@ -21,6 +22,7 @@ resources:
 - service/ui-service.yml
 - service/ui-service-ingress.yml
 - service/zookeeper.yml
+- service/ivr-callback-server.yml
 - certprovider/letsencrypt-production.yml
 - certprovider/letsencrypt-staging.yml
 - shared-config/config.yml
