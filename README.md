@@ -7,6 +7,8 @@ You either need a Google Cloud account (see below) or a dedicated system with 12
 
 # Run locally (microk8s)
 
+**Note**: although microk8s works on multiple linux distributions, the script will currently only work on debian based systems, and has only been tested on Ubuntu 18.04. 
+
 Simply execute:
 
 `./setup-local.sh`
@@ -66,6 +68,12 @@ For cloud hosting, this is very similar, but you can use the 127.0.0.1/24 subnet
 
 Once your network is setup, and you are able to access Arcus (and get a certificate warning from the untrusted LetsEncrypt Staging CA), then it's time to setup a production certificate. Currently, this is done by making changes to config/service/ui-service-ingress.yml:
 
+**Option 1: Automatically**
+
+Run `./useprodcert.sh`
+
+**Option 2: Manually**:
+
 1. Search for the line `certmanager.k8s.io/cluster-issuer: "letsencrypt-staging"` and change "staging" to "production"
 2. Change secretName from nginx-staging-tls to nginx-production-tls
 
@@ -75,15 +83,19 @@ You can use `microk8s.kubectl -n cert-manager logs $(/snap/bin/microk8s.kubectl 
 
 ## Setting up the Hub Trust Store
 
-Unfortunately, the hub-bridge doesn't work out of the box because it expects a Java Key Store, something we can't provide with cert-manager. The wlnet fork of arcusplatform currently has added features to support PKCS#8 keys as well (via netty's internal support for PKCS#8), but the private key that cert-manager generates is in PKCS#1 format. As a result, you'll have to manually convert the private key to PKCS#1.
+Unfortunately, the hub-bridge doesn't work out of the box because it expects a Java Key Store, something we can't provide with cert-manager. Arcusplatform now supports PKCS#8 keys as well (via netty's internal support for PKCS#8), but the private key that cert-manager generates is in PKCS#1 format. As a result, you'll have to manually convert the private key to PKCS#1.
 
 This can be acomplished by running `./setup-hubkeystore.sh` once you have production certificates (see above).
 
 ## Viewing pod status
 
-`T describe pod $POD`
+`kubectl describe pod $POD`
 
 where $POD is something like "alarm-service"
+
+## Backups
+
+The only critical persistent system (at least for the minimum use case) is cassandra. Utility scripts have been provided to assist with backing up and restoring cassandra. Typically you'd want to use snapshots to backup cassandra, however in low-activity use cases like Arcus, you can also just make a tarball of the working directory and restore it.
 
 ## Troubleshooting
 
