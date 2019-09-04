@@ -53,6 +53,12 @@ spec:
               name: arcus-config
         - name: KAIROS_URL
           value: http://kairosdb-service.default.svc.cluster.local:8080
+        - name: rollup_defaultTTL
+          value: '3600'
+        - name: rollup_mediumTTL
+          value: '7200'
+        - name: rollup_highTTL
+          value: '86400'
         image: gcr.io/arcus-238802/eyeris/metrics-server:2018.10.2
         imagePullPolicy: Always
         name: metrics-server
