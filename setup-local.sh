@@ -40,7 +40,7 @@ retry 15 /snap/bin/microk8s.enable dns
 $KUBECTL create namespace cert-manager
 $KUBECTL label namespace cert-manager certmanager.k8s.io/disable-validation=true
 
-$KUBECTL apply -f https://raw.githubusercontent.com/google/metallb/v0.7.3/manifests/metallb.yaml
+$KUBECTL apply -f https://raw.githubusercontent.com/google/metallb/v0.8.1/manifests/metallb.yaml
 $KUBECTL apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/mandatory.yaml
 $KUBECTL apply -f https://github.com/jetstack/cert-manager/releases/download/v0.9.1/cert-manager.yaml
 
