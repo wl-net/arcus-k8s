@@ -85,9 +85,9 @@ spec:
       restartPolicy: Always
       schedulerName: default-scheduler
       securityContext:
-        runAsUser: 999
-        runAsGroup: 999
-        fsGroup: 999
+        runAsUser: 998
+        runAsGroup: 998
+        fsGroup: 998
       terminationGracePeriodSeconds: 30
   volumeClaimTemplates:
   - metadata:
