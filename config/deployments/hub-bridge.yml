@@ -177,6 +177,8 @@ spec:
           value: /data/tls-secrets/tls.crt
         - name: TLS_SERVER_TRUSTSTORE_FILEPATH
           value: /data/secrets/truststore.jks
+        - name: TLS_SERVER_CIPHERS
+          value: 'TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_DHE_RSA_WITH_AES_128_CBC_SHA256'
         volumeMounts:
         - name: data-secrets
           mountPath: "/data/tls-secrets"
