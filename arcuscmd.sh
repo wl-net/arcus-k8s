@@ -17,6 +17,9 @@ case "$cmd" in
         updatehubkeystore)
 	     updatehubkeystore
 	;;
+        modelmanager)
+             runmodelmanager
+        ;;
 	useprodcert)
 	     useprodcert
 	;;

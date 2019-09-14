@@ -22,3 +22,18 @@ function useprodcert {
 	sed -i 's/nginx-staging-tls/nginx-production-tls/g' overlays/local-production-local/ui-service-ingress.yml
 	$KUBECTL apply -f overlays/local-production-local/ui-service-ingress.yml
 }
+
+function runmodelmanager {
+	set +e
+	$KUBECTL delete pod -l app=modelmanager-platform
+        $KUBECTL delete job modelmanager-platform
+
+	$KUBECTL delete pod -l app=modelmanager-history
+        $KUBECTL delete job modelmanager-history
+
+        $KUBECTL delete pod -l app=modelmanager-video
+        $KUBECTL delete job modelmanager-video
+
+	set -e
+        $KUBECTL apply -f config/jobs/
+}
