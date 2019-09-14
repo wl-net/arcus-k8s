@@ -3,6 +3,8 @@ set -euo pipefail
 
 . script/funcs.sh
 
+KUBECTL=${KUBECTL:-kubectl}
+
 cmd=${1:-help}
 
 case "$cmd" in
