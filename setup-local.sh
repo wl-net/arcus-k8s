@@ -29,6 +29,7 @@ sed -i "s!PLACEHOLDER_1!$ARCUS_SUBNET!" overlays/local-production-local/metallb.
 
 function check_k8 {
   echo > /dev/tcp/localhost/16443 >/dev/null 2>&1
+  microk8s.status --wait-ready
 }
 
 retry 6 check_k8
@@ -51,6 +52,11 @@ $KUBECTL apply -f localk8/cloud-generic.yaml
 
 set +e
 $KUBECTL create secret generic shared --from-file secret/
+set -e
+
+set +e
+$KUBECTL delete configmap logging
+$KUBECTL create configmap logging --from-file config/logging/
 set -e
 
 $KUBECTL label namespace default istio-injection=enabled --overwrite
