@@ -24,7 +24,7 @@ spec:
       containers:
       - env:
         - name: JAVA_OPTS
-          value: "-Xms64m"
+          value: "-Xms64m -Dlogback.configurationFile=/config/logback.xml"
         - name: BILLING_URL
           valueFrom:
             configMapKeyRef:
@@ -186,6 +186,8 @@ spec:
         - name: trust-store
           mountPath: "/data/secrets"
           readOnly: true
+        - name: config
+          mountPath: /config
         image: gcr.io/arcus-238802/eyeris/hub-bridge:2018.10.2
         imagePullPolicy: Always
         name: hub-bridge
@@ -217,4 +219,10 @@ spec:
           items:
           - key: truststore.jks
             path: truststore.jks
+      - name: config
+        configMap:
+          name: logging
+          items:
+          - key: logback.xml
+            path: logback.xml
 
