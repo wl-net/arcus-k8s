@@ -1,9 +1,17 @@
 # arcus-k8
-Arcus in Kubernetes (on-prem or GKE)
+Arcus in Kubernetes (on-prem or in the cloud)
 
 # Prerequisites
 
-You either need a Google Cloud account (see below) or a dedicated system with 12GB or more of RAM, and 15GB of disk space.
+You either access to a Kubernetes environment, or suitable bare metal to run one on. You should have 12GB or more of RAM, and at least 15GB of disk space. In order to obtain browser-trusted certificates, you will need to have Arcus publicly accessible, on a well known port (80/443). Using self-signed certificates is not recommended, and will not be supported by the iOS or Android applications (outside of modifying the trust store yourself).
+
+In order to create an account, you will need to have a smarty streets account (for address verification).
+
+For notifications, you must create a Twilio and Sendgrid account. APNS and GCM support is disabled by default and must be configured if desired. Typically this also requires that you distribute and side-load the app onto you device.
+
+# Update Policy
+
+Kubernetes is a fast-moving environment. As a result, only the latest version is currently supported. In order to get security updates, you should roll your containers on a frequent basis, depending on your risk tolerance. It is recommended that you do this at least weekly. In the intest of security future releases of Arcus may "expire" such that they will not work if you forget to patch.
 
 # Run locally (microk8s)
 
