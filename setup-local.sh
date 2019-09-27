@@ -43,7 +43,7 @@ $KUBECTL label namespace cert-manager certmanager.k8s.io/disable-validation=true
 
 $KUBECTL apply -f https://raw.githubusercontent.com/google/metallb/v0.8.1/manifests/metallb.yaml
 $KUBECTL apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/nginx-0.25.1/deploy/static/mandatory.yaml
-$KUBECTL apply -f https://github.com/jetstack/cert-manager/releases/download/v0.10.0/cert-manager.yaml
+$KUBECTL apply -f https://github.com/jetstack/cert-manager/releases/download/v0.10.1/cert-manager.yaml
 
 $KUBECTL apply -f overlays/local-production-local/metallb.yml
 $KUBECTL apply -f localk8/cloud-generic.yaml
