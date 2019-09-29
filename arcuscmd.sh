@@ -14,6 +14,9 @@ case "$cmd" in
         apply)
              ./kustomize build overlays/local-production-local/ | $KUBECTL apply -f -
         ;;
+        deploy)
+             deployfast
+        ;;
         updatehubkeystore)
 	     updatehubkeystore
 	;;

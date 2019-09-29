@@ -37,3 +37,14 @@ function runmodelmanager {
 	set -e
         $KUBECTL apply -f config/jobs/
 }
+
+APPS='alarm-service client-bridge driver-services subsystem-service history-service hub-bridge ipcd-bridge ivr-callback-server metrics-server notification-services platform-services rule-service scheduler-service ui-server'
+function deployfast {
+	$KUBECTL delete pod -l app=cassandra
+	$KUBECTL delete pod -l app=zookeeper
+	$KUBECTL delete pod -l app=kafka
+	for app in $APPS; do
+            $KUBECTL delete pod -l app=$app
+	    sleep 5
+	done
+}
