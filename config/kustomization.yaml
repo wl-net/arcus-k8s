@@ -8,6 +8,7 @@ resources:
 - deployments/scheduler-service.yml
 - deployments/subsystem-service.yml
 - deployments/ui-server.yml
+- deployments/static-server.yml
 - deployments/zookeeper.yml
 - deployments/hub-bridge.yml
 - deployments/driver-services.yml
@@ -21,6 +22,7 @@ resources:
 - service/kafka.yml
 - service/ui-service.yml
 - service/ui-service-ingress.yml
+- service/static-service.yml
 - service/zookeeper.yml
 - service/ivr-callback-server.yml
 - certprovider/letsencrypt-production.yml
