@@ -33,8 +33,8 @@ if [ -x "$(command -v microk8s.kubectl)" ]; then
   DEPLOYMENT_TYPE=local
 fi
 
-function print_available {
-  cat << ENDOFDOC
+function print_available() {
+  cat <<ENDOFDOC
 arcuscmd: manage your arcus deployment
 
 Basic Commands:
@@ -50,63 +50,64 @@ ENDOFDOC
 cmd=${1:-help}
 
 case "$cmd" in
-	setup)
-            prompt answer "Setup Arcus on this machine, or in the cloud: [local/cloud]:"
-	    if [[ $answer != 'cloud' && $answer != 'local' ]]; then
-              echo "Invalid option $answer, must pick 'local' or 'cloud'"
-              exit 1
-	    fi
+setup)
+  prompt answer "Setup Arcus on this machine, or in the cloud: [local/cloud]:"
+  if [[ $answer != 'cloud' && $answer != 'local' ]]; then
+    echo "Invalid option $answer, must pick 'local' or 'cloud'"
+    exit 1
+  fi
 
-	    if [[ $answer == 'local' ]]; then
-              DEPLOYMENT_TYPE=local
-	      setupmicrok8s
-	      install
-	      configure
-	      apply
-	      provision
-	      info
-	    fi
-	;;
-        apply)
-             apply
-        ;;
-	provision)
-	     provision
-	;;
-        installmicrok8s)
-             setupmicrok8s
-        ;;
-	install)
-             install
-        ;;
-        configure)
-	     configure
-        ;;
-        deploy)
-             deployfast
-        ;;
-        updatehubkeystore)
-	     updatehubkeystore
-	;;
-        modelmanager)
-             runmodelmanager
-        ;;
-	useprodcert)
-	     useprodcert
-	;;
-        info)
-	     info
-        ;;
-        update)
-             update
-        ;;
-        logs)
-             logs $*
-        ;;
-        help)
-             print_available
-        ;;
-        *)
-            echo "unsupported command: $cmd"
-	    print_available
+  if [[ $answer == 'local' ]]; then
+    DEPLOYMENT_TYPE=local
+    setupmicrok8s
+    install
+    configure
+    apply
+    provision
+    info
+  fi
+  ;;
+apply)
+  apply
+  ;;
+provision)
+  provision
+  ;;
+installmicrok8s)
+  setupmicrok8s
+  ;;
+install)
+  install
+  ;;
+configure)
+  configure
+  ;;
+deploy)
+  deployfast
+  ;;
+updatehubkeystore)
+  updatehubkeystore
+  ;;
+modelmanager)
+  runmodelmanager
+  ;;
+useprodcert)
+  useprodcert
+  ;;
+info)
+  info
+  ;;
+update)
+  update
+  ;;
+logs)
+  logs $*
+  ;;
+help)
+  print_available
+  ;;
+*)
+  echo "unsupported command: $cmd"
+  print_available
+  ;;
 esac
