@@ -20,6 +20,11 @@ function retry {
   return 0
 }
 
+function check_k8 {
+  echo > /dev/tcp/localhost/16443 >/dev/null 2>&1
+  microk8s.status --wait-ready
+}
+
 function prompt() {
   local  __resultvar=$1
   echo -n "${2} "
