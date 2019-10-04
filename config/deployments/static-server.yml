@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: static-server
+  name: static-server
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: static-server
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: static-server
+    spec:
+      containers:
+      - image: gcr.io/arcus-238802/eyeris/static-server:latest
+        imagePullPolicy: Always
+        name: static-server
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
