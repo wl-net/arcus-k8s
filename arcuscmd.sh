@@ -63,12 +63,16 @@ case "$cmd" in
 	      install
 	      configure
 	      apply
+	      provision
 	      info
 	    fi
 	;;
         apply)
              apply
         ;;
+	provision)
+	     provision
+	;;
         installmicrok8s)
              setupmicrok8s
         ;;
