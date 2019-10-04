@@ -18,7 +18,13 @@ spec:
         backend:
           serviceName: ivr-callback-server-service
           servicePort: 80
-
+  - host: static.arcussmarthome.com
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: ui-server-service
+          servicePort: 8096
   - host: client.arcussmarthome.com
     http:
       paths:
