@@ -20,6 +20,7 @@ function updatehubkeystore() {
 }
 
 function useprodcert() {
+  echo 'production' > $ARCUS_CONFIGDIR/cert-issuer
   sed -i 's/letsencrypt-staging/letsencrypt-production/g' overlays/local-production-local/ui-service-ingress.yml
   sed -i 's/nginx-staging-tls/nginx-production-tls/g' overlays/local-production-local/ui-service-ingress.yml
   $KUBECTL apply -f overlays/local-production-local/ui-service-ingress.yml
@@ -120,6 +121,9 @@ function load() {
     if [ -f "$ARCUS_CONFIGDIR/subnet" ]; then
       ARCUS_SUBNET=$(cat $ARCUS_CONFIGDIR/subnet)
     fi
+    if [ -f "$ARCUS_CONFIGDIR/cert-issuer" ]; then
+      ARCUS_CERT_TYPE=$(cat $ARCUS_CONFIGDIR/cert-issuer)
+    fi
   fi
 }
 
@@ -140,6 +144,11 @@ function apply() {
 
   cp localk8/metallb.yml overlays/local-production-local/metallb.yml
   sed -i "s!PLACEHOLDER_1!$ARCUS_SUBNET!" overlays/local-production-local/metallb.yml
+
+  if [ $ARCUS_CERT_TYPE = 'production' ]; then
+    sed -i 's/letsencrypt-staging/letsencrypt-production/g' overlays/local-production-local/ui-service-ingress.yml
+    sed -i 's/nginx-staging-tls/nginx-production-tls/g' overlays/local-production-local/ui-service-ingress.yml
+  fi
 
   $KUBECTL apply -f config/certprovider/
 

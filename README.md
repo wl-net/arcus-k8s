@@ -74,18 +74,11 @@ For cloud hosting, this is very similar, but you can use the 127.0.0.1/24 subnet
 
 ## Using a production certificate
 
-Once your network is setup, and you are able to access Arcus (and get a certificate warning from the untrusted LetsEncrypt Staging CA), then it's time to setup a production certificate. Currently, this is done by making changes to config/service/ui-service-ingress.yml:
+Once your network is setup, and you are able to access Arcus (and get a certificate warning from the untrusted LetsEncrypt Staging CA), then it's time to setup a production certificate. Currently, this is done by making changes to config/service/ui-service-ingress.yml, although you shouldn't edit this file directly:
 
-**Option 1: Automatically**
+Run `./arcuscmd.sh useprodcert`
 
-Run `./useprodcert.sh`
-
-**Option 2: Manually**:
-
-1. Search for the line `certmanager.k8s.io/cluster-issuer: "letsencrypt-staging"` and change "staging" to "production"
-2. Change secretName from nginx-staging-tls to nginx-production-tls
-
-Now apply the configuration (either re-run setup-local, or just `microk8s.kubectl apply -f config/service/ui-service-ingress.yml`) and wait a few minutes. You should no longer see a certificate warning when navigating to the site.
+This will apply the configuration - wait a few minutes. You should no longer see a certificate warning when navigating to the site.
 
 You can use `microk8s.kubectl -n cert-manager logs $(/snap/bin/microk8s.kubectl get pod -n cert-manager | grep cert-manager- | awk '{print $1}' | grep -v cainject | grep -v webhook) -f` to view the logs for cert-manager if you don't get a certificate.
 
@@ -118,8 +111,25 @@ TIP: you may want to create an alias so that kubectl works, e.g. `alias kubectl=
 
 The first time you setup Arcus, new secrets will be stored in the secrets directory. Once you have completed ./setup-local.sh, feel free to adjust any of these secrets to your needs, and further uses of `./setup-local.sh` will not cause you to loose your secrets.
 
-You can also adjust the configuration in overlays/local-production-local/, however your changes will be lost if you run ./setup-local.sh.
+You can also adjust the configuration in overlays/local-production-local/, however your changes will be lost if you run `./setup-local.sh` or `./arcuscmd.sh apply`.
 
+## Updating
+
+First update your local copy with `git pull` or the equivalent arcuscmd command:
+
+`./arcuscmd.sh update`
+
+Then apply the new configuration:
+
+To install updates for Kubernetes components like cert-mangaer, do:
+
+`./arcuscmd.sh install`
+
+To update arcus configuration, do:
+
+`./arcuscmd.sh apply`
+
+It is generally recommended to update both at the same time - if you do not update the Kubernetes components for an extended period of time, the may no longer be supported with a newer Arcus configuration.
 ## Starting over
 
 If you'd like to start over (including wiping any data, or configuration):
