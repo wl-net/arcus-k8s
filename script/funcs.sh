@@ -72,6 +72,7 @@ function setupmicrok8s() {
   echo y | /snap/bin/microk8s.enable istio
 
   # metallb needed
+  $KUBECTL apply -f localk8/cloud-generic.yaml
   $KUBECTL apply -f https://raw.githubusercontent.com/google/metallb/$METALLB_VERSION/manifests/metallb.yaml
 
 }
@@ -149,6 +150,11 @@ function apply() {
     sed -i 's/letsencrypt-staging/letsencrypt-production/g' overlays/local-production-local/ui-service-ingress.yml
     sed -i 's/nginx-staging-tls/nginx-production-tls/g' overlays/local-production-local/ui-service-ingress.yml
   fi
+
+  set +e
+  $KUBECTL delete configmap logging
+  $KUBECTL create configmap logging --from-file config/logging/
+  set -e
 
   $KUBECTL apply -f config/certprovider/
 
