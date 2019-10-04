@@ -111,8 +111,25 @@ TIP: you may want to create an alias so that kubectl works, e.g. `alias kubectl=
 
 The first time you setup Arcus, new secrets will be stored in the secrets directory. Once you have completed ./setup-local.sh, feel free to adjust any of these secrets to your needs, and further uses of `./setup-local.sh` will not cause you to loose your secrets.
 
-You can also adjust the configuration in overlays/local-production-local/, however your changes will be lost if you run ./setup-local.sh.
+You can also adjust the configuration in overlays/local-production-local/, however your changes will be lost if you run `./setup-local.sh` or `./arcuscmd.sh apply`.
 
+## Updating
+
+First update your local copy with `git pull` or the equivalent arcuscmd command:
+
+`./arcuscmd.sh update`
+
+Then apply the new configuration:
+
+To install updates for Kubernetes components like cert-mangaer, do:
+
+`./arcuscmd.sh install`
+
+To update arcus configuration, do:
+
+`./arcuscmd.sh apply`
+
+It is generally recommended to update both at the same time - if you do not update the Kubernetes components for an extended period of time, the may no longer be supported with a newer Arcus configuration.
 ## Starting over
 
 If you'd like to start over (including wiping any data, or configuration):
