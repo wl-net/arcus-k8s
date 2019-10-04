@@ -173,3 +173,10 @@ function update {
   cd - >/dev/null
   echo "on $(git rev-parse --abbrev-ref HEAD)"
 }
+
+function logs {
+  set +u
+  $KUBECTL logs --tail=10000 -l app=$2 -c $2 $3
+  set -u
+}
+

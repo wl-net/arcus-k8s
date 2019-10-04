@@ -96,6 +96,9 @@ case "$cmd" in
         update)
              update
         ;;
+        logs)
+             logs $*
+        ;;
         help)
              print_available
         ;;
