@@ -1,6 +1,10 @@
 #!/bin/bash
 set -euo pipefail
 
+METALLB_VERSION='v0.8.1'
+NGINX_VERSION='0.26.0'
+CERT_MANAGER_VERSION='v0.10.1'
+
 SCRIPT_PATH="$0"
 SCRIPT_DIR=$(dirname ${SCRIPT_PATH})
 . "${SCRIPT_DIR}/script/common.sh"
@@ -22,8 +26,11 @@ mkdir -p $ARCUS_CONFIGDIR
 
 KUBECTL=${KUBECTL:-kubectl}
 
+DEPLOYMENT_TYPE=cloud
+
 if [ -x "$(command -v microk8s.kubectl)" ]; then
   KUBECTL=microk8s.kubectl
+  DEPLOYMENT_TYPE=local
 fi
 
 function print_available {
@@ -44,10 +51,26 @@ cmd=${1:-help}
 
 case "$cmd" in
 	setup)
-            echo "setup local"
+            prompt answer "Setup Arcus on this machine, or in the cloud: [local/cloud]:"
+	    if [[ $answer != 'cloud' && $answer != 'local' ]]; then
+              echo "Invalid option $answer, must pick 'local' or 'cloud'"
+              exit 1
+	    fi
+
+	    if [[ $answer == 'local' ]]; then
+              DEPLOYMENT_TYPE=local
+	      setupmicrok8s
+	      install
+	      configure
+	      apply
+	      info
+	    fi
 	;;
         apply)
              apply
+        ;;
+        installmicrok8s)
+             setupmicrok8s
         ;;
 	install)
              install

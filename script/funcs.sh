@@ -51,22 +51,40 @@ function deployfast {
 	done
 }
 
+# Setup MicroK8s for local.
+function setupmicrok8s {
+  PKGMGR=apt-get # TODO
+  echo "Installing snap..."
+  sudo $PKGMGR install snapd curl -y
+  sudo snap install microk8s --classic
+
+  retry 6 check_k8
+
+  retry 15 /snap/bin/microk8s.enable dns
+  /snap/bin/microk8s.enable storage
+  echo y | /snap/bin/microk8s.enable istio
+
+  # metallb needed
+  $KUBECTL apply -f https://raw.githubusercontent.com/google/metallb/$METALLB_VERSION/manifests/metallb.yaml
+
+}
+
 function install {
-   # TODO: separate local/cloud
-   retry 6 check_k8
+  if [[ ! -e kustomize ]]; then
+    . kustomize-install.sh
+  fi
 
-   retry 15 /snap/bin/microk8s.enable dns
-   /snap/bin/microk8s.enable storage
-   /snap/bin/microk8s.enable istio
+  set +e
+  $KUBECTL create namespace cert-manager 2>/dev/null
+  $KUBECTL label namespace cert-manager certmanager.k8s.io/disable-validation=true --overwrite=true
+  set -e
 
-   $KUBECTL create namespace cert-manager
-   $KUBECTL label namespace cert-manager certmanager.k8s.io/disable-validation=true
+  # TODO: only re-install metallb if this is a local deployment
+  $KUBECTL apply -f https://raw.githubusercontent.com/google/metallb/$METALLB_VERSION/manifests/metallb.yaml
+  $KUBECTL apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/nginx-$NGINX_VERSION/deploy/static/mandatory.yaml
+  $KUBECTL apply -f https://github.com/jetstack/cert-manager/releases/download/$CERT_MANAGER_VERSION/cert-manager.yaml
 
-   $KUBECTL apply -f https://raw.githubusercontent.com/google/metallb/v0.8.1/manifests/metallb.yaml
-   $KUBECTL apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/nginx-0.26.0/deploy/static/mandatory.yaml
-   $KUBECTL apply -f https://github.com/jetstack/cert-manager/releases/download/v0.10.1/cert-manager.yaml
-
-   $KUBECTL apply -f overlays/local-production-local/metallb.yml
+  $KUBECTL apply -f overlays/local-production-local/metallb.yml
 }
 
 function info {
@@ -86,8 +104,17 @@ function info {
 }
 
 function load {
-  ARCUS_ADMIN_EMAIL=$(cat $ARCUS_CONFIGDIR/admin.email)
-  ARCUS_DOMAIN_NAME=$(cat $ARCUS_CONFIGDIR/domain.name)
+  if [ -d $ARCUS_CONFIGDIR ]; then
+    if [ -f "$ARCUS_CONFIGDIR/admin.email" ]; then
+      ARCUS_ADMIN_EMAIL=$(cat $ARCUS_CONFIGDIR/admin.email)
+    fi
+    if [ -f "$ARCUS_CONFIGDIR/domain.name" ]; then
+      ARCUS_DOMAIN_NAME=$(cat $ARCUS_CONFIGDIR/domain.name)
+    fi
+    if [ -f "$ARCUS_CONFIGDIR/subnet" ]; then
+      ARCUS_SUBNET=$(cat $ARCUS_CONFIGDIR/subnet)
+    fi
+  fi
 }
 
 function apply {
@@ -105,12 +132,19 @@ function apply {
   cp config/service/ui-service-ingress.yml overlays/local-production-local/ui-service-ingress.yml
   sed -i "s/arcussmarthome.com/$ARCUS_DOMAIN_NAME/" overlays/local-production-local/ui-service-ingress.yml
 
+  cp localk8/metallb.yml overlays/local-production-local/metallb.yml
+  sed -i "s!PLACEHOLDER_1!$ARCUS_SUBNET!" overlays/local-production-local/metallb.yml
+
+  $KUBECTL apply -f config/certprovider/
+
  ./kustomize build overlays/local-production-local/ | $KUBECTL apply -f -
 }
 
 function configure {
+  load
   ARCUS_ADMIN_EMAIL=${ARCUS_ADMIN_EMAIL:-me@example.com}
   ARCUS_DOMAIN_NAME=${ARCUS_DOMAIN_NAME:-example.com}
+  ARCUS_SUBNET=${ARCUS_SUBNET:-unconfigured}
 
   if [ "$ARCUS_ADMIN_EMAIL" = "me@example.com" ]; then
     prompt ARCUS_ADMIN_EMAIL "Please enter your admin email address (or set ARCUS_ADMIN_EMAIL): "
@@ -121,6 +155,15 @@ function configure {
     prompt ARCUS_DOMAIN_NAME "Please enter your domain name (or set ARCUS_DOMAIN_NAME): "
   fi
   echo $ARCUS_DOMAIN_NAME > $ARCUS_CONFIGDIR/domain.name
+
+
+  if [[ $DEPLOYMENT_TYPE = 'local' &&  "$ARCUS_SUBNET" = "unconfigured" ]]; then
+    echo "Arcus requires a pre-defined subnet for services to be served behind. This subnet must be unallocated (e.g. no IP addresses are used, *and* reserved for static clients)."
+    echo "Examples: 192.168.1.200/29, 192.168.1.200-192.168.1.207"
+    prompt ARCUS_SUBNET "Please enter your subnet for Arcus services to be exposed on (or set ARCUS_SUBNET): "
+    echo $ARCUS_SUBNET > $ARCUS_CONFIGDIR/subnet
+
+  fi
 }
 
 function update {
