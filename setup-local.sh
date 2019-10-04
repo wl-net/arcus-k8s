@@ -27,11 +27,6 @@ fi
 cp localk8/metallb.yml overlays/local-production-local/metallb.yml
 sed -i "s!PLACEHOLDER_1!$ARCUS_SUBNET!" overlays/local-production-local/metallb.yml
 
-function check_k8 {
-  echo > /dev/tcp/localhost/16443 >/dev/null 2>&1
-  microk8s.status --wait-ready
-}
-
 retry 6 check_k8
 
 retry 15 /snap/bin/microk8s.enable dns
