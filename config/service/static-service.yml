@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: static-server
+  name: static-server-service
+  namespace: default
+spec:
+  externalTrafficPolicy: Cluster
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 8097
+  selector:
+    app: static-server
+  sessionAffinity: None
+  type: NodePort
+
