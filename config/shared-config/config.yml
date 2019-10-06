@@ -32,7 +32,7 @@ data:
   INVOICE_URL: https://arcussmarthome.com
   ARCUS_WS_URI: wss://client.arcussmarthome.com
   ARCUS_HTTP_URI: https://client.arcussmarthome.com
-  CORS_ORIGINS: https://arcussmarthome.com
+  CORS_ORIGINS: https://arcussmarthome.com, wss://client.arcussmarthome.com:443
   PARTITION_COUNT: "128"
   EMAIL_SENDEREMAIL: arcus@arcussmarthome.com
   EMAIL_REPLYTO: arcus@arcussmarthome.com
