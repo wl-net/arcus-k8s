@@ -188,7 +188,7 @@ spec:
       volumes:
       - name: config
         configMap:
-          name: logging
+          name: extrafiles
           items:
           - key: logback.xml
             path: logback.xml
