@@ -82,6 +82,17 @@ function install() {
     . kustomize-install.sh
   fi
 
+  local count=$($KUBECTL get apiservice | grep certmanager.k8s.io -c)
+  if [[ $count > 0 ]]; then
+    echo "Removing cert-manager, please see https://docs.cert-manager.io/en/latest/tasks/uninstall/kubernetes.html for more details"
+    set +e
+    $KUBECTL delete -f https://github.com/jetstack/cert-manager/releases/download/v0.10.1/cert-manager.yaml
+    $KUBECTL delete apiservice v1beta1.webhook.certmanager.k8s.io
+    $KUBECTL delete apiservice v1beta1.admission.certmanager.k8s.io
+    $KUBECTL delete apiservice v1alpha1.certmanager.k8s.io
+    $KUBECTL delete namespace cert-manager
+    set -e
+  fi
   set +e
   $KUBECTL create namespace cert-manager 2>/dev/null
   $KUBECTL label namespace cert-manager certmanager.k8s.io/disable-validation=true --overwrite=true
