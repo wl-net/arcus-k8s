@@ -152,8 +152,9 @@ function apply() {
   fi
 
   set +e
-  $KUBECTL delete configmap logging
-  $KUBECTL create configmap logging --from-file config/logging/
+  $KUBECTL delete configmap logging # old name
+  $KUBECTL delete configmap extrafiles
+  $KUBECTL create configmap extrafiles --from-file config/extrafiles
   set -e
 
   $KUBECTL apply -f config/certprovider/
