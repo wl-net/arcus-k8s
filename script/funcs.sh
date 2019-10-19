@@ -149,7 +149,7 @@ function apply() {
   sed -i "s/me@example.com/$ARCUS_ADMIN_EMAIL/" overlays/local-production-local/cert-provider.yaml
 
   cp config/shared-config/config.yml overlays/local-production-local/shared-config.yaml
-  sed -i "s/arcussmarthome.com/$ARCUS_DOMAIN_NAME/" overlays/local-production-local/shared-config.yaml
+  sed -i "s/arcussmarthome.com/$ARCUS_DOMAIN_NAME/g" overlays/local-production-local/shared-config.yaml
 
   cp config/service/ui-service-ingress.yml overlays/local-production-local/ui-service-ingress.yml
   sed -i "s/arcussmarthome.com/$ARCUS_DOMAIN_NAME/" overlays/local-production-local/ui-service-ingress.yml
