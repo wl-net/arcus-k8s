@@ -27,8 +27,8 @@ data:
   ZOOKEEPEROPS: zookeeper-service.default.svc.cluster.local:2181
   NEST_LOGIN_BASE_URL: http://example.com
   NEST_CLIENT_ID: "12345"
-  DEVICE-OTA-FIRMWARE_DOWNLOAD_HOST: https://tools.arcussmarthome.com
-  HUB_FIRMWARE_DOWNLOAD_HOST: https://tools.arcussmarthome.com
+  DEVICE-OTA-FIRMWARE_DOWNLOAD_HOST: tools.arcussmarthome.com
+  HUB_FIRMWARE_DOWNLOAD_HOST: tools.arcussmarthome.com
   INVOICE_URL: https://arcussmarthome.com
   ARCUS_WS_URI: wss://client.arcussmarthome.com
   ARCUS_HTTP_URI: https://client.arcussmarthome.com
