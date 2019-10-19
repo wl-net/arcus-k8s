@@ -161,6 +161,8 @@ spec:
             configMapKeyRef:
               key: CAMERA_PREVIEW_BASEURL
               name: arcus-config
+        - name: FIRMWARE_DOWNLOAD_SCHEME
+          value: 'https'
         - name: FIRMWARE_DOWNLOAD_HOST
           valueFrom:
             configMapKeyRef:
