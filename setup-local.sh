@@ -51,7 +51,8 @@ set -e
 
 set +e
 $KUBECTL delete configmap logging
-$KUBECTL create configmap logging --from-file config/logging/
+$KUBECTL delete configmap extrafiles
+$KUBECTL create configmap extrafiles --from-file config/extrafiles
 set -e
 
 $KUBECTL label namespace default istio-injection=enabled --overwrite
