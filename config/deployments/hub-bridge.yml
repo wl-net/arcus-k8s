@@ -227,3 +227,5 @@ spec:
           items:
           - key: logback.xml
             path: logback.xml
+          - key: firmware.xml
+            path: firmware.xml
