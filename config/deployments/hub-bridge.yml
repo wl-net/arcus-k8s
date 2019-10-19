@@ -166,6 +166,8 @@ spec:
             configMapKeyRef:
               key: HUB_FIRMWARE_DOWNLOAD_HOST # I think this should be the same.
               name: arcus-config
+        - name: FIRMWARE_UPDATE_PATH
+          value: '/config/firmware.xml'
         - name: TLS_SERVER_TRUSTSTORE_PASSWORD
           valueFrom:
             secretKeyRef:
