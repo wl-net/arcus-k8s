@@ -37,6 +37,8 @@ function print_available() {
   cat <<ENDOFDOC
 arcuscmd: manage your arcus deployment
 
+Setup Commands:
+  setup      - setup a new instance of Arcus
 Basic Commands:
   install    - install microk8s for local (on-prem) deployment
   configure  - configure arcus by answering a few questions
