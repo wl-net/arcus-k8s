@@ -46,7 +46,8 @@ Basic Commands:
   deploy     - deploy arcus (rolling the entire fleet, 1 service at a time)
   update     - update your local copy with the latest changes
 Debug Commands:
-  dbshell    - Get a shell (cqlsh) on the database.
+  logs       - get the logs for an application
+  dbshell    - Get a shell (cqlsh) on the database
 ENDOFDOC
 
 }
