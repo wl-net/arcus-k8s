@@ -1,3 +1,4 @@
 kustomize
 overlays/local-production-local
 secret/
+.config
