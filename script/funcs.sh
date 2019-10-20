@@ -58,6 +58,19 @@ function deployfast() {
   done
 }
 
+function killallpods() {
+  $KUBECTL delete pod -l app=cassandra &
+  $KUBECTL delete pod -l app=zookeeper &
+  $KUBECTL delete pod -l app=kafka &
+
+  for app in $APPS; do
+    $KUBECTL delete pod -l app=$app &
+    sleep 1
+  done
+
+  wait
+}
+
 # Setup MicroK8s for local.
 function setupmicrok8s() {
   PKGMGR=apt-get # TODO

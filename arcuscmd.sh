@@ -39,6 +39,7 @@ arcuscmd: manage your arcus deployment
 
 Setup Commands:
   setup      - setup a new instance of Arcus
+
 Basic Commands:
   install    - install microk8s for local (on-prem) deployment
   configure  - configure arcus by answering a few questions
@@ -46,9 +47,13 @@ Basic Commands:
   deploy     - deploy arcus (rolling the entire fleet, 1 service at a time)
   update     - update your local copy with the latest changes
   delete     - delete pods matching an application
+
 Debug Commands:
   logs       - get the logs for an application
   dbshell    - Get a shell (cqlsh) on the database
+
+Dangerous Commands:
+  killall    - Immediately kills all running deployments / statefulsets.
 ENDOFDOC
 
 }
@@ -90,6 +95,9 @@ configure)
   ;;
 deploy)
   deployfast
+  ;;
+killall)
+  killallpods
   ;;
 updatehubkeystore)
   updatehubkeystore
