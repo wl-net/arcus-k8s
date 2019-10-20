@@ -1,7 +1,5 @@
 # arcus-k8
-Arcus in Kubernetes (on-prem or in the cloud)
-
-This project contains configuration and scripts to support running Arcus Smart Home in Kubernetes.
+This project contains configuration and scripts to support running Arcus Smart Home in Kubernetes (on-prem, and in the future in the cloud).
 
 # Prerequisites
 
@@ -13,7 +11,7 @@ For notifications, you must create a Twilio and Sendgrid account. APNS and GCM s
 
 # Update Policy
 
-Kubernetes is a fast-moving environment. As a result, only the latest version is currently supported. In order to get security updates, you should roll your containers on a frequent basis, depending on your risk tolerance. It is recommended that you do this at least weekly. In the intest of security future releases of Arcus may "expire" such that they will not work if you forget to patch.
+Kubernetes is a fast-moving environment. As a result, only the latest version is currently supported. In order to get security updates, you should roll your containers on a frequent basis, depending on your risk tolerance. It is recommended that you do this at least weekly. In the intest of security future releases of Arcus may "expire" such that they will not work if you forget to patch. Further, some third-party dependencies may require a rebuild of the cluster. Ideally, `arcuscmd.sh install` will try to solve this as much as possible, but it may not be possible in all circumstances.
 
 # Run locally (microk8s)
 
