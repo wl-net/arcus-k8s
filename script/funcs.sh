@@ -79,7 +79,7 @@ function setupmicrok8s() {
 
 function install() {
   if [[ ! -e kustomize ]]; then
-    . kustomize-install.sh
+    . script/kustomize-install.sh
   fi
 
   local count=$($KUBECTL get apiservice | grep certmanager.k8s.io -c)
