@@ -19,7 +19,7 @@ Kubernetes is a fast-moving environment. As a result, only the latest version is
 
 Simply execute:
 
-`./setup-local.sh`
+`./arcuscmd.sh setup`
 
 You will be prompted to answer some questions, including the credentials for SmartyStreets (which you will need to use to satisfy the requirement to verify your address). For instructions around setting up networking, see below:
 
@@ -109,9 +109,9 @@ TIP: you may want to create an alias so that kubectl works, e.g. `alias kubectl=
 
 ## Adjusting configuration
 
-The first time you setup Arcus, new secrets will be stored in the secrets directory. Once you have completed ./setup-local.sh, feel free to adjust any of these secrets to your needs, and further uses of `./setup-local.sh` will not cause you to loose your secrets.
+The first time you setup Arcus, new secrets will be stored in the secrets directory. Once you have completed `./arcuscmd.sh setup`, feel free to adjust any of these secrets to your needs, and further uses of the setup tools in `./arcuscmd.sh` will not cause you to loose your secrets.
 
-You can also adjust the configuration in overlays/local-production-local/, however your changes will be lost if you run `./setup-local.sh` or `./arcuscmd.sh apply`.
+You can also adjust the configuration in overlays/local-production-local/, however your changes will be lost if you run `./arcuscmd.sh apply`.
 
 ## Updating
 
