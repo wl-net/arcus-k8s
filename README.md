@@ -121,9 +121,11 @@ First update your local copy with `git pull` or the equivalent arcuscmd command:
 
 Then apply the new configuration:
 
-To install updates for Kubernetes components like cert-mangaer, do:
+To install updates for Kubernetes components like cert-manager, do:
 
 `./arcuscmd.sh install`
+
+NOTE: this make take some time, as pods terminate and restart.
 
 To update arcus configuration, do:
 
