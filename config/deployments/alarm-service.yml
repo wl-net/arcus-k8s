@@ -25,6 +25,8 @@ spec:
       - env:
         - name: JAVA_OPTS
           value: "-Xms64m -Xmx64m"
+        - name: BILLING_CLIENT
+          value: "noop"
         - name: BILLING_URL
           valueFrom:
             configMapKeyRef:
