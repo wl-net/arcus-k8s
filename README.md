@@ -1,6 +1,8 @@
 # arcus-k8
 Arcus in Kubernetes (on-prem or in the cloud)
 
+This project contains configuration and scripts to support running Arcus Smart Home in Kubernetes.
+
 # Prerequisites
 
 You either access to a Kubernetes environment, or suitable bare metal to run one on. You should have 12GB or more of RAM, and at least 15GB of disk space. In order to obtain browser-trusted certificates, you will need to have Arcus publicly accessible, on a well known port (80/443). Using self-signed certificates is not recommended, and will not be supported by the iOS or Android applications (outside of modifying the trust store yourself).
