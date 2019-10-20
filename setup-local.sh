@@ -41,7 +41,7 @@ $KUBECTL apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/ngi
 $KUBECTL apply -f https://github.com/jetstack/cert-manager/releases/download/v0.10.1/cert-manager.yaml
 
 $KUBECTL apply -f overlays/local-production-local/metallb.yml
-$KUBECTL apply -f localk8/cloud-generic.yaml
+$KUBECTL apply -f config/cloud-generic.yaml
 
 . "${SCRIPT_DIR}/script/shared-secret.sh"
 

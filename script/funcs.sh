@@ -72,7 +72,7 @@ function setupmicrok8s() {
   echo y | /snap/bin/microk8s.enable istio
 
   # metallb needed
-  $KUBECTL apply -f localk8/cloud-generic.yaml
+  $KUBECTL apply -f config/cloud-generic.yaml
   $KUBECTL apply -f https://raw.githubusercontent.com/google/metallb/$METALLB_VERSION/manifests/metallb.yaml
 
 }
