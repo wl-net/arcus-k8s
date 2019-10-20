@@ -45,6 +45,7 @@ Basic Commands:
   apply      - apply the existing configured configuration
   deploy     - deploy arcus (rolling the entire fleet, 1 service at a time)
   update     - update your local copy with the latest changes
+  delete     - delete pods matching an application
 Debug Commands:
   logs       - get the logs for an application
   dbshell    - Get a shell (cqlsh) on the database
@@ -110,6 +111,9 @@ logs)
   ;;
 dbshell)
   $KUBECTL exec --stdin --tty cassandra-0 /bin/bash -- /opt/cassandra/bin/cqlsh localhost
+  ;;
+delete)
+  delete $*
   ;;
 help)
   print_available

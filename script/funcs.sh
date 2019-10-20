@@ -211,3 +211,8 @@ function logs() {
   $KUBECTL logs --tail=10000 -l app=$2 -c $2 $3
   set -u
 }
+
+function delete() {
+  $KUBECTL delete pod -l app=$2
+}
+
