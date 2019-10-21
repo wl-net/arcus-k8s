@@ -98,6 +98,16 @@ spec:
             configMapKeyRef:
               key: INVOICE_URL
               name: arcus-config
+        - name: PLATFORM_ADDRESS_VALIDATOR
+          valueFrom:
+            configMapKeyRef:
+              key: ADDRESS_VALIDATOR
+              name: arcus-config
+        - name: DEFAULT_SERVICE_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              key: DEFAULT_SERVICE_LEVEL
+              name: arcus-config
         image: gcr.io/arcus-238802/eyeris/platform-services:2018.10.2
         imagePullPolicy: Always
         name: platform-services

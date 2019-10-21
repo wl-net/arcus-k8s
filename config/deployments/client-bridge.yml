@@ -30,6 +30,8 @@ spec:
             configMapKeyRef:
               key: BILLING_URL
               name: arcus-config
+        - name: BILLING_CLIENT
+          value: 'noop'
         - name: BILLING_API_KEY
           valueFrom:
             secretKeyRef:
@@ -166,7 +168,11 @@ spec:
             configMapKeyRef:
               key: CORS_ORIGINS
               name: arcus-config
-
+        - name: DEFAULT_SERVICE_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              key: DEFAULT_SERVICE_LEVEL
+              name: arcus-config
         image: gcr.io/arcus-238802/eyeris/client-bridge:2018.10.2
         imagePullPolicy: Always
         name: client-bridge
