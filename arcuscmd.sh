@@ -47,6 +47,7 @@ Basic Commands:
   deploy     - deploy arcus (rolling the entire fleet, 1 service at a time)
   update     - update your local copy with the latest changes
   delete     - delete pods matching an application
+  backupdb   - backup cassandra
 
 Debug Commands:
   logs       - get the logs for an application
@@ -122,6 +123,9 @@ dbshell)
   ;;
 delete)
   delete $*
+  ;;
+backupdb)
+  backup_cassandra
   ;;
 help)
   print_available
