@@ -131,7 +131,8 @@ help)
   print_available
   ;;
 *)
-  echo "unsupported command: $cmd"
+  echo "Unsupported Command: $cmd"
+  echo
   print_available
   ;;
 esac
