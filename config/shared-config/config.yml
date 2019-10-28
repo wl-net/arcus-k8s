@@ -35,6 +35,7 @@ data:
   CORS_ORIGINS: https://arcussmarthome.com, wss://client.arcussmarthome.com:443, https://localdev.irisbylowes.com:8443
   PARTITION_COUNT: "128"
   DEFAULT_SERVICE_LEVEL: "premium_free"
+  PLATFORM_ADRESS_VALIDATOR: "default"
   EMAIL_SENDEREMAIL: arcus@arcussmarthome.com
   EMAIL_REPLYTO: arcus@arcussmarthome.com
   WEBHOME_BASE_URL: https://arcussmarthome.com
