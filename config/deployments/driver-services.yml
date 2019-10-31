@@ -97,7 +97,7 @@ spec:
         livenessProbe:
           tcpSocket:
             port: 9000
-          initialDelaySeconds: 75
+          initialDelaySeconds: 90
           periodSeconds: 60
       dnsPolicy: ClusterFirst
       restartPolicy: Always
