@@ -73,7 +73,11 @@ function killallpods() {
 
 # Setup MicroK8s for local.
 function setupmicrok8s() {
-  PKGMGR=apt-get # TODO
+  if [ -f /etc/debian_version ]; then
+    PKGMGR=apt-get
+  elif [ -f /etc/redhat-release ]; then
+    PKGMGR=dnf
+  fi
   echo "Installing snap..."
   sudo $PKGMGR install snapd curl -y
   sudo snap install microk8s --classic
