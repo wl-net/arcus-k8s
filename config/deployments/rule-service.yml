@@ -24,7 +24,7 @@ spec:
       containers:
       - env:
         - name: JAVA_OPTS
-          value: "-Xms64m -Xmx128m"
+          value: "-Xms64m -Xmx128m -Dlogback.configurationFile=/config/logback.xml"
         - name: BILLING_URL
           valueFrom:
             configMapKeyRef:
@@ -87,8 +87,18 @@ spec:
             memory: "128Mi"
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
+        volumeMounts:
+         - mountPath: /config
+           name: config
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
       securityContext: {}
       terminationGracePeriodSeconds: 30
+      volumes:
+      - name: config
+        configMap:
+          name: extrafiles
+          items:
+          - key: logback.xml
+            path: logback.xml
