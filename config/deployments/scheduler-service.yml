@@ -74,7 +74,7 @@ spec:
             configMapKeyRef:
               key: OPS_BOOTSTRAP_SERVERS
               name: arcus-config
-        image: gcr.io/arcus-238802/eyeris/scheduler-service:2018.10.2
+        image: gcr.io/arcus-238802/eyeris/scheduler-service:2019.10.0
         imagePullPolicy: Always
         name: scheduler-service
         resources:

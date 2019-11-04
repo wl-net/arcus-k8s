@@ -83,7 +83,7 @@ spec:
             configMapKeyRef:
               key: REDIRECT_BASE_URL
               name: arcus-config              
-        image: gcr.io/arcus-238802/eyeris/driver-services:2018.10.2
+        image: gcr.io/arcus-238802/eyeris/driver-services:2019.10.0
         imagePullPolicy: Always
         name: driver-services
         resources:

@@ -108,7 +108,7 @@ spec:
             configMapKeyRef:
               key: DEFAULT_SERVICE_LEVEL
               name: arcus-config
-        image: gcr.io/arcus-238802/eyeris/platform-services:2018.10.2
+        image: gcr.io/arcus-238802/eyeris/platform-services:2019.10.0
         imagePullPolicy: Always
         name: platform-services
         resources:
