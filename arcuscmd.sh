@@ -38,7 +38,8 @@ function print_available() {
 arcuscmd: manage your arcus deployment
 
 Setup Commands:
-  setup      - setup a new instance of Arcus
+  setup        - setup a new instance of Arcus
+  setupmetrics - setup grafana metrics
 
 Basic Commands:
   install    - install microk8s for local (on-prem) deployment
@@ -48,6 +49,7 @@ Basic Commands:
   update     - update your local copy with the latest changes
   deletepod  - delete pods matching an application
   backupdb   - backup cassandra
+
 
 Debug Commands:
   logs       - get the logs for an application
@@ -78,6 +80,9 @@ setup)
     provision
     info
   fi
+  ;;
+setupmetrics)
+  setup_metrics
   ;;
 apply)
   apply

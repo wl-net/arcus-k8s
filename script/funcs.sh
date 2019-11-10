@@ -239,3 +239,9 @@ function backup_cassandra() {
   $KUBECTL cp cassandra-0:/data/"cassandra-${DATE}.tar.gz" "cassandra-${DATE}.tar.gz"
   $KUBECTL exec --stdin --tty cassandra-0 /bin/rm "/data/cassandra-${DATE}.tar.gz"
 }
+
+function setup_metrics() {
+  $KUBECTL apply -f config/stateful/grafana.yml
+  $KUBECTL apply -f config/deployments/kairosdb.yml
+  $KUBECTL apply -f config/deployments/metrics-server.yml
+}
