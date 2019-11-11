@@ -99,6 +99,8 @@ function install() {
     . script/kustomize-install.sh
   fi
 
+  $KUBECTL label namespace default istio-injection=enabled --overwrite
+
   local count=$($KUBECTL get apiservice | grep certmanager.k8s.io -c)
   if [[ $count > 0 ]]; then
     echo "Removing cert-manager, please see https://docs.cert-manager.io/en/latest/tasks/uninstall/kubernetes.html for more details"
