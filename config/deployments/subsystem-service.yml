@@ -107,3 +107,20 @@ spec:
       schedulerName: default-scheduler
       securityContext: {}
       terminationGracePeriodSeconds: 30
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: subsystem-service
+  name: subsystem-service
+spec:
+  externalTrafficPolicy: Cluster
+  ports:
+  - port: 9100
+    protocol: TCP
+    targetPort: 9100
+  selector:
+    app: subsystem-service
+  sessionAffinity: None
+  type: NodePort
