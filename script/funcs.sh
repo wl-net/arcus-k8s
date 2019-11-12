@@ -247,3 +247,11 @@ function setup_metrics() {
   $KUBECTL apply -f config/deployments/kairosdb.yml
   $KUBECTL apply -f config/deployments/metrics-server.yml
 }
+
+function setup_k3s() {
+  curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC='--no-deploy servicelb --write-kubeconfig-mode 644' sh -
+  curl -L https://git.io/getLatestIstio | ISTIO_VERSION=1.3.4 sh -
+  cd "istio-${ISTIO_VERSION}"
+  KUBECONFIG=/etc/rancher/k3s/k3s.yaml ~/arcus-k8/linux-amd64/helm template install/kubernetes/helm/istio --name istio --namespace istio-system --set mixer.telemetry.resources.requests.cpu=100m | kubectl apply -f -
+  cd -
+}
