@@ -97,3 +97,20 @@ spec:
       schedulerName: default-scheduler
       securityContext: {}
       terminationGracePeriodSeconds: 30
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: history-service
+  name: history-service
+spec:
+  externalTrafficPolicy: Cluster
+  ports:
+  - port: 9100
+    protocol: TCP
+    targetPort: 9100
+  selector:
+    app: history-service
+  sessionAffinity: None
+  type: NodePort
