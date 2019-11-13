@@ -24,7 +24,7 @@ spec:
       containers:
       - env:
         - name: JAVA_OPTS
-          value: "-Xms64m -Xmx768m"
+          value: "-Xms64m -Xmx1024m"
         - name: DRIVER_POOL_SIZE
           value: "10"
         - name: BILLING_URL
