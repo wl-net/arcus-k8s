@@ -231,3 +231,20 @@ spec:
             path: logback.xml
           - key: firmware.xml
             path: firmware.xml
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: hub-bridge
+  name: hub-bridge
+spec:
+  externalTrafficPolicy: Cluster
+  ports:
+  - port: 9100
+    protocol: TCP
+    targetPort: 9100
+  selector:
+    app: hub-bridge
+  sessionAffinity: None
+  type: NodePort
