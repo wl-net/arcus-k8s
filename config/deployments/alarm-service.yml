@@ -23,7 +23,7 @@ spec:
       containers:
       - env:
         - name: JAVA_OPTS
-          value: "-Xms64m -Xmx64m"
+          value: "-Xms64m -Xmx64m -Dlogback.configurationFile=/config/logback.xml"
         - name: BILLING_CLIENT
           value: "noop"
         - name: BILLING_URL
@@ -85,6 +85,9 @@ spec:
         name: alarm-service
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
+        volumeMounts:
+          - mountPath: /config
+            name: config
         livenessProbe:
           tcpSocket:
             port: 9008
@@ -95,6 +98,13 @@ spec:
       schedulerName: default-scheduler
       securityContext: {}
       terminationGracePeriodSeconds: 30
+      volumes:
+        - name: config
+          configMap:
+            name: extrafiles
+            items:
+              - key: logback.xml
+                path: logback.xml
 ---
 apiVersion: v1
 kind: Service
