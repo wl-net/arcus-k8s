@@ -76,7 +76,7 @@ function killallpods() {
 }
 
 # Setup MicroK8s for local.
-function setupmicrok8s() {
+function setup_microk8s() {
   if [ -f /etc/debian_version ]; then
     PKGMGR=apt-get
   elif [ -f /etc/redhat-release ]; then
@@ -96,6 +96,24 @@ function setupmicrok8s() {
   $KUBECTL apply -f config/cloud-generic.yaml
   $KUBECTL apply -f https://raw.githubusercontent.com/google/metallb/$METALLB_VERSION/manifests/metallb.yaml
 
+}
+
+function setup_k3s() {
+  curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC='--no-deploy servicelb --write-kubeconfig-mode 644' sh -
+}
+
+function setup_helm() {
+  curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+}
+
+function setup_istio() {
+  mkdir .temp
+  cd .temp
+  curl -L https://git.io/getLatestIstio | ISTIO_VERSION=1.3.4 sh -
+  cd "istio-${ISTIO_VERSION}"
+  KUBECONFIG=/etc/rancher/k3s/k3s.yaml ~/arcus-k8/linux-amd64/helm template install/kubernetes/helm/istio --name istio --namespace istio-system --set mixer.telemetry.resources.requests.cpu=100m | kubectl apply -f -
+  cd -
+  cd .. # leave .temp
 }
 
 function install() {
@@ -252,14 +270,6 @@ function setup_metrics() {
   $KUBECTL apply -f config/deployments/metrics-server.yml
 }
 
-function setup_helm() {
-  curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
-}
 
-function setup_k3s() {
-  curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC='--no-deploy servicelb --write-kubeconfig-mode 644' sh -
-  curl -L https://git.io/getLatestIstio | ISTIO_VERSION=1.3.4 sh -
-  cd "istio-${ISTIO_VERSION}"
-  KUBECONFIG=/etc/rancher/k3s/k3s.yaml ~/arcus-k8/linux-amd64/helm template install/kubernetes/helm/istio --name istio --namespace istio-system --set mixer.telemetry.resources.requests.cpu=100m | kubectl apply -f -
-  cd -
-}
+
+

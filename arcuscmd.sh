@@ -72,8 +72,22 @@ setup)
   fi
 
   if [[ $answer == 'local' ]]; then
+    prompt answer "Do you want to use microk8s or k3s? [microk8s/k3s]:"
+    if [[ $answer != 'microk8s' && $answer != 'k3s' ]]; then
+      echo "Invalid option $answer, must pick 'local' or 'cloud'"
+      exit 1
+    fi
+
     DEPLOYMENT_TYPE=local
-    setupmicrok8s
+
+    if [[ $anwser == 'k3s' ]]; then
+      setup_k3s
+      setup_helm
+      setup_istio
+    else
+      setup_microk8s
+    fi
+
     install
     configure
     apply
@@ -91,7 +105,7 @@ provision)
   provision
   ;;
 installmicrok8s)
-  setupmicrok8s
+  setup_microk8s
   ;;
 install)
   install
