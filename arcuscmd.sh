@@ -80,7 +80,7 @@ setup)
 
     DEPLOYMENT_TYPE=local
 
-    if [[ $anwser == 'k3s' ]]; then
+    if [[ $answer == 'k3s' ]]; then
       setup_k3s
       setup_helm
       setup_istio
