@@ -103,7 +103,7 @@ function setup_k3s() {
 }
 
 function setup_helm() {
-  curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-2 | bash
+  curl https://raw.githubusercontent.com/helm/helm/master/scripts/get | bash
 }
 
 function setup_istio() {
