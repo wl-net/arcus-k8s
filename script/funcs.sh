@@ -111,7 +111,7 @@ function setup_istio() {
   cd .temp
   curl -L https://git.io/getLatestIstio | ISTIO_VERSION=1.3.4 sh -
   cd "istio-${ISTIO_VERSION}"
-  KUBECONFIG=/etc/rancher/k3s/k3s.yaml ~/arcus-k8/linux-amd64/helm template install/kubernetes/helm/istio --name istio --namespace istio-system --set mixer.telemetry.resources.requests.cpu=100m | kubectl apply -f -
+  KUBECONFIG=/etc/rancher/k3s/k3s.yaml helm template install/kubernetes/helm/istio --name istio --namespace istio-system --set mixer.telemetry.resources.requests.cpu=100m | kubectl apply -f -
   cd -
   cd .. # leave .temp
 }
