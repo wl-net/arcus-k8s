@@ -107,6 +107,7 @@ function setup_helm() {
 }
 
 function setup_istio() {
+  $KUBECTL create namespace istio-system
   mkdir -p .temp
   cd .temp
   curl -L https://git.io/getLatestIstio | ISTIO_VERSION=1.3.4 sh -
