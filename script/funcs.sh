@@ -1,4 +1,4 @@
-# shared functions
+# 1shared functions
 
 function updatehubkeystore() {
   echo "Creating hub-keystore..."
@@ -246,6 +246,10 @@ function setup_metrics() {
   $KUBECTL apply -f config/stateful/grafana.yml
   $KUBECTL apply -f config/deployments/kairosdb.yml
   $KUBECTL apply -f config/deployments/metrics-server.yml
+}
+
+function setup_helm() {
+  curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
 }
 
 function setup_k3s() {
