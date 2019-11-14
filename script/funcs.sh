@@ -1,4 +1,4 @@
-# 1shared functions
+# shared functions
 
 function updatehubkeystore() {
   echo "Creating hub-keystore..."
@@ -48,10 +48,14 @@ function provision() {
 }
 
 APPS='alarm-service client-bridge driver-services subsystem-service history-service hub-bridge ipcd-bridge ivr-callback-server metrics-server notification-services platform-services rule-service scheduler-service ui-server'
+
+# Deploy "fast"
 function deployfast() {
+  # Always kill the khakis containers first to avoid failures later.
   $KUBECTL delete pod -l app=cassandra
   $KUBECTL delete pod -l app=zookeeper
   $KUBECTL delete pod -l app=kafka
+
   for app in $APPS; do
     $KUBECTL delete pod -l app=$app
     sleep 5
