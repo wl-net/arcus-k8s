@@ -223,6 +223,7 @@ function configure() {
   ARCUS_ADMIN_EMAIL=${ARCUS_ADMIN_EMAIL:-me@example.com}
   ARCUS_DOMAIN_NAME=${ARCUS_DOMAIN_NAME:-example.com}
   ARCUS_SUBNET=${ARCUS_SUBNET:-unconfigured}
+  ARCUS_CERT_TYPE=${ARCUS_CERT_TYPE:-staging}
 
   if [ "$ARCUS_ADMIN_EMAIL" = "me@example.com" ]; then
     prompt ARCUS_ADMIN_EMAIL "Please enter your admin email address (or set ARCUS_ADMIN_EMAIL): "
@@ -241,6 +242,8 @@ function configure() {
     echo $ARCUS_SUBNET >$ARCUS_CONFIGDIR/subnet
 
   fi
+
+  echo $ARCUS_CERT_TYPE > $ARCUS_CONFIGDIR/cert-issuer
 }
 
 function update() {
