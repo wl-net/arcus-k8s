@@ -89,9 +89,10 @@ spec:
         resources:
           limits:
             cpu: "1"
+            memory: "2048Mi"
           requests:
             cpu: "100m"
-            memory: "2048Mi"
+            memory: "768Mi"
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
         livenessProbe:
