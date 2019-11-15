@@ -215,7 +215,7 @@ function apply() {
 
   $KUBECTL apply -f config/certprovider/
 
-  $KUBECTL kustomize build overlays/local-production-local/ | $KUBECTL apply -f -
+  $KUBECTL kustomize overlays/local-production-local/ | $KUBECTL apply -f -
 }
 
 function configure() {
