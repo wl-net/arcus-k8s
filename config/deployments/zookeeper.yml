@@ -31,7 +31,7 @@ spec:
           limits:
             cpu: "1"
           requests:
-            cpu: "0.1"
+            cpu: "10m"
         env:
         - name: CLIENT_PORT_ADDRESS
           value: 127.0.0.1
