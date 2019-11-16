@@ -35,6 +35,10 @@ spec:
           value: https://admin.arcus.wl-net.net
         - name: GF_INSTALL_PLUGINS
           value: grafana-kairosdb-datasource
+        - name: GF_RENDERING_SERVER_URL
+          value: http://grafana-renderer.default.svc.cluster.local:8081/render
+        - name: GF_RENDERING_CALLBACK_URL
+          value: http://grafana-service.default.svc.cluster.local:3000
           #ports:
           #- containerPort: 3000
           #name: tcp-3000
@@ -64,4 +68,56 @@ spec:
       resources:
         requests:
           storage: 2Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: grafana-renderer
+  name: grafana-renderer
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: grafana-renderer
+  template:
+    metadata:
+      labels:
+        app: grafana-renderer
+    spec:
+      containers:
+      - image: grafana/grafana-image-renderer:latest
+        imagePullPolicy: Always
+        name: grafana-renderer
+        resources:
+          limits:
+            cpu: "1"
+          requests:
+            cpu: "10m"
+        env:
+        ports:
+        - containerPort: 8081
+          name: tcp-8081
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: grafana-renderer
+  name: grafana-renderer
+spec:
+  externalTrafficPolicy: Cluster
+  ports:
+  - port: 8081
+    protocol: TCP
+    targetPort: 8081
+  selector:
+    app: grafana-renderer
+  sessionAffinity: None
+  type: NodePort
 
