@@ -2,3 +2,4 @@
 kustomize
 overlays/local-production-local
 secret/
+.temp
