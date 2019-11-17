@@ -3,7 +3,7 @@ kind: Job
 metadata:
   labels:
     app: modelmanager-history
-    app.kubernetes.io/version: 2018.10.2
+    app.kubernetes.io/version: 2019.10.0
   name: modelmanager-history
   namespace: default
 spec:
@@ -15,7 +15,7 @@ spec:
       containers:
       - env:
         - name: MODELMANAGER_HOME
-          value: /modelmanager-2018.10.2/history-resources/
+          value: /modelmanager-2019.10.0/history-resources/
         - name: MODELMANAGER_SCHEMA
           value: history
         - name: MODELMANAGER_AUTO
@@ -33,10 +33,10 @@ spec:
             configMapKeyRef:
               key: OPS_BOOTSTRAP_SERVERS
               name: arcus-config
-        image: gcr.io/arcus-238802/eyeris/modelmanager:2018.10.2
+        image: gcr.io/arcus-238802/eyeris/modelmanager:2019.10.0
         imagePullPolicy: Always
-        command: ["/modelmanager-2018.10.2/bin/modelmanager"]
-        args: ["-c", "/modelmanager-2018.10.2/conf/arcus-modelmanager.properties"]
+        command: ["/modelmanager-2019.10.0/bin/modelmanager"]
+        args: ["-c", "/modelmanager-2019.10.0/conf/arcus-modelmanager.properties"]
         name: modelmanager-history
         resources: {}
         terminationMessagePath: /dev/termination-log

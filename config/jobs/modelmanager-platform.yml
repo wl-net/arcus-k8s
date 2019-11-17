@@ -3,7 +3,7 @@ kind: Job
 metadata:
   labels:
     app: modelmanager-platform
-    app.kubernetes.io/version: 2018.10.2
+    app.kubernetes.io/version: 2019.10.0
   name: modelmanager-platform
   namespace: default
 spec:
@@ -15,7 +15,7 @@ spec:
       containers:
       - env:
         - name: MODELMANAGER_HOME
-          value: /modelmanager-2018.10.2/
+          value: /modelmanager-2019.10.0/
         - name: MODELMANAGER_SCHEMA
           value: platform
         - name: MODELMANAGER_AUTO
@@ -55,10 +55,10 @@ spec:
             secretKeyRef:
               key: questions.aes.secret
               name: shared
-        image: gcr.io/arcus-238802/eyeris/modelmanager:2018.10.2
+        image: gcr.io/arcus-238802/eyeris/modelmanager:2019.10.0
         imagePullPolicy: Always
-        command: ["/modelmanager-2018.10.2/bin/modelmanager"]
-        args: ["-c", "/modelmanager-2018.10.2/conf/arcus-modelmanager.properties", "-P", "production"]
+        command: ["/modelmanager-2019.10.0/bin/modelmanager"]
+        args: ["-c", "/modelmanager-2019.10.0/conf/arcus-modelmanager.properties", "-P", "production"]
         name: modelmanager-platform
         resources: {}
         terminationMessagePath: /dev/termination-log
