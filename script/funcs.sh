@@ -207,7 +207,6 @@ function apply() {
   fi
 
   set +e
-  $KUBECTL delete configmap logging # old name
   $KUBECTL delete configmap extrafiles
   $KUBECTL create configmap extrafiles --from-file config/extrafiles
   set -e
