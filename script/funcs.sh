@@ -271,7 +271,7 @@ function backup_cassandra() {
 }
 
 function setup_metrics() {
-  $KUBECTL apply -f config/stateful/grafana.yml
+  $KUBECTL apply -f config/stateful/grafana.yaml
   $KUBECTL apply -f config/deployments/kairosdb.yml
   $KUBECTL apply -f config/deployments/metrics-server.yml
 }
