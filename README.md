@@ -13,7 +13,17 @@ For notifications, you must create a Twilio and Sendgrid account. APNS and GCM s
 
 Kubernetes is a fast-moving environment. As a result, only the latest version is currently supported. In order to get security updates, you should roll your containers on a frequent basis, depending on your risk tolerance. It is recommended that you do this at least weekly. In the intest of security future releases of Arcus may "expire" such that they will not work if you forget to patch. Further, some third-party dependencies may require a rebuild of the cluster. Ideally, `arcuscmd.sh install` will try to solve this as much as possible, but it may not be possible in all circumstances.
 
-# Run locally (microk8s)
+# Run locally (k3s) - Recommended
+
+k3s from rancher is the recommended means of installing kubernetes, as it's more trimmed down and is better maintained than microk8s currently.
+
+Simply execute:
+
+`./arcuscmd.sh setup`
+
+and choose "local" and then "k3s"
+
+# Run locally (microk8s) - Deprecated
 
 **Note**: although microk8s works on multiple linux distributions, the script will currently only work on debian based systems, and has only been tested on Ubuntu 18.04. 
 
