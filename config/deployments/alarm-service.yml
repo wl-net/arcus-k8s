@@ -66,6 +66,8 @@ spec:
             configMapKeyRef:
               key: CASSANDRA_KEYSPACE
               name: arcus-config
+        - name: CASSANDRA_LOADBALANCINGPOLICY
+          value: "roundrobin"
         - name: BOOTSTRAP_SERVERS
           valueFrom:
             configMapKeyRef:
@@ -113,7 +115,7 @@ metadata:
     app: alarm-service
   name: alarm-service
 spec:
-  externalTrafficPolicy: Cluster
+  clusterIP: None
   ports:
   - port: 9100
     protocol: TCP
@@ -121,4 +123,3 @@ spec:
   selector:
     app: alarm-service
   sessionAffinity: None
-  type: NodePort
