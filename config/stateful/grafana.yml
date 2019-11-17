@@ -39,6 +39,17 @@ spec:
           value: http://grafana-renderer.default.svc.cluster.local:8081/render
         - name: GF_RENDERING_CALLBACK_URL
           value: http://grafana-service.default.svc.cluster.local:3000
+        - name: GF_SMTP_HOST
+          value: smtp.sendgrid.net:587
+        - name: GF_SMTP_USER
+          value: apikey
+        - name: GF_SMTP_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: email.provider.apikey
+              name: shared
+        - name: GF_SMTP_ENABLED
+          value: "true"
           #ports:
           #- containerPort: 3000
           #name: tcp-3000
