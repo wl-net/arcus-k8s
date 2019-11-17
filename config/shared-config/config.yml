@@ -12,10 +12,10 @@ data:
   BOUNCE_REDIRECT_URL: https://arcussmarthome.com
   BOUNCE_WEB_URL: https://arcussmarthome.com
   CAMERA_PREVIEW_BASEURL: https://camera.preview.arcussmarthome.com
-  CASSANDRA_CONTACTPOINTS: cassandra-service.default.svc.cluster.local
+  CASSANDRA_CONTACTPOINTS: cassandra.default.svc.cluster.local
   CASSANDRA_HOST: cassandra-service.default.svc.cluster.local
   CASSANDRA_KEYSPACE: production
-  CASSANDRA_SINGLE_NODE: "true"
+  CASSANDRA_SINGLE_NODE: "false"
   INVOICE_RESOURCE_BASE_URL: https://invoice.arcussmarthome.com
   KAFKA_HSIZE: "512"
   KAFKAOPS_REPLICATION: "1"
