@@ -147,6 +147,9 @@ deletepod)
 backupdb)
   backup_cassandra
   ;;
+status)
+  arcus_status
+  ;;
 help)
   print_available
   ;;
