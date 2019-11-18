@@ -115,6 +115,9 @@ configure)
   configure
   ;;
 deploy)
+  deploy_platform
+  ;;
+deployfast)
   deployfast
   ;;
 killall)

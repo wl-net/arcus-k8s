@@ -49,6 +49,23 @@ function provision() {
 
 APPS='alarm-service client-bridge driver-services subsystem-service history-service hub-bridge ipcd-bridge ivr-callback-server metrics-server notification-services platform-services rule-service scheduler-service ui-server'
 
+# Deploy the platform in a way that causes minimal downtime
+function deploy_platform() {
+  for app in $APPS; do
+    $KUBECTL scale deployments/$app --replicas=2
+    echo "Waiting for ${app} to come online..."
+    sleep 15
+    if [[ $app == 'driver-services' ]]; then
+      echo "driver-services..."
+      sleep 50
+    fi
+
+    to_delete=$($KUBECTL get pods --sort-by=.metadata.creationTimestamp -o custom-columns=":metadata.name" | grep $app | head -1)
+    $KUBECTL delete pod $to_delete
+    $KUBECTL scale deployments/$app --replicas=1
+  done
+}
+
 # Deploy "fast"
 function deployfast() {
   # Always kill the khakis containers first to avoid failures later.
