@@ -26,7 +26,7 @@ spec:
       containers:
       - env:
         - name: JAVA_OPTS
-          value: "-Xms64m -Xmx128m"
+          value: "-Xms64m -Xmx128m -Dlogback.configurationFile=/config/logback.xml"
         - name: BILLING_URL
           valueFrom:
             configMapKeyRef:
