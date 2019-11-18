@@ -6,9 +6,7 @@ metadata:
   name: subsystem-service
   namespace: default
 spec:
-  progressDeadlineSeconds: 2147483647
   replicas: 1
-  revisionHistoryLimit: 10
   selector:
     matchLabels:
       app: subsystem-service
