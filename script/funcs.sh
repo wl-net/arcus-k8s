@@ -358,3 +358,7 @@ function setup_metrics() {
   $KUBECTL apply -f config/deployments/metrics-server.yml
 }
 
+function arcus_status() {
+  $KUBECTL describe statefulset cassandra | grep 'Pods Status'
+  $KUBECTL describe statefulset kafka | grep 'Pods Status'
+}
