@@ -41,7 +41,23 @@ It will takes about 5-10 minutes for everything to come up. When `microk8s.kubec
 
 In order to Access the Arcus UI and connect a hub, you will need to configure your network. You have some options when it comes to this. If you are operating in a home environment (e.g. you have NAT and you're behind a gateway), then you have Arcus run a "LoadBalancer" on your local network. For this configuration, you will need to exclude a region of your network from DHCP. For example, if you are using the 192.168.1.1/24 subnet, then you should configure DHCP to assign addresses between 192.168.1.2-192.168.150, and use 192.168.151-192.168.155 for Arcus.
 
-Once you have configured this, and Arcus is running you should check to see which IP addresses in that space are actually being used, e.g.
+Once you have configured this, and Arcus is running you should check to see which IP addresses in that space are actually being used. You can either do this via kubectl, or with the `info` utility in arcuscmd.
+
+```
+$ ./arcuscmd.sh info
+DNS -> IP/Port Mappings: 
+If these IP addresses are private, you are responsible for setting up port forwarding
+
+dev.arcus.wl-net.net:80           -> 172.16.6.4:80
+dev.arcus.wl-net.net:443          -> 172.16.6.4:443
+client.dev.arcus.wl-net.net:443   -> 172.16.6.4:443
+static.dev.arcus.wl-net.net:443   -> 172.16.6.4:443
+ipcd.dev.arcus.wl-net.net:443     -> 172.16.6.4:443
+admin.dev.arcus.wl-net.net:443    -> 172.16.6.4:443
+hub.dev.arcus.wl-net.net:443      -> 172.16.6.4:443 OR 172.16.6.2:8082
+```
+
+Alternatively: 
 
 ```
 $ microk8s.kubectl get service
@@ -96,7 +112,7 @@ You can use `microk8s.kubectl -n cert-manager logs $(/snap/bin/microk8s.kubectl 
 
 Unfortunately, the hub-bridge doesn't work out of the box because it expects a Java Key Store, something we can't provide with cert-manager. Arcusplatform now supports PKCS#8 keys as well (via netty's internal support for PKCS#8), but the private key that cert-manager generates is in PKCS#1 format. As a result, you'll have to manually convert the private key to PKCS#1.
 
-This can be acomplished by running `./setup-hubkeystore.sh` once you have production certificates (see above).
+This can be acomplished by running `./arcuscmd.sh updatehubkeystore` once you have production certificates (see above).
 
 ## Viewing pod status
 
