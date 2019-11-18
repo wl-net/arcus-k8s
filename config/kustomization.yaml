@@ -58,7 +58,7 @@ images:
   newTag: 2019.10.0
 
 - name: gcr.io/arcus-238802/eyeris/zookeeper
-  newTag: 2019.10.0
+  newTag: latest
 
 - name: gcr.io/arcus-238802/eyeris/rule-service
   newTag: 2019.10.0
