@@ -120,10 +120,6 @@ function setup_istio() {
 }
 
 function install() {
-  if [[ ! -e kustomize ]]; then
-    . script/kustomize-install.sh
-  fi
-
   $KUBECTL label namespace default istio-injection=enabled --overwrite
 
   local count=$($KUBECTL get apiservice | grep certmanager.k8s.io -c)
