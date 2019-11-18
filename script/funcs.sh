@@ -275,6 +275,3 @@ function setup_metrics() {
   $KUBECTL apply -f config/deployments/metrics-server.yml
 }
 
-
-
-
