@@ -205,7 +205,7 @@ metadata:
     app: client-bridge
   name: client-bridge
 spec:
-  externalTrafficPolicy: Cluster
+  clusterIP: None
   ports:
   - port: 9100
     protocol: TCP
@@ -213,4 +213,3 @@ spec:
   selector:
     app: client-bridge
   sessionAffinity: None
-  type: NodePort
