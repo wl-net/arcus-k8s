@@ -38,3 +38,38 @@ resources:
 - shared-config/config.yml
 - stateful/cassandra.yaml
 - stateful/kafka.yaml
+
+images:
+- name: gcr.io/arcus-238802/eyeris/client-bridge
+  newTag: 2019.10.0
+- name: gcr.io/arcus-238802/eyeris/driver-services
+  newTag: 2019.10.0
+- name: gcr.io/arcus-238802/eyeris/subsystem-service
+  newTag: 2019.10.0
+- name: gcr.io/arcus-238802/eyeris/hub-bridge
+  newTag: 2019.10.0
+- name: gcr.io/arcus-238802/eyeris/tag-service
+  newTag: 2019.10.0
+- name: gcr.io/arcus-238802/eyeris/history-service
+  newTag: 2019.10.0
+- name: gcr.io/arcus-238802/eyeris/scheduler-service
+  newTag: 2019.10.0
+- name: gcr.io/arcus-238802/eyeris/platform-services
+  newTag: 2019.10.0
+
+- name: gcr.io/arcus-238802/eyeris/zookeeper
+  newTag: 2019.10.0
+
+- name: gcr.io/arcus-238802/eyeris/rule-service
+  newTag: 2019.10.0
+- name: gcr.io/arcus-238802/eyeris/ivr-callback-server
+  newTag: 2019.10.0
+- name: gcr.io/arcus-238802/eyeris/ipcd-bridge
+  newTag: 2019.10.0
+- name: gcr.io/arcus-238802/eyeris/metrics-server
+  newTag: 2019.10.0
+- name: gcr.io/arcus-238802/eyeris/alarm-service
+  newTag: 2019.10.0
+- name: gcr.io/arcus-238802/eyeris/notification-services
+  newTag: 2019.10.0
+
