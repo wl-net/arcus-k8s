@@ -15,7 +15,7 @@ Kubernetes is a fast-moving environment. As a result, only the latest version is
 
 # Run locally (k3s) - Recommended
 
-k3s from rancher is the recommended means of installing kubernetes, as it's more trimmed down and is better maintained than microk8s currently.
+[k3s by rancher](https://k3s.io/) is the recommended means of installing Kubernetes, as it's more trimmed down and allows this project to use more modern versions of kubernetes projects, like istio.
 
 Simply execute:
 
