@@ -157,13 +157,14 @@ function info() {
 
   echo "DNS -> IP/Port Mappings: "
   echo "If these IP addresses are private, you are responsible for setting up port forwarding"
-  echo "${ARCUS_DOMAIN_NAME}:80 -> $IPADDRESS:80"
-  echo "${ARCUS_DOMAIN_NAME}:443 -> $IPADDRESS:443"
-  echo "client.${ARCUS_DOMAIN_NAME}:443 -> $IPADDRESS:443"
-  echo "static.${ARCUS_DOMAIN_NAME}:443 -> $IPADDRESS:443"
-  echo "ipcd.${ARCUS_DOMAIN_NAME}:443 -> $IPADDRESS:443"
-  echo "admin.${ARCUS_DOMAIN_NAME}:443 -> $IPADDRESS:443"
-  echo "hub.${ARCUS_DOMAIN_NAME}:443 -> $IPADDRESS:443"
+  echo ""
+  echo "${ARCUS_DOMAIN_NAME}:80           -> $IPADDRESS:80"
+  echo "${ARCUS_DOMAIN_NAME}:443          -> $IPADDRESS:443"
+  echo "client.${ARCUS_DOMAIN_NAME}:443   -> $IPADDRESS:443"
+  echo "static.${ARCUS_DOMAIN_NAME}:443   -> $IPADDRESS:443"
+  echo "ipcd.${ARCUS_DOMAIN_NAME}:443     -> $IPADDRESS:443"
+  echo "admin.${ARCUS_DOMAIN_NAME}:443    -> $IPADDRESS:443"
+  echo "hub.${ARCUS_DOMAIN_NAME}:443      -> $IPADDRESS:443 OR $HUB_IPADDRESS:8082"
 }
 
 function load() {
