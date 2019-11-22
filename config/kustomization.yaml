@@ -40,36 +40,36 @@ resources:
 - stateful/kafka.yaml
 
 images:
-- name: gcr.io/arcus-238802/eyeris/client-bridge
+- name: gcr.io/arcus-238802/arcus/client-bridge
   newTag: 2019.10.0
-- name: gcr.io/arcus-238802/eyeris/driver-services
+- name: gcr.io/arcus-238802/arcus/driver-services
   newTag: 2019.10.0
-- name: gcr.io/arcus-238802/eyeris/subsystem-service
+- name: gcr.io/arcus-238802/arcus/subsystem-service
   newTag: 2019.10.0
-- name: gcr.io/arcus-238802/eyeris/hub-bridge
+- name: gcr.io/arcus-238802/arcus/hub-bridge
   newTag: 2019.10.0
-- name: gcr.io/arcus-238802/eyeris/tag-service
+- name: gcr.io/arcus-238802/arcus/tag-service
   newTag: 2019.10.0
-- name: gcr.io/arcus-238802/eyeris/history-service
+- name: gcr.io/arcus-238802/arcus/history-service
   newTag: 2019.10.0
-- name: gcr.io/arcus-238802/eyeris/scheduler-service
+- name: gcr.io/arcus-238802/arcus/scheduler-service
   newTag: 2019.10.0
-- name: gcr.io/arcus-238802/eyeris/platform-services
+- name: gcr.io/arcus-238802/arcus/platform-services
   newTag: 2019.10.0
 
-- name: gcr.io/arcus-238802/eyeris/zookeeper
+- name: gcr.io/arcus-238802/arcus/zookeeper
   newTag: latest
 
-- name: gcr.io/arcus-238802/eyeris/rule-service
+- name: gcr.io/arcus-238802/arcus/rule-service
   newTag: 2019.10.0
-- name: gcr.io/arcus-238802/eyeris/ivr-callback-server
+- name: gcr.io/arcus-238802/arcus/ivr-callback-server
   newTag: 2019.10.0
-- name: gcr.io/arcus-238802/eyeris/ipcd-bridge
+- name: gcr.io/arcus-238802/arcus/ipcd-bridge
   newTag: 2019.10.0
-- name: gcr.io/arcus-238802/eyeris/metrics-server
+- name: gcr.io/arcus-238802/arcus/metrics-server
   newTag: 2019.10.0
-- name: gcr.io/arcus-238802/eyeris/alarm-service
+- name: gcr.io/arcus-238802/arcus/alarm-service
   newTag: 2019.10.0
-- name: gcr.io/arcus-238802/eyeris/notification-services
+- name: gcr.io/arcus-238802/arcus/notification-services
   newTag: 2019.10.0
 
