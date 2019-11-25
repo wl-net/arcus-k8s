@@ -16,7 +16,7 @@ function updatehubkeystore() {
   $KUBECTL create secret tls hub-keystore --cert converted/tls.crt --key converted/tls.key
 
   rm -rf converted
-  echo "All done. Goodbye!"
+  echo "Hub keystore created with production certificate and trust store. Restart hub-bridge to pick up changes."
 }
 
 function useprodcert() {
