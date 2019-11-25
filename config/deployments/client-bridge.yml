@@ -172,7 +172,7 @@ spec:
             configMapKeyRef:
               key: DEFAULT_SERVICE_LEVEL
               name: arcus-config
-        image: gcr.io/arcus-238802/eyeris/client-bridge:2019.10.0
+        image: gcr.io/arcus-238802/arcus/client-bridge:2019.10.0
         imagePullPolicy: Always
         name: client-bridge
         resources:

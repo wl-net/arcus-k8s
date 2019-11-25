@@ -67,7 +67,7 @@ spec:
         ports:
         - containerPort: 9092
           name: tcp-9092
-        image: gcr.io/arcus-238802/eyeris/kafka:latest
+        image: gcr.io/arcus-238802/arcus/kafka:latest
         imagePullPolicy: Always
         name: kafka
         resources:

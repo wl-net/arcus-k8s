@@ -24,7 +24,7 @@ spec:
         app: kairosdb
     spec:
       containers:
-      - image: gcr.io/arcus-238802/eyeris/kairosdb:latest
+      - image: gcr.io/arcus-238802/arcus/kairosdb:latest
         imagePullPolicy: Always
         name: kairosdb
         resources:

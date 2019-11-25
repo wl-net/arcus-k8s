@@ -24,7 +24,7 @@ spec:
         app: zookeeper
     spec:
       containers:
-      - image: gcr.io/arcus-238802/eyeris/zookeeper:latest
+      - image: gcr.io/arcus-238802/arcus/zookeeper:latest
         imagePullPolicy: Always
         name: zookeeper
         resources:

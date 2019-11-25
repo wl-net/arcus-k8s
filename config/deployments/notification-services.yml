@@ -154,7 +154,7 @@ spec:
             secretKeyRef:
               key: apns.pkcs12.password
               name: shared
-        image: gcr.io/arcus-238802/eyeris/notification-services:2019.10.0
+        image: gcr.io/arcus-238802/arcus/notification-services:2019.10.0
         imagePullPolicy: Always
         name: notification-services
         resources:

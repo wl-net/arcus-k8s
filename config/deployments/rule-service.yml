@@ -76,7 +76,7 @@ spec:
             configMapKeyRef:
               key: OPS_BOOTSTRAP_SERVERS
               name: arcus-config
-        image: gcr.io/arcus-238802/eyeris/rule-service:2019.10.0
+        image: gcr.io/arcus-238802/arcus/rule-service:2019.10.0
         imagePullPolicy: Always
         name: rule-service
         resources:

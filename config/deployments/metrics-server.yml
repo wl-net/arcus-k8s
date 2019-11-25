@@ -59,7 +59,7 @@ spec:
           value: '7200'
         - name: rollup_highTTL
           value: '86400'
-        image: gcr.io/arcus-238802/eyeris/metrics-server:2019.10.0
+        image: gcr.io/arcus-238802/arcus/metrics-server:2019.10.0
         imagePullPolicy: Always
         name: metrics-server
         resources:

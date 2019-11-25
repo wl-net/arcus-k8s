@@ -95,7 +95,7 @@ spec:
           value: "false"
         - name: USE_SSL
           value: "false"
-        image: gcr.io/arcus-238802/eyeris/ipcd-bridge:2019.10.0
+        image: gcr.io/arcus-238802/arcus/ipcd-bridge:2019.10.0
         imagePullPolicy: Always
         name: ipcd-bridge
         resources:
