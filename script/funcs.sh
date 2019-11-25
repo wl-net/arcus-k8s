@@ -140,7 +140,7 @@ function install() {
   $KUBECTL label namespace default istio-injection=enabled --overwrite
 
   local count=$($KUBECTL get apiservice | grep certmanager.k8s.io -c)
-  if [[ $count > 0 ]]; then
+  if [[ $count -gt 0 ]]; then
     echo "Removing cert-manager, please see https://docs.cert-manager.io/en/latest/tasks/uninstall/kubernetes.html for more details"
     set +e
     $KUBECTL delete -f https://github.com/jetstack/cert-manager/releases/download/v0.10.1/cert-manager.yaml
