@@ -4,7 +4,7 @@ set -euo pipefail
 METALLB_VERSION='v0.8.1'
 NGINX_VERSION='0.26.0'
 CERT_MANAGER_VERSION='v0.11.0'
-ISTIO_VERSION='1.3.4'
+ISTIO_VERSION='1.4.2'
 
 SCRIPT_PATH="$0"
 SCRIPT_DIR=$(dirname ${SCRIPT_PATH})
@@ -104,6 +104,9 @@ apply)
   ;;
 provision)
   provision
+  ;;
+installk3s)
+  setup_k3s
   ;;
 installmicrok8s)
   setup_microk8s
