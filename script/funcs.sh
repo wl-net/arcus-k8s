@@ -160,7 +160,6 @@ function install() {
   $KUBECTL apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/nginx-$NGINX_VERSION/deploy/static/mandatory.yaml
   $KUBECTL apply -f https://github.com/jetstack/cert-manager/releases/download/$CERT_MANAGER_VERSION/cert-manager.yaml
 
-  $KUBECTL apply -f overlays/local-production-local/metallb.yml
 }
 
 function info() {
@@ -214,6 +213,8 @@ function apply() {
 
   cp localk8/metallb.yml overlays/local-production-local/metallb.yml
   sed -i "s!PLACEHOLDER_1!$ARCUS_SUBNET!" overlays/local-production-local/metallb.yml
+
+  $KUBECTL apply -f overlays/local-production-local/metallb.yml
 
   if [ $ARCUS_CERT_TYPE = 'production' ]; then
     sed -i 's/letsencrypt-staging/letsencrypt-production/g' overlays/local-production-local/ui-service-ingress.yml
