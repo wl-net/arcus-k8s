@@ -343,6 +343,11 @@ function configure() {
     prompt apikey "Please enter your twilio phone number:"
     echo -n "$apikey" > secret/twilio.account.from
   fi
+
+  set +e
+  $KUBECTL delete secret shared
+  set -e
+  $KUBECTL create secret generic shared --from-file secret/
 }
 
 function update() {
