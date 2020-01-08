@@ -21,7 +21,10 @@ spec:
         - name: MODELMANAGER_AUTO
           value: "true"
         - name: cassandra_history_contactPoints
-          value: cassandra-service.default.svc.cluster.local
+          valueFrom:
+            configMapKeyRef:
+              key: CASSANDRA_CONTACTPOINTS
+              name: arcus-config
         - name: BOOTSTRAP_SERVERS
           valueFrom:
             configMapKeyRef:
