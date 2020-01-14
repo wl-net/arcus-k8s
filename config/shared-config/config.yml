@@ -11,11 +11,12 @@ data:
   BOUNCE_IOS_APP_IDS: "12345"
   BOUNCE_REDIRECT_URL: https://arcussmarthome.com
   BOUNCE_WEB_URL: https://arcussmarthome.com
+  BRIDGE_INSTANCES: "1"
   CAMERA_PREVIEW_BASEURL: https://camera.preview.arcussmarthome.com
   CASSANDRA_CONTACTPOINTS: cassandra.default.svc.cluster.local
   CASSANDRA_HOST: cassandra-service.default.svc.cluster.local
-  CASSANDRA_KEYSPACE: production
-  CASSANDRA_SINGLE_NODE: "false"
+  CASSANDRA_KEYSPACE: dev
+  CASSANDRA_SINGLE_NODE: ""
   INVOICE_RESOURCE_BASE_URL: https://invoice.arcussmarthome.com
   KAFKA_HSIZE: "512"
   KAFKAOPS_REPLICATION: "1"
@@ -35,7 +36,7 @@ data:
   CORS_ORIGINS: https://arcussmarthome.com, wss://client.arcussmarthome.com:443, https://localdev.irisbylowes.com:8443
   PARTITION_COUNT: "128"
   DEFAULT_SERVICE_LEVEL: "premium_free"
-  ADDRESS_VALIDATOR: "default"
+  ADDRESS_VALIDATOR: "noop"
   EMAIL_SENDEREMAIL: arcus@arcussmarthome.com
   EMAIL_REPLYTO: arcus@arcussmarthome.com
   WEBHOME_BASE_URL: https://arcussmarthome.com

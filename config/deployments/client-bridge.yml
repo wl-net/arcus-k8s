@@ -24,6 +24,11 @@ spec:
       - env:
         - name: JAVA_OPTS
           value: "-Xms64m -Xmx192m -Dlogback.configurationFile=/config/logback.xml"
+        - name: PARTITION_MEMBERS
+          valueFrom:
+            configMapKeyRef:
+              key: BRIDGE_INSTANCES
+              name: arcus-config
         - name: BILLING_URL
           valueFrom:
             configMapKeyRef:
