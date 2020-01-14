@@ -15,8 +15,7 @@ data:
   CAMERA_PREVIEW_BASEURL: https://camera.preview.arcussmarthome.com
   CASSANDRA_CONTACTPOINTS: cassandra.default.svc.cluster.local
   CASSANDRA_HOST: cassandra-service.default.svc.cluster.local
-  CASSANDRA_KEYSPACE: dev
-  CASSANDRA_SINGLE_NODE: ""
+  CASSANDRA_KEYSPACE: production
   INVOICE_RESOURCE_BASE_URL: https://invoice.arcussmarthome.com
   KAFKA_HSIZE: "512"
   KAFKAOPS_REPLICATION: "1"
@@ -36,7 +35,7 @@ data:
   CORS_ORIGINS: https://arcussmarthome.com, wss://client.arcussmarthome.com:443, https://localdev.irisbylowes.com:8443
   PARTITION_COUNT: "128"
   DEFAULT_SERVICE_LEVEL: "premium_free"
-  ADDRESS_VALIDATOR: "noop"
+  ADDRESS_VALIDATOR: "default"
   EMAIL_SENDEREMAIL: arcus@arcussmarthome.com
   EMAIL_REPLYTO: arcus@arcussmarthome.com
   WEBHOME_BASE_URL: https://arcussmarthome.com
