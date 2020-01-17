@@ -21,11 +21,12 @@ spec:
         app: client-bridge
     spec:
       containers:
-      - env:
+      - envFrom:
+        - configMapRef:
+            name: cluster-config
+        env:
         - name: JAVA_OPTS
           value: "-Xms64m -Xmx192m -Dlogback.configurationFile=/config/logback.xml"
-        - name: CLUSTER_SERVICE_DAO
-          value: "cassandra"
         - name: PARTITION_MEMBERS
           valueFrom:
             configMapKeyRef:
