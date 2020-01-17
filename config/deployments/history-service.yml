@@ -22,9 +22,9 @@ spec:
         app: history-service
     spec:
       containers:
-        - envFrom:
-            - configMapRef:
-                name: cluster-config
+      - envFrom:
+          - configMapRef:
+              name: cluster-config
         env:
         - name: JAVA_OPTS
           value: "-Xms64m"
