@@ -1,0 +1,90 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app: cassandra
+  name: cassandra
+  namespace: default
+spec:
+  serviceName: cassandra
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: cassandra
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: cassandra
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: cloud.google.com/gke-preemptible
+                operator: DoesNotExist
+      containers:
+      - env:
+        - name: JVM_OPTS
+          value: "-Djava.rmi.server.hostname=localhost"
+        - name: MAX_HEAP_SIZE
+          value: 256M
+        - name: HEAP_NEWSIZE
+          value: 256M
+        - name: CASSANDRA_COMMITLOG_TOTAL_SPACE_IN_MB
+          value: "512"
+        - name: CASSANDRA_HOST1
+          valueFrom:
+            configMapKeyRef:
+              key: CASSANDRA_HOST
+              name: arcus-config
+        - name: CASSANDRA_SINGLE_NODE
+          valueFrom:
+            configMapKeyRef:
+              key: CASSANDRA_SINGLE_NODE
+              name: arcus-config
+        - name: CASSANDRA_LISTEN_ADDRESS
+          value: localhost
+        image: gcr.io/arcus-238802/arcus/cassandra:latest
+        imagePullPolicy: Always
+        name: cassandra
+        resources:
+          limits:
+            cpu: "1"
+          requests:
+            cpu: "0.1"
+            memory: "512Mi"
+        ports:
+        - containerPort: 7000
+          name: tcp-7000
+        - containerPort: 7001
+          name: tcp-7001
+        - containerPort: 7199
+          name: tcp-7199
+        - containerPort: 9042
+          name: tcp-9042
+        - containerPort: 9160
+          name: tcp-9160
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: "/data"
+          name: cassandra-storage
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+
+  volumeClaimTemplates:
+  - metadata:
+      name: cassandra-storage
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 10Gi

@@ -17,7 +17,6 @@ resources:
 - deployments/static-server.yml
 - deployments/subsystem-service.yml
 - deployments/ui-server.yml
-- deployments/zookeeper.yml
 - destinationrules/cassandra.yml
 - destinationrules/zookeeper.yml
 - istio/sendgrid.yml
@@ -35,9 +34,8 @@ resources:
 - service/ui-service-ingress.yml
 - service/ui-service.yml
 - service/zookeeper.yml
-- shared-config/config.yml
-- stateful/cassandra.yaml
-- stateful/kafka.yaml
+- configmaps/arcus-config.yml
+- configmaps/cluster-config.yml
 
 images:
 - name: gcr.io/arcus-238802/arcus/client-bridge

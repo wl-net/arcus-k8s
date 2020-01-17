@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: zookeeper
+  name: zookeeper
+  namespace: default
+spec:
+  progressDeadlineSeconds: 2147483647
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: zookeeper
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: zookeeper
+    spec:
+      containers:
+      - image: gcr.io/arcus-238802/arcus/zookeeper:latest
+        imagePullPolicy: Always
+        name: zookeeper
+        resources:
+          limits:
+            cpu: "1"
+          requests:
+            cpu: "10m"
+        env:
+        - name: CLIENT_PORT_ADDRESS
+          value: 127.0.0.1
+        ports:
+        - containerPort: 2181
+          name: tcp-2181
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30

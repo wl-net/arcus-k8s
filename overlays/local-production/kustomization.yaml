@@ -4,3 +4,7 @@ patchesStrategicMerge:
 - cert-provider.yaml
 - shared-config.yaml
 - ui-service-ingress.yml
+
+resources:
+- cassandra.yaml
+- kafka.yaml
