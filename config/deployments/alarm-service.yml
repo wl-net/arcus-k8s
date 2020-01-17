@@ -85,8 +85,6 @@ spec:
         image: gcr.io/arcus-238802/arcus/alarm-service:2019.10.0
         imagePullPolicy: Always
         name: alarm-service
-        terminationMessagePath: /dev/termination-log
-        terminationMessagePolicy: File
         volumeMounts:
           - mountPath: /config
             name: config
