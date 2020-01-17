@@ -22,7 +22,10 @@ spec:
         app: history-service
     spec:
       containers:
-      - env:
+        - envFrom:
+            - configMapRef:
+                name: cluster-config
+        env:
         - name: JAVA_OPTS
           value: "-Xms64m"
         - name: BILLING_URL

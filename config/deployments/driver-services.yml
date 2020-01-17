@@ -22,7 +22,10 @@ spec:
         app: driver-services
     spec:
       containers:
-      - env:
+      - envFrom:
+          - configMapRef:
+              name: cluster-config
+        env:
         - name: JAVA_OPTS
           value: "-Xms64m -Xmx1024m"
         - name: DRIVER_POOL_SIZE

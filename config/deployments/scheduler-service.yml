@@ -22,7 +22,10 @@ spec:
         app: scheduler-service
     spec:
       containers:
-      - env:
+      - envFrom:
+          - configMapRef:
+              name: cluster-config
+        env:
         - name: JAVA_OPTS
           value: "-Xms64m -Xmx128m -Dlogback.configurationFile=/config/logback.xml"
         - name: BILLING_URL

@@ -21,7 +21,10 @@ spec:
         app: tag-service
     spec:
       containers:
-      - env:
+      - envFrom:
+          - configMapRef:
+              name: cluster-config
+        env:
         - name: JAVA_OPTS
           value: "-Xms64m -Xmx64m -Dlogback.configurationFile=/config/logback.xml"
         - name: BILLING_CLIENT
