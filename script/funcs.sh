@@ -180,6 +180,7 @@ function info() {
 }
 
 function load() {
+  ARCUS_OVERLAY_NAME="local-production-local"
   if [ -d $ARCUS_CONFIGDIR ]; then
     if [ -f "$ARCUS_CONFIGDIR/admin.email" ]; then
       ARCUS_ADMIN_EMAIL=$(cat $ARCUS_CONFIGDIR/admin.email)
@@ -193,12 +194,20 @@ function load() {
     if [ -f "$ARCUS_CONFIGDIR/cert-issuer" ]; then
       ARCUS_CERT_TYPE=$(cat $ARCUS_CONFIGDIR/cert-issuer)
     fi
+    if [ -f "$ARCUS_CONFIGDIR/overlay-name" ]; then
+      ARCUS_OVERLAY_NAME=$(cat $ARCUS_CONFIGDIR/overlay-name)
+    fi
   fi
 }
 
 function apply() {
   # Apply the configuration
   load
+
+  if [ ! -d "overlays/${ARCUS_OVERLAY_NAME}-local" ]; then
+    echo "Could not find overlay ${ARCUS_OVERLAY_NAME}"
+    exit 1
+  fi
 
   mkdir -p overlays/local-production-local
   cp -r overlays/local-production/* overlays/local-production-local
@@ -228,7 +237,7 @@ function apply() {
 
   $KUBECTL apply -f config/certprovider/
 
-  $KUBECTL kustomize overlays/local-production-local/ | $KUBECTL apply -f -
+  $KUBECTL apply -k "overlays/${ARCUS_OVERLAY_NAME}-local"
 }
 
 function configure() {
