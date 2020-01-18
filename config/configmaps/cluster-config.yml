@@ -9,7 +9,7 @@ metadata:
 data:
   BOOTSTRAP_SERVERS: kafka-service.default.svc.cluster.local:9092
   CLUSTER_SERVICE_DAO: zookeeper
-  CLUSTER_ZK_HOST: 192.168.1.13
+  CLUSTER_ZK_HOST: zookeeper-service.default.svc.cluster.local
   cassandra_history_contactPoints: cassandra.default.svc.cluster.local
   cassandra_contactPoints: cassandra.default.svc.cluster.local
   CASSANDRA_CONTACTPOINTS: cassandra.default.svc.cluster.local
