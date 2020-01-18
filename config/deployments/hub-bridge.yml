@@ -73,32 +73,6 @@ spec:
             secretKeyRef:
               key: billing.public.api.key
               name: shared
-        - name: cassandra_contactPoints
-          valueFrom:
-            configMapKeyRef:
-              key: CASSANDRA_CONTACTPOINTS
-              name: arcus-config
-        - name: cassandra_history_contactPoints
-          valueFrom:
-            configMapKeyRef:
-              key: CASSANDRA_CONTACTPOINTS
-              name: arcus-config
-        - name: CASSANDRA_KEYSPACE
-          valueFrom:
-            configMapKeyRef:
-              key: CASSANDRA_KEYSPACE
-              name: arcus-config
-        - name: BOOTSTRAP_SERVERS
-          valueFrom:
-            configMapKeyRef:
-              key: BOOTSTRAP_SERVERS
-              name: arcus-config
-              name: arcus-config
-        - name: OPS_BOOTSTRAP_SERVERS
-          valueFrom:
-            configMapKeyRef:
-              key: OPS_BOOTSTRAP_SERVERS
-              name: arcus-config
         - name: BOUNCE_HELP_URL
           valueFrom:
             configMapKeyRef:
