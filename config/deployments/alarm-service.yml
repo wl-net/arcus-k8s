@@ -54,34 +54,6 @@ spec:
             secretKeyRef:
               key: questions.aes.secret
               name: shared
-        - name: cassandra_contactPoints
-          valueFrom:
-            configMapKeyRef:
-              key: CASSANDRA_CONTACTPOINTS
-              name: arcus-config
-        - name: cassandra_history_contactPoints
-          valueFrom:
-            configMapKeyRef:
-              key: CASSANDRA_CONTACTPOINTS
-              name: arcus-config
-        - name: CASSANDRA_KEYSPACE
-          valueFrom:
-            configMapKeyRef:
-              key: CASSANDRA_KEYSPACE
-              name: arcus-config
-        - name: CASSANDRA_LOADBALANCINGPOLICY
-          value: "roundrobin"
-        - name: BOOTSTRAP_SERVERS
-          valueFrom:
-            configMapKeyRef:
-              key: BOOTSTRAP_SERVERS
-              name: arcus-config
-              name: arcus-config
-        - name: OPS_BOOTSTRAP_SERVERS
-          valueFrom:
-            configMapKeyRef:
-              key: OPS_BOOTSTRAP_SERVERS
-              name: arcus-config
         ports:
         - containerPort: 9100
           name: tcp-9100
