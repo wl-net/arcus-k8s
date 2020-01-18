@@ -180,7 +180,7 @@ function info() {
 }
 
 function load() {
-  ARCUS_OVERLAY_NAME="local-production-local"
+  ARCUS_OVERLAY_NAME="local-production"
   if [ -d $ARCUS_CONFIGDIR ]; then
     if [ -f "$ARCUS_CONFIGDIR/admin.email" ]; then
       ARCUS_ADMIN_EMAIL=$(cat $ARCUS_CONFIGDIR/admin.email)
@@ -204,30 +204,30 @@ function apply() {
   # Apply the configuration
   load
 
-  if [ ! -d "overlays/${ARCUS_OVERLAY_NAME}-local" ]; then
+  if [ ! -d "overlays/${ARCUS_OVERLAY_NAME}" ] && [ "${ARCUS_OVERLAY_NAME}" != 'local-production-local' ]; then
     echo "Could not find overlay ${ARCUS_OVERLAY_NAME}"
     exit 1
   fi
 
-  mkdir -p overlays/local-production-local
-  cp -r overlays/local-production/* overlays/local-production-local
+  mkdir -p "overlays/${ARCUS_OVERLAY_NAME}-local"
+  cp -r "overlays/${ARCUS_OVERLAY_NAME}/"* "overlays/${ARCUS_OVERLAY_NAME}-local/"
 
   sed -i "s/me@example.com/$ARCUS_ADMIN_EMAIL/" overlays/local-production-local/cert-provider.yaml
 
-  cp config/configmaps/arcus-config.yml overlays/local-production-local/shared-config.yaml
-  sed -i "s/arcussmarthome.com/$ARCUS_DOMAIN_NAME/g" overlays/local-production-local/shared-config.yaml
+  cp config/configmaps/arcus-config.yml "overlays/${ARCUS_OVERLAY_NAME}-local/shared-config.yaml"
+  sed -i "s/arcussmarthome.com/$ARCUS_DOMAIN_NAME/g" "overlays/${ARCUS_OVERLAY_NAME}-local/shared-config.yaml"
 
-  cp config/service/ui-service-ingress.yml overlays/local-production-local/ui-service-ingress.yml
-  sed -i "s/arcussmarthome.com/$ARCUS_DOMAIN_NAME/" overlays/local-production-local/ui-service-ingress.yml
+  cp config/service/ui-service-ingress.yml "overlays/${ARCUS_OVERLAY_NAME}-local/"ui-service-ingress.yml
+  sed -i "s/arcussmarthome.com/$ARCUS_DOMAIN_NAME/" "overlays/${ARCUS_OVERLAY_NAME}-local/ui-service-ingress.yml"
 
-  cp localk8/metallb.yml overlays/local-production-local/metallb.yml
-  sed -i "s!PLACEHOLDER_1!$ARCUS_SUBNET!" overlays/local-production-local/metallb.yml
+  cp localk8/metallb.yml "overlays/${ARCUS_OVERLAY_NAME}-local/metallb.yml"
+  sed -i "s!PLACEHOLDER_1!$ARCUS_SUBNET!" "overlays/${ARCUS_OVERLAY_NAME}-local/metallb.yml"
 
   $KUBECTL apply -f overlays/local-production-local/metallb.yml
 
   if [ $ARCUS_CERT_TYPE = 'production' ]; then
-    sed -i 's/letsencrypt-staging/letsencrypt-production/g' overlays/local-production-local/ui-service-ingress.yml
-    sed -i 's/nginx-staging-tls/nginx-production-tls/g' overlays/local-production-local/ui-service-ingress.yml
+    sed -i 's/letsencrypt-staging/letsencrypt-production/g' "overlays/${ARCUS_OVERLAY_NAME}-local/ui-service-ingress.yml"
+    sed -i 's/nginx-staging-tls/nginx-production-tls/g' "overlays/${ARCUS_OVERLAY_NAME}-local/ui-service-ingress.yml"
   fi
 
   set +e
