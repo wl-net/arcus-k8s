@@ -197,6 +197,16 @@ function load() {
     if [ -f "$ARCUS_CONFIGDIR/overlay-name" ]; then
       ARCUS_OVERLAY_NAME=$(cat $ARCUS_CONFIGDIR/overlay-name)
     fi
+    if [ -f "$ARCUS_CONFIGDIR/cassandra-host" ]; then
+      ARCUS_CASSANDRA_HOST=$(cat $ARCUS_CONFIGDIR/cassandra-host)
+    fi
+    if [ -f "$ARCUS_CONFIGDIR/zookeeper-host" ]; then
+      ARCUS_ZOOKEEPER_HOST=$(cat $ARCUS_CONFIGDIR/zookeeper-host)
+    fi
+    if [ -f "$ARCUS_CONFIGDIR/kafka-host" ]; then
+      ARCUS_KAFKA_HOST=$(cat $ARCUS_CONFIGDIR/kafka-host)
+    fi
+
   fi
 }
 
@@ -216,6 +226,18 @@ function apply() {
 
   cp config/configmaps/arcus-config.yml "overlays/${ARCUS_OVERLAY_NAME}-local/shared-config.yaml"
   sed -i "s/arcussmarthome.com/$ARCUS_DOMAIN_NAME/g" "overlays/${ARCUS_OVERLAY_NAME}-local/shared-config.yaml"
+
+  cp config/configmaps/cluster-config.yml "overlays/${ARCUS_OVERLAY_NAME}-local/cluster-config.yml"
+
+  if [[ ! -z "${ARCUS_CASSANDRA_HOST-}" ]]; then
+    sed -i "s!cassandra.default.svc.cluster.local!${ARCUS_CASSANDRA_HOST}!g" "overlays/${ARCUS_OVERLAY_NAME}-local/cluster-config.yml"
+  fi
+  if [[ ! -z "${ARCUS_ZOOKEEPER_HOST-}" ]]; then
+    sed -i "s!zookeeper-service.default.svc.cluster.local:2181!${ARCUS_ZOOKEEPER_HOST}!g" "overlays/${ARCUS_OVERLAY_NAME}-local/cluster-config.yml"
+  fi
+  if [[ ! -z "${ARCUS_KAFKA_HOST-}" ]]; then
+    sed -i "s!kafka-service.default.svc.cluster.local:9092!${ARCUS_KAFKA_HOST}!g" "overlays/${ARCUS_OVERLAY_NAME}-local/cluster-config.yml"
+  fi
 
   cp config/service/ui-service-ingress.yml "overlays/${ARCUS_OVERLAY_NAME}-local/"ui-service-ingress.yml
   sed -i "s/arcussmarthome.com/$ARCUS_DOMAIN_NAME/" "overlays/${ARCUS_OVERLAY_NAME}-local/ui-service-ingress.yml"
