@@ -245,7 +245,7 @@ function apply() {
   cp localk8/metallb.yml "overlays/${ARCUS_OVERLAY_NAME}-local/metallb.yml"
   sed -i "s!PLACEHOLDER_1!$ARCUS_SUBNET!" "overlays/${ARCUS_OVERLAY_NAME}-local/metallb.yml"
 
-  $KUBECTL apply -f overlays/local-production-local/metallb.yml
+  $KUBECTL apply -f "overlays/${ARCUS_OVERLAY_NAME}-local/metallb.yml"
 
   if [ $ARCUS_CERT_TYPE = 'production' ]; then
     sed -i 's/letsencrypt-staging/letsencrypt-production/g' "overlays/${ARCUS_OVERLAY_NAME}-local/ui-service-ingress.yml"
