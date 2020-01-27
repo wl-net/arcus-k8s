@@ -93,3 +93,21 @@ spec:
       schedulerName: default-scheduler
       securityContext: {}
       terminationGracePeriodSeconds: 30
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: ivr-callback-server
+  name: ivr-callback-server
+spec:
+  externalTrafficPolicy: Cluster
+  ports:
+    - port: 9100
+      name: metrics
+      protocol: TCP
+      targetPort: 9100
+  selector:
+    app: ivr-callback-server
+  sessionAffinity: None
+  type: NodePort
