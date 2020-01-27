@@ -36,6 +36,7 @@ resources:
 - service/zookeeper.yml
 - configmaps/arcus-config.yml
 - configmaps/cluster-config.yml
+- clusterrole.yml
 
 images:
 - name: gcr.io/arcus-238802/arcus/client-bridge
