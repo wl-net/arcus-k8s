@@ -21,7 +21,7 @@ spec:
         app: static-server
     spec:
       containers:
-      - image: gcr.io/arcus-238802/eyeris/static-server:latest
+      - image: gcr.io/arcus-238802/arcus/static-server:latest
         imagePullPolicy: Always
         name: static-server
         resources: {}

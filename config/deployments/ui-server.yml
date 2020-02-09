@@ -21,7 +21,7 @@ spec:
         app: ui-server
     spec:
       containers:
-      - image: gcr.io/arcus-238802/eyeris/ui-server:latest
+      - image: gcr.io/arcus-238802/arcus/ui-server:latest
         imagePullPolicy: Always
         name: ui-server
         resources: {}
