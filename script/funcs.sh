@@ -128,7 +128,7 @@ function setup_istio() {
   set -e
   mkdir -p .temp
   cd .temp
-  curl -L https://git.io/getLatestIstio | ISTIO_VERSION=1.4.2 sh -
+  curl -L https://git.io/getLatestIstio | ISTIO_VERSION=1.4.6 sh -
   cd "istio-${ISTIO_VERSION}"
   KUBECONFIG=/etc/rancher/k3s/k3s.yaml helm template install/kubernetes/helm/istio-init --name istio-init --namespace istio-system | kubectl apply -f -
   KUBECONFIG=/etc/rancher/k3s/k3s.yaml helm template install/kubernetes/helm/istio --name istio --namespace istio-system --set mixer.telemetry.resources.requests.cpu=100m --set mixer.telemetry.resources.requests.memory=256M --set pilot.resources.requests.cpu=100m --set pilot.resources.requests.memory=512M | kubectl apply -f -
