@@ -24,7 +24,7 @@ spec:
           valueFrom:
             configMapKeyRef:
               key: CASSANDRA_CONTACTPOINTS
-              name: arcus-config
+              name: cluster-config
         - name: cassandra_keyspace
           value: production
         - name: BOOTSTRAP_SERVERS
