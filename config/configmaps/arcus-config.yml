@@ -32,7 +32,7 @@ data:
   INVOICE_URL: https://arcussmarthome.com
   ARCUS_WS_URI: wss://client.arcussmarthome.com
   ARCUS_HTTP_URI: https://client.arcussmarthome.com
-  CORS_ORIGINS: https://arcussmarthome.com, wss://client.arcussmarthome.com:443, https://localdev.irisbylowes.com:8443
+  CORS_ORIGINS: https://arcussmarthome.com, wss://client.arcussmarthome.com:443, https://client.arcussmarthome.com, https://localdev.irisbylowes.com:8443
   PARTITION_COUNT: "128"
   DEFAULT_SERVICE_LEVEL: "premium_free"
   ADDRESS_VALIDATOR: "default"
