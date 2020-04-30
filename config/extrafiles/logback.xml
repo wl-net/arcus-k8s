@@ -48,10 +48,11 @@
   <logger name="javax.xml.bind" level="INFO" />
   <logger name="com.netflix" level="WARN" />
   <logger name="org.hibernate" level="WARN" />
+  <logger name="io.prometheus.client.dropwizard" level="INFO" />
   <logger name="COMLOG" level="INFO" />
   <logger name="BRIDGE" level="INFO" />
   <logger name="org.eclipse.jetty" level="WARN" />
-
+  <logger name="com.iris" level="INFO" />
 
   <root level="INFO">
     <appender-ref ref="STDOUT" />
