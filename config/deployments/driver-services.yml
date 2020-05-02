@@ -27,7 +27,7 @@ spec:
               name: cluster-config
         env:
         - name: JAVA_OPTS
-          value: "-Xms64m -Xmx1024m"
+          value: "-Xms64m -Xmx1024m -Dlogback.configurationFile=/config/logback.xml"
         - name: DRIVER_POOL_SIZE
           value: "10"
         - name: BILLING_URL
@@ -63,6 +63,9 @@ spec:
         image: gcr.io/arcus-238802/arcus/driver-services:2019.10.0
         imagePullPolicy: Always
         name: driver-services
+        volumeMounts:
+          - mountPath: /config
+            name: config
         resources:
           limits:
             cpu: "1"
@@ -82,6 +85,13 @@ spec:
       schedulerName: default-scheduler
       securityContext: {}
       terminationGracePeriodSeconds: 30
+      volumes:
+      - name: config
+        configMap:
+          name: extrafiles
+          items:
+          - key: logback.xml
+            path: logback.xml
 ---
 apiVersion: v1
 kind: Service
