@@ -143,6 +143,8 @@ spec:
         volumeMounts:
         - name: data-secrets
           mountPath: "/data/secrets"
+        - name: config
+          mountPath: /config
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
         livenessProbe:
@@ -150,9 +152,6 @@ spec:
             port: 9002
           initialDelaySeconds: 15
           periodSeconds: 60
-        volumeMounts:
-         - mountPath: /config
-           name: config
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
@@ -165,7 +164,7 @@ spec:
           items:
           - key: apns.pfx
             path: apns.pfx
-        name: config
+      - name: config
         configMap:
           name: extrafiles
           items:
