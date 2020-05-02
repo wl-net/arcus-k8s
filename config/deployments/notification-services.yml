@@ -27,7 +27,7 @@ spec:
               name: cluster-config
         env:
         - name: JAVA_OPTS
-          value: "-Xms64m -Xmx128m"
+          value: "-Xms64m -Xmx128m -Dlogback.configurationFile=/config/logback.xml"
         - name: BILLING_URL
           valueFrom:
             configMapKeyRef:
@@ -150,6 +150,9 @@ spec:
             port: 9002
           initialDelaySeconds: 15
           periodSeconds: 60
+        volumeMounts:
+         - mountPath: /config
+           name: config
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
@@ -162,6 +165,12 @@ spec:
           items:
           - key: apns.pfx
             path: apns.pfx
+        name: config
+        configMap:
+          name: extrafiles
+          items:
+          - key: logback.xml
+            path: logback.xml
 ---
 apiVersion: v1
 kind: Service
