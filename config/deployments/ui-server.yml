@@ -38,6 +38,16 @@ spec:
             configMapKeyRef:
               key: ARCUS_HTTP_URI
               name: arcus-config
+        - name: ARCUS_ENABLE_HUB_WIFI_SCAN
+          valueFrom:
+            configMapKeyRef:
+              key: ARCUS_ENABLE_HUB_WIFI_SCAN
+              name: arcus-config
+        - name: ARCUS_ENABLE_BATTERY_PERCENTAGE
+          valueFrom:
+            configMapKeyRef:
+              key: ARCUS_ENABLE_BATTERY_PERCENTAGE
+              name: arcus-config
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
