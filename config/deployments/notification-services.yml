@@ -103,6 +103,11 @@ spec:
             configMapKeyRef:
               key: NOTIFICATIONSERVICE_SENDER_GCM
               name: arcus-config
+        - name: APNS_TOPIC
+          valueFrom:
+            configMapKeyRef:
+              key: APNS_TOPIC
+              name: arcus-config
         - name: EMAIL_PROVIDER_APIKEY
           valueFrom:
             secretKeyRef:

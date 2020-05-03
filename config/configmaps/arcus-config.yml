@@ -34,6 +34,7 @@ data:
   ARCUS_HTTP_URI: https://client.arcussmarthome.com
   ARCUS_ENABLE_HUB_WIFI_SCAN: "1"
   ARCUS_ENABLE_BATTERY_PERCENTAGE: "1"
+  APNS_TOPIC: "com.arcussmarthome.arcus"
   CORS_ORIGINS: https://arcussmarthome.com, wss://client.arcussmarthome.com:443, https://client.arcussmarthome.com, https://localdev.irisbylowes.com:8443
   PARTITION_COUNT: "128"
   DEFAULT_SERVICE_LEVEL: "premium_free"
