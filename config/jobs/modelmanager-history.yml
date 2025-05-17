@@ -30,7 +30,6 @@ spec:
             configMapKeyRef:
               key: BOOTSTRAP_SERVERS
               name: arcus-config
-              name: arcus-config
         - name: OPS_BOOTSTRAP_SERVERS
           valueFrom:
             configMapKeyRef:
