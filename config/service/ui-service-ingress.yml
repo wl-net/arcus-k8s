@@ -1,4 +1,4 @@
-apiVersion: networking.k8s.io/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: ui-service-ingress
@@ -10,42 +10,59 @@ spec:
     http:
       paths:
       - path: /
+        pathType: Prefix  # `pathType` is required in Kubernetes v1 Ingress
         backend:
-          serviceName: ui-server-service
-          servicePort: 80
+          service:
+            name: ui-server-service
+            port:
+              number: 80
       - path: /ivr
+        pathType: Prefix  # `pathType` is required in Kubernetes v1 Ingress
         backend:
-          serviceName: ivr-callback-server-service
-          servicePort: 80
+          service:
+            name: ivr-callback-server-service
+            port:
+              number: 80
   - host: static.arcussmarthome.com
     http:
       paths:
       - path: /
+        pathType: Prefix  # `pathType` is required in Kubernetes v1 Ingress
         backend:
-          serviceName: static-server-service
-          servicePort: 80
+          service:
+            name: static-server-service
+            port:
+              number: 80
   - host: client.arcussmarthome.com
     http:
       paths:
       - path: /
+        pathType: Prefix  # `pathType` is required in Kubernetes v1 Ingress
         backend:
-          serviceName: client-bridge-service
-          servicePort: 80
+          service:
+            name: client-bridge-service
+            port:
+              number: 80
   - host: ipcd.arcussmarthome.com
     http:
       paths:
       - path: /
+        pathType: Prefix  # `pathType` is required in Kubernetes v1 Ingress
         backend:
-          serviceName: ipcd-bridge-service
-          servicePort: 8084
+          service:
+            name: ipcd-bridge-service
+            port:
+              number: 8084
   - host: admin.arcussmarthome.com
     http:
       paths:
       - path: /
+        pathType: Prefix  # `pathType` is required in Kubernetes v1 Ingress
         backend:
-          serviceName: grafana-service
-          servicePort: 3000
-
+          service:
+            name: grafana-service
+            port:
+              number: 3000
   tls:
   - secretName: nginx-staging-tls
     hosts:
