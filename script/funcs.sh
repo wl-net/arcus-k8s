@@ -115,11 +115,11 @@ function setup_microk8s() {
 }
 
 function setup_k3s() {
-  curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC='--no-deploy servicelb --write-kubeconfig-mode 644' sh -
+  curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC='--disable=servicelb --disable=traefik --write-kubeconfig-mode 644' sh -
 }
 
 function setup_helm() {
-  curl https://raw.githubusercontent.com/helm/helm/master/scripts/get | bash
+  curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 }
 
 function setup_istio() {
@@ -128,10 +128,13 @@ function setup_istio() {
   set -e
   mkdir -p .temp
   cd .temp
-  curl -L https://git.io/getLatestIstio | ISTIO_VERSION=1.4.6 sh -
+  curl -L https://git.io/getLatestIstio | ISTIO_VERSION=1.26.0 sh -
   cd "istio-${ISTIO_VERSION}"
-  KUBECONFIG=/etc/rancher/k3s/k3s.yaml helm template install/kubernetes/helm/istio-init --name istio-init --namespace istio-system | kubectl apply -f -
-  KUBECONFIG=/etc/rancher/k3s/k3s.yaml helm template install/kubernetes/helm/istio --name istio --namespace istio-system --set mixer.telemetry.resources.requests.cpu=100m --set mixer.telemetry.resources.requests.memory=256M --set pilot.resources.requests.cpu=100m --set pilot.resources.requests.memory=512M | kubectl apply -f -
+  $KUBECTL get crd gateways.gateway.networking.k8s.io &> /dev/null || { kubectl kustomize "github.com/kubernetes-sigs/gateway-api/config/crd?ref=v1.3.0-rc.1" | kubectl apply -f -; }
+  helm repo add istio https://istio-release.storage.googleapis.com/charts
+  helm repo update
+  KUBECONFIG=/etc/rancher/k3s/k3s.yaml helm install istio-base istio/base -n istio-system --set defaultRevision=default --create-namespace
+  KUBECONFIG=/etc/rancher/k3s/k3s.yaml helm install istiod istio/istiod --namespace istio-system --set mixer.telemetry.resources.requests.cpu=100m --set mixer.telemetry.resources.requests.memory=256Mi --set pilot.resources.requests.cpu=100m --set pilot.resources.requests.memory=512M
   cd -
   cd .. # leave .temp
 }
@@ -156,9 +159,8 @@ function install() {
   set -e
 
   # TODO: only re-install metallb if this is a local deployment
-  $KUBECTL apply -f https://raw.githubusercontent.com/google/metallb/$METALLB_VERSION/manifests/namespace.yaml
-  $KUBECTL apply -f https://raw.githubusercontent.com/google/metallb/$METALLB_VERSION/manifests/metallb.yaml
-  $KUBECTL apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v$NGINX_VERSION/deploy/static/provider/baremetal/deploy.yaml
+  $KUBECTL apply -f https://raw.githubusercontent.com/metallb/metallb/$METALLB_VERSION/config/manifests/metallb-native.yaml
+  $KUBECTL apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-$NGINX_VERSION/deploy/static/provider/baremetal/deploy.yaml
   $KUBECTL apply -f https://github.com/jetstack/cert-manager/releases/download/$CERT_MANAGER_VERSION/cert-manager.yaml
 
 }
