@@ -93,6 +93,11 @@ spec:
             configMapKeyRef:
               key: TWILIO_CALLBACK_SERVERURL
               name: arcus-config
+        - name: NOTIFICATIONSERVICE_SENDER_EMAIL
+          valueFrom:
+            configMapKeyRef:
+              key: NOTIFICATIONSERVICE_SENDER_EMAIL
+              name: arcus-config
         - name: NOTIFICATIONSERVICE_SENDER_APNS
           valueFrom:
             configMapKeyRef:
