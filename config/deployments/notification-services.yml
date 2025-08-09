@@ -113,6 +113,16 @@ spec:
             secretKeyRef:
               key: email.provider.apikey
               name: shared
+        - name: MAILGUNEMAIL_PROVIDER_APIKEY
+          valueFrom:
+            secretKeyRef:
+              key: mailgunemail.provider.apikey
+              name: shared
+        - name: EMAIL_PROVIDER_DOMAIN
+          valueFrom:
+            secretKeyRef:
+              key: email.provider.domain
+              name: shared
         - name: TWILIO_ACCOUNT_AUTH
           valueFrom:
             secretKeyRef:
