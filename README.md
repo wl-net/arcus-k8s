@@ -127,6 +127,27 @@ Utility scripts have been provided to assist with backing up and restoring Cassa
 
 The first time you setup Arcus, new secrets will be stored in the secrets directory. Once you have completed `./arcuscmd.sh setup`, feel free to adjust any of these secrets to your needs, and further uses of the setup tools in `./arcuscmd.sh` will not cause you to lose your secrets.
 
+### Node configuration
+
+Each node stores its local configuration in `.config/` (git-ignored). The easiest way to set these is:
+
+`./arcuscmd.sh configure`
+
+You can also write the files directly:
+
+| File | Required | Description |
+|---|---|---|
+| `domain.name` | Yes | Main Arcus domain (e.g. `arcus.example.com`) |
+| `admin.email` | Yes | Let's Encrypt admin email |
+| `cert-issuer` | Yes | `staging` or `production` |
+| `overlay-name` | Yes | Kustomize overlay to use (e.g. `local-production-cluster`) |
+| `subnet` | Local only | MetalLB IP range (e.g. `192.168.1.200-192.168.1.207`) |
+| `proxy-real-ip` | Optional | Upstream proxy IP/subnet for PROXY protocol (e.g. `192.168.1.1/32`) |
+| `cassandra-host` | Optional | External Cassandra contact points (omit to use in-cluster) |
+| `zookeeper-host` | Optional | External Zookeeper host (omit to use in-cluster) |
+| `kafka-host` | Optional | External Kafka host (omit to use in-cluster) |
+| `admin-domain` | Optional | Grafana admin domain (e.g. `admin.arcus-dc1.example.com`) |
+
 You can also adjust the configuration in overlays/local-production-local/, however your changes will be lost if you run `./arcuscmd.sh apply`.
 
 ## Updating
