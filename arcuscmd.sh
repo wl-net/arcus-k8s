@@ -29,7 +29,7 @@ if [ -x "$(command -v k3s)" ]; then
   DEPLOYMENT_TYPE=local
 fi
 
-if [[ ${1:-help} != 'help' && ${1:-help} != 'setup' && ${1:-help} != 'configure' && ${1:-help} != 'verifyconfig' ]]; then
+if [[ ${1:-help} != 'help' && ${1:-help} != 'setup' && ${1:-help} != 'configure' && ${1:-help} != 'verifyconfig' && ${1:-help} != 'shell-setup' ]]; then
   if ! command -v "$KUBECTL" &>/dev/null; then
     echo "Error: kubectl not found. Is it installed and in your PATH?"
     exit 1
@@ -40,36 +40,39 @@ function print_available() {
   cat <<ENDOFDOC
 arcuscmd: manage your arcus deployment
 
-Setup Commands:
-  setup          - setup a new instance of Arcus
-  installk3s     - install k3s on this machine
-  setupmetrics   - setup grafana metrics
-  configure      - configure Arcus by answering a few questions
-  install        - install/upgrade kubernetes components (MetalLB, nginx-ingress, cert-manager)
-  useprodcert    - switch from Let's Encrypt staging to production certificate
-  updatehubkeystore - convert production TLS key to PKCS#8 for hub-bridge
+Setup:
+  setup               Setup a new instance of Arcus
+  installk3s          Install k3s on this machine
+  install             Install/upgrade kubernetes components (MetalLB, nginx-ingress, cert-manager)
+  configure           Configure Arcus by answering a few questions
+  shell-setup         Add 'arcuscmd' shortcut to your shell config
 
-Basic Commands:
-  apply      - apply the existing configured configuration
-  deploy     - deploy arcus (rolling the entire fleet, 1 service at a time)
-  update     - update your local copy with the latest changes
-  deletepod  - delete pods matching an application
-  backupdb   - backup cassandra
-  backupconfig - backup local configuration (.config, secrets, overlays) to a tarball
-  verifyconfig - verify that all configuration and secrets are present
-  status     - show status of services, certificates, and infrastructure versions
-  versions   - show installed vs configured infrastructure versions
-  info       - show DNS to IP/port mappings
-  check      - test public connectivity to Arcus services
+Deploy:
+  apply               Apply the current configuration to the cluster
+  deploy              Rolling restart of all services, one at a time
+  update              Pull latest changes and show what changed
+  useprodcert         Switch from Let's Encrypt staging to production certificate
+  updatehubkeystore   Convert production TLS key to PKCS#8 for hub-bridge
 
-Debug Commands:
-  logs       - get the logs for an application
-  certlogs   - get the logs for cert-manager (optionally: webhook, cainjector)
-  shell      - get an interactive shell on a pod
-  dbshell    - get a cqlsh shell on the Cassandra database
+Status:
+  status              Show services, certificates, and infrastructure versions
+  versions            Show installed vs configured infrastructure versions
+  info                Show DNS to IP/port mappings
+  check               Test public connectivity to Arcus services
+  verifyconfig        Verify that all configuration and secrets are present
 
-Dangerous Commands:
-  killall    - Deletes all Arcus pods, triggering their controllers to reschedule them.
+Operations:
+  backupdb            Backup Cassandra database
+  backupconfig        Backup local configuration to a tarball
+  setupmetrics        Setup Grafana metrics
+  deletepod           Delete pods matching an application
+  logs                Get logs for an application
+  certlogs            Get logs for cert-manager (optionally: webhook, cainjector)
+  shell               Get an interactive shell on a pod
+  dbshell             Open a Cassandra CQL shell
+
+Dangerous:
+  killall             Delete all Arcus pods, triggering a full reschedule
 ENDOFDOC
 
 }
@@ -132,6 +135,9 @@ updatehubkeystore)
   ;;
 modelmanager)
   runmodelmanager
+  ;;
+shell-setup)
+  setup_shell
   ;;
 useprodcert)
   useprodcert

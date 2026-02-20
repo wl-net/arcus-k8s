@@ -93,6 +93,36 @@ function setup_helm() {
   curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 }
 
+function setup_shell() {
+  local shell_name rcfile
+  shell_name=$(basename "$SHELL")
+
+  case "$shell_name" in
+    zsh)  rcfile="$HOME/.zshrc" ;;
+    bash) rcfile="$HOME/.bashrc" ;;
+    *)
+      echo "Unsupported shell: $shell_name"
+      echo "Add this to your shell config manually:"
+      echo "  arcuscmd() { \"${ROOT}/arcuscmd.sh\" \"\$@\"; }"
+      return 1
+      ;;
+  esac
+
+  local func_line="arcuscmd() { \"${ROOT}/arcuscmd.sh\" \"\$@\"; }"
+
+  if grep -qF 'arcuscmd()' "$rcfile" 2>/dev/null; then
+    echo "arcuscmd is already in $rcfile"
+    return 0
+  fi
+
+  {
+    echo ""
+    echo "# Arcus deployment CLI"
+    echo "$func_line"
+  } >> "$rcfile"
+  echo "Added arcuscmd to $rcfile — run 'source $rcfile' or open a new terminal to use it."
+}
+
 function setup_istio() {
   $KUBECTL create namespace istio-system --dry-run=client -o yaml | $KUBECTL apply -f -
 
