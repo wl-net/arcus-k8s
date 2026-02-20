@@ -1,4 +1,4 @@
-# arcus-k8
+# arcus-k8s
 This project contains configuration and scripts to support running Arcus Smart Home in Kubernetes (on-prem, and in the future in the cloud).
 
 # Prerequisites
@@ -60,7 +60,7 @@ hub.dev.arcus.wl-net.net:443      -> 172.16.6.4:443 OR 172.16.6.2:8082
 Alternatively: 
 
 ```
-$ microk8s.kubectl get service
+$ kubectl get service
 NAME                    TYPE           CLUSTER-IP       EXTERNAL-IP   PORT(S)                                                                      AGE
 cassandra-service       NodePort       10.152.183.225   <none>        7000:31287/TCP,7001:31914/TCP,7199:32251/TCP,9042:32178/TCP,9160:31262/TCP   27h
 client-bridge-service   NodePort       10.152.183.68    <none>        80:31803/TCP                                                                 27h
@@ -74,7 +74,7 @@ zookeeper-service       NodePort       10.152.183.132   <none>        2181:30849
 This shows that 172.16.6.1 is the IP address of our hub-bridge service (listening on port 8082).
 
 ```
-$ microk8s.kubectl get service -n ingress-nginx
+$ kubectl get service -n ingress-nginx
 NAME            TYPE           CLUSTER-IP       EXTERNAL-IP   PORT(S)                      AGE
 ingress-nginx   LoadBalancer   10.152.183.146   172.16.6.0    80:31535/TCP,443:32684/TCP   27h
 ```
@@ -88,7 +88,7 @@ Example (note, you must replace GATEWAY_IP accordingly):
 ```
 iptables -t nat -A PREROUTING -p tcp -d GATEWAY_IP --dport 8082 -j DNAT --to-destination 172.16.6.1:8082
 iptables -t nat -A PREROUTING -p tcp -d GATEWAY_IP --dport 443 -j DNAT --to-destination 172.16.6.0:443
-iptables -t nat -A PREROUTING -p tcp -d GATEWAY_IP --dport 8- -j DNAT --to-destination 172.16.6.0:80
+iptables -t nat -A PREROUTING -p tcp -d GATEWAY_IP --dport 80 -j DNAT --to-destination 172.16.6.0:80
 iptables -t nat -A POSTROUTING -o eth1 -j MASQUERADE # replace with whatever has the 172.16.6.0 subnet
 iptables -P FORWARD ACCEPT
 sysctl -w net.ipv4.ip_forward=1
@@ -130,12 +130,12 @@ TIP: you may want to create an alias so that kubectl works, e.g. `alias kubectl=
 
 ### View pod log
 
-`kubectl log kafka-0 kafka`
-`kubectl log casandra-0 casandra`
+`kubectl logs kafka-0 kafka`
+`kubectl logs cassandra-0 cassandra`
 
 ## Adjusting configuration
 
-The first time you setup Arcus, new secrets will be stored in the secrets directory. Once you have completed `./arcuscmd.sh setup`, feel free to adjust any of these secrets to your needs, and further uses of the setup tools in `./arcuscmd.sh` will not cause you to loose your secrets.
+The first time you setup Arcus, new secrets will be stored in the secrets directory. Once you have completed `./arcuscmd.sh setup`, feel free to adjust any of these secrets to your needs, and further uses of the setup tools in `./arcuscmd.sh` will not cause you to lose your secrets.
 
 You can also adjust the configuration in overlays/local-production-local/, however your changes will be lost if you run `./arcuscmd.sh apply`.
 
@@ -157,7 +157,7 @@ To update arcus configuration, do:
 
 `./arcuscmd.sh apply`
 
-It is generally recommended to update both at the same time - if you do not update the Kubernetes components for an extended period of time, the may no longer be supported with a newer Arcus configuration.
+It is generally recommended to update both at the same time - if you do not update the Kubernetes components for an extended period of time, they may no longer be supported with a newer Arcus configuration.
 ## Starting over
 
 If you'd like to start over (including wiping any data, or configuration):
