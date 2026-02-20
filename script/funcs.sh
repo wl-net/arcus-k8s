@@ -128,7 +128,7 @@ function setup_istio() {
   set -e
   mkdir -p .temp
   cd .temp
-  curl -L https://git.io/getLatestIstio | ISTIO_VERSION=1.26.0 sh -
+  curl -L https://git.io/getLatestIstio | sh -
   cd "istio-${ISTIO_VERSION}"
   $KUBECTL get crd gateways.gateway.networking.k8s.io &> /dev/null || { kubectl kustomize "github.com/kubernetes-sigs/gateway-api/config/crd?ref=v1.3.0-rc.1" | kubectl apply -f -; }
   helm repo add istio https://istio-release.storage.googleapis.com/charts
