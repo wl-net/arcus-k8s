@@ -21,9 +21,9 @@ function retry {
 }
 
 function prompt() {
-  local  __resultvar=$1
+  local __resultvar=$1
   echo -n "${2} "
-  local  myresult=''
+  local myresult=''
   read myresult
   eval $__resultvar="'$myresult'"
 }

@@ -220,36 +220,36 @@ function connectivity_check() {
 
 function load() {
   ARCUS_OVERLAY_NAME="local-production"
-  if [ -d $ARCUS_CONFIGDIR ]; then
-    if [ -f "$ARCUS_CONFIGDIR/admin.email" ]; then
-      ARCUS_ADMIN_EMAIL=$(cat $ARCUS_CONFIGDIR/admin.email)
+  if [[ -d "$ARCUS_CONFIGDIR" ]]; then
+    if [[ -f "$ARCUS_CONFIGDIR/admin.email" ]]; then
+      ARCUS_ADMIN_EMAIL=$(cat "$ARCUS_CONFIGDIR/admin.email")
     fi
-    if [ -f "$ARCUS_CONFIGDIR/domain.name" ]; then
-      ARCUS_DOMAIN_NAME=$(cat $ARCUS_CONFIGDIR/domain.name)
+    if [[ -f "$ARCUS_CONFIGDIR/domain.name" ]]; then
+      ARCUS_DOMAIN_NAME=$(cat "$ARCUS_CONFIGDIR/domain.name")
     fi
-    if [ -f "$ARCUS_CONFIGDIR/subnet" ]; then
-      ARCUS_SUBNET=$(cat $ARCUS_CONFIGDIR/subnet)
+    if [[ -f "$ARCUS_CONFIGDIR/subnet" ]]; then
+      ARCUS_SUBNET=$(cat "$ARCUS_CONFIGDIR/subnet")
     fi
-    if [ -f "$ARCUS_CONFIGDIR/cert-issuer" ]; then
-      ARCUS_CERT_TYPE=$(cat $ARCUS_CONFIGDIR/cert-issuer)
+    if [[ -f "$ARCUS_CONFIGDIR/cert-issuer" ]]; then
+      ARCUS_CERT_TYPE=$(cat "$ARCUS_CONFIGDIR/cert-issuer")
     fi
-    if [ -f "$ARCUS_CONFIGDIR/overlay-name" ]; then
-      ARCUS_OVERLAY_NAME=$(cat $ARCUS_CONFIGDIR/overlay-name)
+    if [[ -f "$ARCUS_CONFIGDIR/overlay-name" ]]; then
+      ARCUS_OVERLAY_NAME=$(cat "$ARCUS_CONFIGDIR/overlay-name")
     fi
-    if [ -f "$ARCUS_CONFIGDIR/cassandra-host" ]; then
-      ARCUS_CASSANDRA_HOST=$(cat $ARCUS_CONFIGDIR/cassandra-host)
+    if [[ -f "$ARCUS_CONFIGDIR/cassandra-host" ]]; then
+      ARCUS_CASSANDRA_HOST=$(cat "$ARCUS_CONFIGDIR/cassandra-host")
     fi
-    if [ -f "$ARCUS_CONFIGDIR/zookeeper-host" ]; then
-      ARCUS_ZOOKEEPER_HOST=$(cat $ARCUS_CONFIGDIR/zookeeper-host)
+    if [[ -f "$ARCUS_CONFIGDIR/zookeeper-host" ]]; then
+      ARCUS_ZOOKEEPER_HOST=$(cat "$ARCUS_CONFIGDIR/zookeeper-host")
     fi
-    if [ -f "$ARCUS_CONFIGDIR/kafka-host" ]; then
-      ARCUS_KAFKA_HOST=$(cat $ARCUS_CONFIGDIR/kafka-host)
+    if [[ -f "$ARCUS_CONFIGDIR/kafka-host" ]]; then
+      ARCUS_KAFKA_HOST=$(cat "$ARCUS_CONFIGDIR/kafka-host")
     fi
-    if [ -f "$ARCUS_CONFIGDIR/proxy-real-ip" ]; then
-      ARCUS_PROXY_REAL_IP=$(cat $ARCUS_CONFIGDIR/proxy-real-ip)
+    if [[ -f "$ARCUS_CONFIGDIR/proxy-real-ip" ]]; then
+      ARCUS_PROXY_REAL_IP=$(cat "$ARCUS_CONFIGDIR/proxy-real-ip")
     fi
-    if [ -f "$ARCUS_CONFIGDIR/admin-domain" ]; then
-      ARCUS_ADMIN_DOMAIN=$(cat $ARCUS_CONFIGDIR/admin-domain)
+    if [[ -f "$ARCUS_CONFIGDIR/admin-domain" ]]; then
+      ARCUS_ADMIN_DOMAIN=$(cat "$ARCUS_CONFIGDIR/admin-domain")
     fi
 
   fi
@@ -296,13 +296,13 @@ function apply() {
 
   cp config/configmaps/cluster-config.yml "overlays/${ARCUS_OVERLAY_NAME}-local/cluster-config.yml"
 
-  if [[ ! -z "${ARCUS_CASSANDRA_HOST-}" ]]; then
+  if [[ -n "${ARCUS_CASSANDRA_HOST-}" ]]; then
     sed -i "s!cassandra.default.svc.cluster.local!${ARCUS_CASSANDRA_HOST}!g" "overlays/${ARCUS_OVERLAY_NAME}-local/cluster-config.yml"
   fi
-  if [[ ! -z "${ARCUS_ZOOKEEPER_HOST-}" ]]; then
+  if [[ -n "${ARCUS_ZOOKEEPER_HOST-}" ]]; then
     sed -i "s!zookeeper-service.default.svc.cluster.local:2181!${ARCUS_ZOOKEEPER_HOST}!g" "overlays/${ARCUS_OVERLAY_NAME}-local/cluster-config.yml"
   fi
-  if [[ ! -z "${ARCUS_KAFKA_HOST-}" ]]; then
+  if [[ -n "${ARCUS_KAFKA_HOST-}" ]]; then
     sed -i "s!kafka-service.default.svc.cluster.local:9092!${ARCUS_KAFKA_HOST}!g" "overlays/${ARCUS_OVERLAY_NAME}-local/cluster-config.yml"
   fi
 
@@ -314,13 +314,13 @@ function apply() {
 
   $KUBECTL apply -f "overlays/${ARCUS_OVERLAY_NAME}-local/metallb.yml"
 
-  if [[ ! -z "${ARCUS_PROXY_REAL_IP-}" ]]; then
+  if [[ -n "${ARCUS_PROXY_REAL_IP-}" ]]; then
     cp config/nginx-proxy.yml "overlays/${ARCUS_OVERLAY_NAME}-local/nginx-proxy.yml"
     sed -i "s!PLACEHOLDER_PROXY_IP!${ARCUS_PROXY_REAL_IP}!" "overlays/${ARCUS_OVERLAY_NAME}-local/nginx-proxy.yml"
     $KUBECTL apply -f "overlays/${ARCUS_OVERLAY_NAME}-local/nginx-proxy.yml"
   fi
 
-  if [[ ! -z "${ARCUS_ADMIN_DOMAIN-}" ]]; then
+  if [[ -n "${ARCUS_ADMIN_DOMAIN-}" ]]; then
     cp config/service/dc-admin-ingress.yml "overlays/${ARCUS_OVERLAY_NAME}-local/dc-admin-ingress.yml"
     sed -i "s!PLACEHOLDER_ADMIN_DOMAIN!${ARCUS_ADMIN_DOMAIN}!" "overlays/${ARCUS_OVERLAY_NAME}-local/dc-admin-ingress.yml"
     $KUBECTL apply -f "overlays/${ARCUS_OVERLAY_NAME}-local/dc-admin-ingress.yml"
@@ -357,19 +357,19 @@ function configure() {
   if [ "$ARCUS_ADMIN_EMAIL" = "me@example.com" ]; then
     prompt ARCUS_ADMIN_EMAIL "Please enter your admin email address (or set ARCUS_ADMIN_EMAIL): "
   fi
-  echo $ARCUS_ADMIN_EMAIL >$ARCUS_CONFIGDIR/admin.email
+  echo "$ARCUS_ADMIN_EMAIL" > "$ARCUS_CONFIGDIR/admin.email"
 
   if [ "$ARCUS_DOMAIN_NAME" = "example.com" ]; then
     prompt ARCUS_DOMAIN_NAME "Please enter your domain name (or set ARCUS_DOMAIN_NAME): "
   fi
-  echo $ARCUS_DOMAIN_NAME >$ARCUS_CONFIGDIR/domain.name
+  echo "$ARCUS_DOMAIN_NAME" > "$ARCUS_CONFIGDIR/domain.name"
 
   if [[ -z "$ARCUS_PROXY_REAL_IP" ]]; then
     local use_proxy
     prompt use_proxy "Is traffic arriving via a proxy that sends PROXY protocol (e.g. HAProxy, cloud LB)? [yes/no]:"
     if [[ "$use_proxy" == "yes" ]]; then
       prompt ARCUS_PROXY_REAL_IP "Enter upstream proxy IP/subnet (e.g. 192.168.1.1/32): "
-      echo $ARCUS_PROXY_REAL_IP >$ARCUS_CONFIGDIR/proxy-real-ip
+      echo "$ARCUS_PROXY_REAL_IP" > "$ARCUS_CONFIGDIR/proxy-real-ip"
     fi
   fi
 
@@ -378,7 +378,7 @@ function configure() {
     prompt use_admin "Do you have a separate admin (Grafana) domain? [yes/no]:"
     if [[ "$use_admin" == "yes" ]]; then
       prompt ARCUS_ADMIN_DOMAIN "Enter admin domain (e.g. admin.arcus-dc1.example.com): "
-      echo $ARCUS_ADMIN_DOMAIN >$ARCUS_CONFIGDIR/admin-domain
+      echo "$ARCUS_ADMIN_DOMAIN" > "$ARCUS_CONFIGDIR/admin-domain"
     fi
   fi
 
@@ -386,11 +386,11 @@ function configure() {
     echo "Arcus requires a pre-defined subnet for services to be served behind. This subnet must be unallocated (e.g. no IP addresses are used, *and* reserved for static clients)."
     echo "Examples: 192.168.1.200/29, 192.168.1.200-192.168.1.207"
     prompt ARCUS_SUBNET "Please enter your subnet for Arcus services to be exposed on (or set ARCUS_SUBNET): "
-    echo $ARCUS_SUBNET >$ARCUS_CONFIGDIR/subnet
+    echo "$ARCUS_SUBNET" > "$ARCUS_CONFIGDIR/subnet"
 
   fi
 
-  echo $ARCUS_CERT_TYPE > $ARCUS_CONFIGDIR/cert-issuer
+  echo "$ARCUS_CERT_TYPE" > "$ARCUS_CONFIGDIR/cert-issuer"
 
   mkdir -p secret
   if [[ ! -e secret/billing.api.key ]]; then
