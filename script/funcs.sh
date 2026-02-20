@@ -1,6 +1,21 @@
 # shellcheck shell=bash
 # shared functions
 
+function check_prerequisites() {
+  local missing=()
+  for cmd in curl git openssl sudo; do
+    if ! command -v "$cmd" &>/dev/null; then
+      missing+=("$cmd")
+    fi
+  done
+
+  if [[ ${#missing[@]} -gt 0 ]]; then
+    echo "Error: required commands not found: ${missing[*]}"
+    echo "Install them before running setup."
+    return 1
+  fi
+}
+
 function updatehubkeystore() {
   echo "Creating hub-keystore..."
 
@@ -120,11 +135,11 @@ function killallpods() {
 
 
 function setup_k3s() {
-  curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC='--disable=servicelb --disable=traefik --write-kubeconfig-mode 644' sh -
+  curl -sfL https://get.k3s.io | sudo INSTALL_K3S_EXEC='--disable=servicelb --disable=traefik --write-kubeconfig-mode 644' sh -
 }
 
 function setup_helm() {
-  curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+  curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | sudo bash
 }
 
 function setup_shell() {
@@ -502,44 +517,71 @@ function configure() {
     echo -n "8EFJhxm7aRs2hmmKwVuM9RPSwhNCtMpC" > secret/apns.pkcs12.password
   fi
 
-  echo "Arcus requires a verified address. In order to verify your address, you will need to create an account on https://smartystreets.com/"
-  echo "Please go and create an account now, as you will be required to provide some details"
-  echo "Make sure to create secret keys, since these credentials will only be used on the Arcus server, and never exposed to users"
+  local authid authtoken apikey twilio_auth twilio_sid twilio_from skip_creds
 
-  local authid authtoken apikey
+  # Check if any external credentials still need configuration
+  local needs_smarty=0 needs_sendgrid=0 needs_twilio=0
+  [[ ! -e secret/smartystreets.authid || ! -e secret/smartystreets.authtoken ]] && needs_smarty=1
+  [[ ! -e secret/email.provider.apikey ]] && needs_sendgrid=1
+  [[ ! -e secret/twilio.account.auth || ! -e secret/twilio.account.sid || ! -e secret/twilio.account.from ]] && needs_twilio=1
 
-  if [[ ! -e secret/smartystreets.authid ]]; then
-    prompt authid "Please enter your smartystreets authid:"
-    echo -n "$authid" > secret/smartystreets.authid
+  if [[ $((needs_smarty + needs_sendgrid + needs_twilio)) -gt 0 ]]; then
+    echo ""
+    echo "Arcus uses external services for address verification, email, and SMS."
+    echo "You can configure these now, or skip and come back later with './arcuscmd.sh configure'."
+    prompt skip_creds "Configure external service credentials now? [yes/no]:"
+  else
+    skip_creds="done"
   fi
 
-  if [[ ! -e secret/smartystreets.authtoken ]]; then
-    prompt authtoken "Please enter your smartystreets authtoken:"
-    echo -n "$authtoken" > secret/smartystreets.authtoken
-  fi
+  if [[ "$skip_creds" == "yes" ]]; then
+    if [[ $needs_smarty -eq 1 ]]; then
+      echo ""
+      echo "SmartyStreets is required for address verification (https://smartystreets.com/)."
+      echo "Create secret keys — these are only used on the server, never exposed to users."
 
-  echo "Arcus requires a sendgrid API key for email notifications"
+      if [[ ! -e secret/smartystreets.authid ]]; then
+        prompt authid "Please enter your smartystreets authid:"
+        echo -n "$authid" > secret/smartystreets.authid
+      fi
 
-  if [[ ! -e secret/email.provider.apikey ]]; then
-    prompt apikey "Please enter your sendgrid API key:"
-    echo -n "$apikey" > secret/email.provider.apikey
-  fi
+      if [[ ! -e secret/smartystreets.authtoken ]]; then
+        prompt authtoken "Please enter your smartystreets authtoken:"
+        echo -n "$authtoken" > secret/smartystreets.authtoken
+      fi
+    fi
 
-  echo "Arcus requires Twilio to make phone calls"
+    if [[ $needs_sendgrid -eq 1 ]]; then
+      echo ""
+      echo "Sendgrid is required for email notifications."
 
-  if [[ ! -e secret/twilio.account.auth ]]; then
-    prompt apikey "Please enter your twilio auth:"
-    echo -n "$apikey" > secret/twilio.account.auth
-  fi
+      if [[ ! -e secret/email.provider.apikey ]]; then
+        prompt apikey "Please enter your sendgrid API key:"
+        echo -n "$apikey" > secret/email.provider.apikey
+      fi
+    fi
 
-  if [[ ! -e secret/twilio.account.sid ]]; then
-    prompt apikey "Please enter your twilio sid:"
-    echo -n "$apikey" > secret/twilio.account.sid
-  fi
+    if [[ $needs_twilio -eq 1 ]]; then
+      echo ""
+      echo "Twilio is required for SMS/voice notifications."
 
-  if [[ ! -e secret/twilio.account.from ]]; then
-    prompt apikey "Please enter your twilio phone number:"
-    echo -n "$apikey" > secret/twilio.account.from
+      if [[ ! -e secret/twilio.account.auth ]]; then
+        prompt twilio_auth "Please enter your twilio auth:"
+        echo -n "$twilio_auth" > secret/twilio.account.auth
+      fi
+
+      if [[ ! -e secret/twilio.account.sid ]]; then
+        prompt twilio_sid "Please enter your twilio sid:"
+        echo -n "$twilio_sid" > secret/twilio.account.sid
+      fi
+
+      if [[ ! -e secret/twilio.account.from ]]; then
+        prompt twilio_from "Please enter your twilio phone number:"
+        echo -n "$twilio_from" > secret/twilio.account.from
+      fi
+    fi
+  elif [[ "$skip_creds" != "done" ]]; then
+    echo "Skipping external service credentials. Run './arcuscmd.sh configure' when you're ready to set them up."
   fi
 
   set +e

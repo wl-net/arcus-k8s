@@ -1,6 +1,11 @@
 #!/bin/bash
 set -euo pipefail
 
+if [[ $EUID -eq 0 ]]; then
+  echo "Error: Do not run arcuscmd as root. Commands that need elevated privileges will use sudo."
+  exit 1
+fi
+
 METALLB_VERSION='v0.15.3'
 NGINX_VERSION='v1.14.3'
 CERT_MANAGER_VERSION='v1.19.2'
@@ -83,6 +88,7 @@ subcmd=${1:-help}
 
 case "$subcmd" in
 setup)
+  check_prerequisites
   answer=''
   prompt answer "Setup Arcus on this machine, or in the cloud: [local/cloud]:"
   if [[ $answer != 'cloud' && $answer != 'local' ]]; then
