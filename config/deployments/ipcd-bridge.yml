@@ -72,7 +72,7 @@ spec:
           value: "false"
         - name: USE_SSL
           value: "false"
-        image: gcr.io/arcus-238802/arcus/ipcd-bridge:2019.10.0
+        image: us-west1-docker.pkg.dev/arcus-238802/arcus-prod/arcus/ipcd-bridge:2019.10.0
         imagePullPolicy: Always
         name: ipcd-bridge
         resources:

@@ -53,7 +53,7 @@ spec:
             secretKeyRef:
               key: questions.aes.secret
               name: shared
-        image: gcr.io/arcus-238802/arcus/history-service:2019.10.0
+        image: us-west1-docker.pkg.dev/arcus-238802/arcus-prod/arcus/history-service:2019.10.0
         imagePullPolicy: Always
         name: history-service
         resources:

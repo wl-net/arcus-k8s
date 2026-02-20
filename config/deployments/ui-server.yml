@@ -21,7 +21,7 @@ spec:
         app: ui-server
     spec:
       containers:
-      - image: gcr.io/arcus-238802/arcus/ui-server:latest
+      - image: us-west1-docker.pkg.dev/arcus-238802/arcus-prod/arcus/ui-server:latest
         imagePullPolicy: Always
         name: ui-server
         resources: {}

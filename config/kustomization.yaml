@@ -39,34 +39,34 @@ resources:
 - clusterrole.yml
 
 images:
-- name: gcr.io/arcus-238802/arcus/client-bridge
+- name: us-west1-docker.pkg.dev/arcus-238802/arcus-prod/arcus/client-bridge
   newTag: 2019.10.0
-- name: gcr.io/arcus-238802/arcus/driver-services
+- name: us-west1-docker.pkg.dev/arcus-238802/arcus-prod/arcus/driver-services
   newTag: 2019.10.0
-- name: gcr.io/arcus-238802/arcus/subsystem-service
+- name: us-west1-docker.pkg.dev/arcus-238802/arcus-prod/arcus/subsystem-service
   newTag: 2019.10.0
-- name: gcr.io/arcus-238802/arcus/hub-bridge
+- name: us-west1-docker.pkg.dev/arcus-238802/arcus-prod/arcus/hub-bridge
   newTag: 2019.10.0
-- name: gcr.io/arcus-238802/arcus/history-service
+- name: us-west1-docker.pkg.dev/arcus-238802/arcus-prod/arcus/history-service
   newTag: 2019.10.0
-- name: gcr.io/arcus-238802/arcus/scheduler-service
+- name: us-west1-docker.pkg.dev/arcus-238802/arcus-prod/arcus/scheduler-service
   newTag: 2019.10.0
-- name: gcr.io/arcus-238802/arcus/platform-services
+- name: us-west1-docker.pkg.dev/arcus-238802/arcus-prod/arcus/platform-services
   newTag: 2019.10.0
 
-- name: gcr.io/arcus-238802/arcus/zookeeper
+- name: us-west1-docker.pkg.dev/arcus-238802/arcus-prod/arcus/zookeeper
   newTag: latest
 
-- name: gcr.io/arcus-238802/arcus/rule-service
+- name: us-west1-docker.pkg.dev/arcus-238802/arcus-prod/arcus/rule-service
   newTag: 2019.10.0
-- name: gcr.io/arcus-238802/arcus/ivr-callback-server
+- name: us-west1-docker.pkg.dev/arcus-238802/arcus-prod/arcus/ivr-callback-server
   newTag: 2019.10.0
-- name: gcr.io/arcus-238802/arcus/ipcd-bridge
+- name: us-west1-docker.pkg.dev/arcus-238802/arcus-prod/arcus/ipcd-bridge
   newTag: 2019.10.0
-- name: gcr.io/arcus-238802/arcus/metrics-server
+- name: us-west1-docker.pkg.dev/arcus-238802/arcus-prod/arcus/metrics-server
   newTag: 2019.10.0
-- name: gcr.io/arcus-238802/arcus/alarm-service
+- name: us-west1-docker.pkg.dev/arcus-238802/arcus-prod/arcus/alarm-service
   newTag: 2019.10.0
-- name: gcr.io/arcus-238802/arcus/notification-services
+- name: us-west1-docker.pkg.dev/arcus-238802/arcus-prod/arcus/notification-services
   newTag: 2019.10.0
 

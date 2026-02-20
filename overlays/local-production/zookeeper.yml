@@ -19,7 +19,7 @@ spec:
         app: zookeeper
     spec:
       containers:
-      - image: gcr.io/arcus-238802/arcus/zookeeper:latest
+      - image: us-west1-docker.pkg.dev/arcus-238802/arcus-prod/arcus/zookeeper:latest
         imagePullPolicy: Always
         name: zookeeper
         resources:

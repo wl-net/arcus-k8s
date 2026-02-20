@@ -77,7 +77,7 @@ spec:
             configMapKeyRef:
               key: TWILIO_CALLBACK_HOST
               name: arcus-config
-        image: gcr.io/arcus-238802/arcus/ivr-callback-server:2019.10.0
+        image: us-west1-docker.pkg.dev/arcus-238802/arcus-prod/arcus/ivr-callback-server:2019.10.0
         imagePullPolicy: Always
         name: ivr-callback-server
         resources:

@@ -83,7 +83,7 @@ spec:
             configMapKeyRef:
               key: DEFAULT_SERVICE_LEVEL
               name: arcus-config
-        image: gcr.io/arcus-238802/arcus/platform-services:2019.10.0
+        image: us-west1-docker.pkg.dev/arcus-238802/arcus-prod/arcus/platform-services:2019.10.0
         imagePullPolicy: Always
         name: platform-services
         terminationMessagePath: /dev/termination-log

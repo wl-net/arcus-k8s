@@ -49,7 +49,7 @@ spec:
               name: arcus-config
         - name: CASSANDRA_LISTEN_ADDRESS
           value: localhost
-        image: gcr.io/arcus-238802/arcus/cassandra:latest
+        image: us-west1-docker.pkg.dev/arcus-238802/arcus-prod/arcus/cassandra:latest
         imagePullPolicy: Always
         name: cassandra
         resources:
