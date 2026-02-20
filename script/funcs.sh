@@ -12,7 +12,7 @@ function updatehubkeystore() {
   $KUBECTL get secret nginx-production-tls -o jsonpath='{.data.tls\.key}' | base64 -d > converted/orig.key
   $KUBECTL get secret nginx-production-tls -o jsonpath='{.data.tls\.crt}' | base64 -d > converted/tls.crt
 
-  if ! openssl x509 -in converted/tls.crt -checkend 0 -noout; then
+  if ! openssl x509 -in converted/tls.crt -checkend 0 -noout &>/dev/null; then
     echo "Error: certificate has expired. Renew it before updating the hub keystore."
     rm -rf converted
     exit 1
@@ -22,7 +22,7 @@ function updatehubkeystore() {
   rm converted/orig.key
 
   $KUBECTL delete secret hub-keystore --ignore-not-found
-  $KUBECTL create secret generic truststore --from-file irisbylowes/truststore.jks
+  $KUBECTL create secret generic truststore --from-file irisbylowes/truststore.jks --dry-run=client -o yaml | $KUBECTL apply -f -
   $KUBECTL create secret tls hub-keystore --cert converted/tls.crt --key converted/tls.key
 
   rm -rf converted
