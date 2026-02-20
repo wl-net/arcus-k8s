@@ -499,6 +499,25 @@ function arcus_status() {
     $KUBECTL get statefulset "${found_stateful[@]}"
   fi
 
+  local external_hosts=()
+  [[ -n "${ARCUS_CASSANDRA_HOST-}" ]] && external_hosts+=("cassandra:${ARCUS_CASSANDRA_HOST%%:*}")
+  [[ -n "${ARCUS_KAFKA_HOST-}" ]]     && external_hosts+=("kafka:${ARCUS_KAFKA_HOST%%:*}")
+  [[ -n "${ARCUS_ZOOKEEPER_HOST-}" ]] && external_hosts+=("zookeeper:${ARCUS_ZOOKEEPER_HOST%%:*}")
+
+  if [[ ${#external_hosts[@]} -gt 0 ]]; then
+    echo ""
+    echo "External Services:"
+    for entry in "${external_hosts[@]}"; do
+      local name="${entry%%:*}"
+      local host="${entry#*:}"
+      if ping -c 1 -W 2 "$host" &>/dev/null; then
+        printf "  %-16s %s  [OK]\n" "$name" "$host"
+      else
+        printf "  %-16s %s  [UNREACHABLE]\n" "$name" "$host"
+      fi
+    done
+  fi
+
   local found_certs=0
   for secret in nginx-staging-tls nginx-production-tls dc-admin-production-tls; do
     if $KUBECTL get secret "$secret" &>/dev/null; then
