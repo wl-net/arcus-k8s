@@ -14,7 +14,7 @@ SCRIPT_DIR=$(dirname "${SCRIPT_PATH}")
 # setup
 
 if ! ROOT=$(git rev-parse --show-toplevel 2>/dev/null); then
-  echo "Couldn't get root of git repository. You must checkout arcus-k8 as a git repository, not as an extracted zip."
+  echo "Couldn't get root of git repository. You must checkout arcus-k8s as a git repository, not as an extracted zip."
   exit 1
 fi
 

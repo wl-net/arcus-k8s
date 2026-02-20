@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-`arcus-k8` is a Kubernetes deployment infrastructure project for [Arcus Smart Home](https://github.com/arcus-smart-home), an open-source home automation platform. It provides shell scripts and Kustomize manifests to deploy Arcus on local (k3s) or cloud Kubernetes clusters.
+`arcus-k8s` is a Kubernetes deployment infrastructure project for [Arcus Smart Home](https://github.com/arcus-smart-home), an open-source home automation platform. It provides shell scripts and Kustomize manifests to deploy Arcus on local (k3s) or cloud Kubernetes clusters.
 
 ## Repository Layout
 
