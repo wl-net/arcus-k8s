@@ -445,6 +445,8 @@ function configure() {
   echo "Please go and create an account now, as you will be required to provide some details"
   echo "Make sure to create secret keys, since these credentials will only be used on the Arcus server, and never exposed to users"
 
+  local authid authtoken apikey
+
   if [[ ! -e secret/smartystreets.authid ]]; then
     prompt authid "Please enter your smartystreets authid:"
     echo -n "$authid" > secret/smartystreets.authid
@@ -470,8 +472,8 @@ function configure() {
   fi
 
   if [[ ! -e secret/twilio.account.sid ]]; then
-  prompt apikey "Please enter your twilio sid:"
-  echo -n "$apikey" > secret/twilio.account.sid
+    prompt apikey "Please enter your twilio sid:"
+    echo -n "$apikey" > secret/twilio.account.sid
   fi
 
   if [[ ! -e secret/twilio.account.from ]]; then
@@ -486,10 +488,8 @@ function configure() {
 }
 
 function update() {
-  cd $ROOT
-  git fetch
-  git pull
-  cd - >/dev/null
+  git -C "$ROOT" fetch
+  git -C "$ROOT" pull
   echo "on $(git rev-parse --abbrev-ref HEAD)"
 }
 
@@ -500,7 +500,7 @@ function logs() {
   fi
   local app=$1
   shift
-  $KUBECTL logs --tail=1000 -l app=$app -c $app "$@"
+  $KUBECTL logs --tail=1000 -l app="$app" -c "$app" "$@"
 }
 
 function certlogs() {
@@ -509,11 +509,11 @@ function certlogs() {
     component=$1
     shift
   fi
-  $KUBECTL logs --tail=1000 -n cert-manager -l app.kubernetes.io/name=$component "$@"
+  $KUBECTL logs --tail=1000 -n cert-manager -l app.kubernetes.io/name="$component" "$@"
 }
 
 function delete() {
-  $KUBECTL delete pod -l app=$1
+  $KUBECTL delete pod -l app="$1"
 }
 
 function shell_exec() {
@@ -524,7 +524,7 @@ function shell_exec() {
   local app=$1
   shift
   local pod
-  pod=$($KUBECTL get pod -l app=$app -o name | head -1)
+  pod=$($KUBECTL get pod -l app="$app" -o name | head -1)
   if [[ -z "$pod" ]]; then
     echo "Error: no running pod found for app=$app"
     exit 1

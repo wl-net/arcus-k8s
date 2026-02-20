@@ -77,6 +77,7 @@ subcmd=${1:-help}
 
 case "$subcmd" in
 setup)
+  answer=''
   prompt answer "Setup Arcus on this machine, or in the cloud: [local/cloud]:"
   if [[ $answer != 'cloud' && $answer != 'local' ]]; then
     echo "Invalid option $answer, must pick 'local' or 'cloud'"
