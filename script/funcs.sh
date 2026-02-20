@@ -435,6 +435,12 @@ function logs() {
   $KUBECTL logs --tail=1000 -l app=$app -c $app "$@"
 }
 
+function certlogs() {
+  local component=${1:-cert-manager}
+  shift || true
+  $KUBECTL logs --tail=1000 -n cert-manager -l app.kubernetes.io/name=$component "$@"
+}
+
 function delete() {
   $KUBECTL delete pod -l app=$1
 }

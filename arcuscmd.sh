@@ -60,6 +60,7 @@ Basic Commands:
 
 Debug Commands:
   logs       - get the logs for an application
+  certlogs   - get the logs for cert-manager (optionally: webhook, cainjector)
   shell      - get an interactive shell on a pod
   dbshell    - get a cqlsh shell on the Cassandra database
 
@@ -141,6 +142,9 @@ update)
   ;;
 logs)
   logs "${@:2}"
+  ;;
+certlogs)
+  certlogs "${@:2}"
   ;;
 shell)
   shell_exec "${@:2}"
