@@ -8,6 +8,8 @@ spec:
   - feedback.push.apple.com
   - gateway.sandbox.apple.com
   - feedback.sandbox.apple.com
+  - api.development.push.apple.com
+  - api.push.apple.com
   ports:
   - number: 2195
     name: https-2195
