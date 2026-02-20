@@ -53,7 +53,7 @@ Debug Commands:
   dbshell    - Get a shell (cqlsh) on the database
 
 Dangerous Commands:
-  killall    - Immediately kills all running deployments / statefulsets.
+  killall    - Deletes all Arcus pods, triggering their controllers to reschedule them.
 ENDOFDOC
 
 }
