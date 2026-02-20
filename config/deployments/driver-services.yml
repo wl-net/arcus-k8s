@@ -75,15 +75,18 @@ spec:
             memory: "768Mi"
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
+        startupProbe:
+          tcpSocket:
+            port: 9000
+          periodSeconds: 10
+          failureThreshold: 30
         readinessProbe:
           tcpSocket:
             port: 9000
-          initialDelaySeconds: 60
           periodSeconds: 10
         livenessProbe:
           tcpSocket:
             port: 9000
-          initialDelaySeconds: 90
           periodSeconds: 60
       dnsPolicy: ClusterFirst
       restartPolicy: Always
