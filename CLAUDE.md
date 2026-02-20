@@ -9,8 +9,8 @@
 ```
 arcuscmd.sh                  # Main CLI — entry point for all operations
 script/
-  funcs.sh                   # Core deployment functions (~1600 lines)
-  common.sh                  # Shared utilities (retry, prompts, status checks)
+  funcs.sh                   # Core deployment functions
+  common.sh                  # Shared utilities (retry, prompts)
 config/
   kustomization.yaml         # Root Kustomize manifest (image tags live here)
   configmaps/arcus-config.yml  # Global app config (domains, Cassandra, Kafka)
@@ -19,14 +19,15 @@ config/
   stateful/                  # Prometheus & Grafana StatefulSets
   certprovider/              # Let's Encrypt issuers
   jobs/                      # One-shot Kubernetes jobs
-  istio/                     # Egress rules
+  istio/                     # Egress rules (Twilio, Sendgrid, SmartyStreets, APNS)
 overlays/
-  local-production/          # Base overlay (edit domain, email, cert provider here)
-  local-production-cluster/  # Cluster-specific overrides (git-ignored local copy)
+  local-production/          # Base overlay for single-node dev deployments
+  local-production-cluster/  # Cluster-specific overrides
 localk8s/                    # MetalLB and TCP service config
+.github/workflows/ci.yml    # GitHub Actions CI (shellcheck + kustomize validation)
 ```
 
-Secrets are written to `secret/` and local overlay state to `overlays/local-production-local/` — both are git-ignored.
+Secrets are written to `secret/` and local overlay state to `overlays/<overlay>-local/` — both are git-ignored.
 
 ## Key Technologies
 
@@ -34,9 +35,9 @@ Secrets are written to `secret/` and local overlay state to `overlays/local-prod
 |---|---|
 | Kubernetes distro | k3s v1.32.4 (recommended) |
 | Config management | Kustomize |
-| Service mesh | Istio v1.26.0 |
-| Ingress | nginx-ingress v1.14.3 (⚠️ retiring March 2026 — migrate to Gateway API) |
-| Load balancer | MetalLB v0.15.3 |
+| Service mesh | Istio v1.26.0 (installed via Helm) |
+| Ingress | nginx-ingress v1.14.3 |
+| Load balancer | MetalLB v0.15.3 (local deployments only) |
 | Certificates | cert-manager v1.19.2 + Let's Encrypt |
 | Database | Apache Cassandra |
 | Messaging | Apache Kafka + Zookeeper |
@@ -45,18 +46,35 @@ Secrets are written to `secret/` and local overlay state to `overlays/local-prod
 ## Common Commands
 
 ```bash
+# Setup
 ./arcuscmd.sh setup          # Full first-time cluster init (interactive)
 ./arcuscmd.sh install        # Install/upgrade Kubernetes components
-./arcuscmd.sh apply          # Deploy/update Arcus configuration
-./arcuscmd.sh deploy         # Rolling update with minimal downtime
 ./arcuscmd.sh configure      # Interactive configuration wizard
-./arcuscmd.sh provision      # Initialize Cassandra/Kafka
+./arcuscmd.sh shell-setup    # Add 'arcuscmd' shortcut to your shell
+
+# Deploy
+./arcuscmd.sh apply          # Deploy/update Arcus configuration
+./arcuscmd.sh deploy         # Rolling restart of all services, one at a time
+./arcuscmd.sh update         # Pull latest changes, show what changed
+./arcuscmd.sh rollback       # Revert to a previous version
+./arcuscmd.sh history        # Show recent update history with apply status
 ./arcuscmd.sh useprodcert    # Switch from staging to production Let's Encrypt cert
 ./arcuscmd.sh updatehubkeystore  # Convert PKCS#1 key to PKCS#8 for hub-bridge
-./arcuscmd.sh info           # Show DNS → IP/port mappings
-./arcuscmd.sh logs           # Tail service logs
+
+# Status
+./arcuscmd.sh status         # Show services, certificates, and infrastructure versions
+./arcuscmd.sh versions       # Show installed vs configured infrastructure versions
+./arcuscmd.sh info           # Show DNS to IP/port mappings
+./arcuscmd.sh check          # Test public connectivity to Arcus services
+./arcuscmd.sh verifyconfig   # Verify all configuration and secrets are present
+
+# Operations
+./arcuscmd.sh backupdb       # Backup Cassandra database
+./arcuscmd.sh backupconfig   # Backup local configuration (.config, secrets, overlays) to a tarball
+./arcuscmd.sh logs <app>     # Get logs for a service (targets running pods only)
+./arcuscmd.sh shell <app>    # Get an interactive shell on a pod
 ./arcuscmd.sh dbshell        # Open Cassandra CQL shell
-./arcuscmd.sh update         # git pull + apply
+./arcuscmd.sh deletepod <app>  # Delete pods matching an application
 ./arcuscmd.sh help           # List all commands
 ```
 
@@ -64,28 +82,30 @@ Secrets are written to `secret/` and local overlay state to `overlays/local-prod
 
 ### Kubernetes manifests
 - Edit files under `config/` for changes that apply to all environments.
-- Put environment-specific overrides in `overlays/local-production/` (committed) or `overlays/local-production-local/` (local only, not committed).
-- Use `kustomize build overlays/local-production-cluster | kubectl apply -f -` to preview what will be applied, or just run `./arcuscmd.sh apply`.
+- Put environment-specific overrides in `overlays/local-production/` (committed) or the `-local` copy (generated by `apply`, not committed).
+- Run `./arcuscmd.sh apply` to deploy. The overlay tunable files (`arcus-config-tunable.yml`, `cluster-config-tunable.yml`) are preserved across apply runs.
 
 ### Image versions
 - Image tags are centrally managed in `config/kustomization.yaml`.
 
 ### Secrets
-- Secrets are generated once and stored in `secret/`. Re-running setup will not overwrite existing secrets.
+- Secrets are generated once by `configure` and stored in `secret/`. Re-running configure will not overwrite existing secrets.
 - Never commit the `secret/` directory.
+- Run `./arcuscmd.sh verifyconfig` to check all required secrets are present.
 
 ### Adding a new microservice
 1. Add a deployment manifest in `config/deployments/`.
 2. Add a service manifest in `config/service/` if network access is needed.
 3. Reference both in `config/kustomization.yaml` under `resources`.
 4. Add any required config keys to `config/configmaps/arcus-config.yml`.
+5. Add readiness and liveness probes (TCP socket on the metrics port).
 
 ## Infrastructure Notes
 
-- The project targets **k3s** as the recommended Kubernetes distribution. microk8s is deprecated.
-- MetalLB provides LoadBalancer IPs for bare-metal/local clusters. Configure the address pool in `localk8s/metallb.yml` to match a static range excluded from your DHCP scope.
-- Istio egress rules in `config/istio/` control outbound traffic to external APIs (Twilio, Sendgrid, SmartyStreets, etc.).
-- cert-manager handles Let's Encrypt certificates. Start with the staging issuer in `config/certprovider/` and switch to production via `./arcuscmd.sh useprodcert` once DNS is verified.
+- The project targets **k3s** as the recommended Kubernetes distribution.
+- MetalLB provides LoadBalancer IPs for local clusters only (skipped for cloud deployments). Configure the address pool in `localk8s/metallb.yml` to match a static range excluded from your DHCP scope.
+- Istio is installed via Helm charts, pinned to `$ISTIO_VERSION`. Egress rules in `config/istio/` control outbound traffic to external APIs (Twilio, Sendgrid, SmartyStreets, APNS).
+- cert-manager handles Let's Encrypt certificates. Start with the staging issuer and switch to production via `./arcuscmd.sh useprodcert` once DNS is verified.
 - Hub-bridge requires PKCS#8 keys; run `./arcuscmd.sh updatehubkeystore` after obtaining a production certificate.
 
 ## Per-Node Configuration (`.config/`)
@@ -109,7 +129,7 @@ Run `./arcuscmd.sh configure` to set these interactively, or write the files dir
 
 ## Cassandra / Kafka / Zookeeper
 
-The `local-production` overlay includes manifests to run Cassandra, Kafka, and Zookeeper inside k3s, which is fine for development. For production, these should run externally on a dedicated 3-datacenter Cassandra cluster — a single k3s node provides no real redundancy. Configure external hosts via `./arcuscmd.sh configure` or by setting `.config/cassandra-host`, `.config/kafka-host`, and `.config/zookeeper-host` directly.
+The `local-production` overlay includes manifests to run Cassandra, Kafka, and Zookeeper inside k3s with `CASSANDRA_SINGLE_NODE=true`, which is fine for development. For production, these should run externally on a dedicated 3-datacenter Cassandra cluster — a single k3s node provides no real redundancy. The `local-production-cluster` overlay sets `CASSANDRA_SINGLE_NODE=false`. Configure external hosts via `./arcuscmd.sh configure` or by setting `.config/cassandra-host`, `.config/kafka-host`, and `.config/zookeeper-host` directly.
 
 ## External Service Dependencies
 
@@ -121,12 +141,23 @@ Arcus requires accounts with:
 
 ## Backups
 
-Cassandra is the only stateful component that needs backup. Use the provided scripts:
-
+### Configuration
 ```bash
-./backup-cassandra-snapshot.sh
-./restore-cassandra-snapshot.sh
+./arcuscmd.sh backupconfig   # Creates a timestamped tarball of .config, secrets, and local overlays
 ```
+
+### Database
+Cassandra is the only stateful component that needs backup:
+```bash
+./backup-cassandra-snapshot.sh        # Snapshot-based backup (preferred)
+./restore-cassandra-snapshot.sh       # Restore from snapshot backup
+```
+
+## CI
+
+GitHub Actions runs on push and PRs to master:
+- **shellcheck** — lints `arcuscmd.sh`, `script/common.sh`, and `script/funcs.sh`
+- **kustomize** — validates `config/` base manifests build cleanly
 
 ## Hardware Requirements
 
