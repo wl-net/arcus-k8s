@@ -136,6 +136,12 @@ function killallpods() {
 
 function setup_k3s() {
   curl -sfL https://get.k3s.io | sudo INSTALL_K3S_EXEC='--disable=servicelb --disable=traefik --write-kubeconfig-mode 644' sh -
+
+  # Make kubectl work without KUBECONFIG being set
+  mkdir -p "$HOME/.kube"
+  cp /etc/rancher/k3s/k3s.yaml "$HOME/.kube/config"
+  chmod 600 "$HOME/.kube/config"
+  echo "Kubeconfig written to ~/.kube/config"
 }
 
 function setup_helm() {
@@ -181,13 +187,13 @@ function setup_istio() {
   helm repo add istio https://istio-release.storage.googleapis.com/charts
   helm repo update
 
-  KUBECONFIG=/etc/rancher/k3s/k3s.yaml helm upgrade --install istio-base istio/base \
+  helm upgrade --install istio-base istio/base \
     --namespace istio-system \
     --version "$ISTIO_VERSION" \
     --set defaultRevision=default \
     --create-namespace
 
-  KUBECONFIG=/etc/rancher/k3s/k3s.yaml helm upgrade --install istiod istio/istiod \
+  helm upgrade --install istiod istio/istiod \
     --namespace istio-system \
     --version "$ISTIO_VERSION" \
     --set pilot.resources.requests.cpu=100m \
