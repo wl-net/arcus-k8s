@@ -29,7 +29,7 @@ if [ -x "$(command -v k3s)" ]; then
   DEPLOYMENT_TYPE=local
 fi
 
-if [[ ${1:-help} != 'help' && ${1:-help} != 'setup' && ${1:-help} != 'configure' ]]; then
+if [[ ${1:-help} != 'help' && ${1:-help} != 'setup' && ${1:-help} != 'configure' && ${1:-help} != 'verifyconfig' ]]; then
   if ! command -v $KUBECTL &>/dev/null; then
     echo "Error: kubectl not found. Is it installed and in your PATH?"
     exit 1
@@ -55,6 +55,8 @@ Basic Commands:
   update     - update your local copy with the latest changes
   deletepod  - delete pods matching an application
   backupdb   - backup cassandra
+  backupconfig - backup local configuration (.config, secrets, overlays) to a tarball
+  verifyconfig - verify that all configuration and secrets are present
   status     - show status of services, certificates, and infrastructure versions
   info       - show DNS to IP/port mappings
   check      - test public connectivity to Arcus services
@@ -161,6 +163,12 @@ deletepod)
   ;;
 backupdb)
   backup_cassandra
+  ;;
+backupconfig)
+  backup_config
+  ;;
+verifyconfig)
+  verify_config
   ;;
 status)
   arcus_status

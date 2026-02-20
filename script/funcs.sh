@@ -535,6 +535,174 @@ function shell_exec() {
   $KUBECTL exec --stdin --tty "$pod" -- "${cmd[@]}"
 }
 
+function verify_config() {
+  load
+
+  local errors=0
+  local warnings=0
+
+  echo "Verifying Arcus configuration..."
+  echo
+
+  # --- Required .config files ---
+  echo "=== Node Configuration (.config/) ==="
+
+  for file in domain.name admin.email cert-issuer; do
+    if [[ ! -f "$ARCUS_CONFIGDIR/$file" ]]; then
+      echo "  MISSING: .config/$file (required)"
+      ((errors++))
+    elif [[ ! -s "$ARCUS_CONFIGDIR/$file" ]]; then
+      echo "  EMPTY:   .config/$file (required)"
+      ((errors++))
+    else
+      echo "  OK:      .config/$file = $(cat "$ARCUS_CONFIGDIR/$file")"
+    fi
+  done
+
+  # overlay-name defaults to local-production in load(), so missing is fine but we still report it
+  if [[ -f "$ARCUS_CONFIGDIR/overlay-name" ]]; then
+    echo "  OK:      .config/overlay-name = $(cat "$ARCUS_CONFIGDIR/overlay-name")"
+  else
+    echo "  DEFAULT: .config/overlay-name (using local-production)"
+  fi
+
+  # subnet is required for local (k3s) deployments
+  if [[ $DEPLOYMENT_TYPE == 'local' ]]; then
+    if [[ ! -f "$ARCUS_CONFIGDIR/subnet" ]]; then
+      echo "  MISSING: .config/subnet (required for local deployments)"
+      ((errors++))
+    elif [[ ! -s "$ARCUS_CONFIGDIR/subnet" ]]; then
+      echo "  EMPTY:   .config/subnet (required for local deployments)"
+      ((errors++))
+    else
+      echo "  OK:      .config/subnet = $(cat "$ARCUS_CONFIGDIR/subnet")"
+    fi
+  fi
+
+  # Optional config files
+  for file in proxy-real-ip cassandra-host zookeeper-host kafka-host admin-domain; do
+    if [[ -f "$ARCUS_CONFIGDIR/$file" ]]; then
+      echo "  OK:      .config/$file = $(cat "$ARCUS_CONFIGDIR/$file")"
+    fi
+  done
+
+  echo
+
+  # --- Validate config values ---
+  echo "=== Value Checks ==="
+
+  if [[ "${ARCUS_DOMAIN_NAME:-}" == "example.com" ]]; then
+    echo "  ERROR:   domain.name is still the placeholder (example.com)"
+    ((errors++))
+  elif [[ -n "${ARCUS_DOMAIN_NAME:-}" ]]; then
+    echo "  OK:      domain.name looks valid"
+  fi
+
+  if [[ "${ARCUS_ADMIN_EMAIL:-}" == "me@example.com" ]]; then
+    echo "  ERROR:   admin.email is still the placeholder (me@example.com)"
+    ((errors++))
+  elif [[ -n "${ARCUS_ADMIN_EMAIL:-}" ]]; then
+    echo "  OK:      admin.email looks valid"
+  fi
+
+  if [[ -n "${ARCUS_CERT_TYPE:-}" ]]; then
+    if [[ "$ARCUS_CERT_TYPE" != "staging" && "$ARCUS_CERT_TYPE" != "production" ]]; then
+      echo "  ERROR:   cert-issuer has invalid value '$ARCUS_CERT_TYPE' (must be staging or production)"
+      ((errors++))
+    else
+      echo "  OK:      cert-issuer = $ARCUS_CERT_TYPE"
+    fi
+  fi
+
+  # Check that the overlay directory exists
+  if [[ ! -d "overlays/${ARCUS_OVERLAY_NAME}" ]]; then
+    echo "  ERROR:   overlay directory overlays/${ARCUS_OVERLAY_NAME} does not exist"
+    ((errors++))
+  else
+    echo "  OK:      overlay directory overlays/${ARCUS_OVERLAY_NAME} exists"
+  fi
+
+  echo
+
+  # --- Secrets ---
+  echo "=== Secrets (secret/) ==="
+
+  local required_secrets=(
+    billing.api.key
+    billing.public.api.key
+    iris.aes.iv
+    iris.aes.secret
+    questions.aes.secret
+    smarty.auth.id
+    smarty.auth.token
+    tls.server.truststore.password
+    apns.pkcs12.password
+    smartystreets.authid
+    smartystreets.authtoken
+    email.provider.apikey
+    twilio.account.auth
+    twilio.account.sid
+    twilio.account.from
+  )
+
+  if [[ ! -d secret ]]; then
+    echo "  MISSING: secret/ directory does not exist"
+    ((errors += ${#required_secrets[@]}))
+  else
+    for s in "${required_secrets[@]}"; do
+      if [[ ! -f "secret/$s" ]]; then
+        echo "  MISSING: secret/$s"
+        ((errors++))
+      elif [[ ! -s "secret/$s" ]]; then
+        echo "  EMPTY:   secret/$s"
+        ((errors++))
+      else
+        echo "  OK:      secret/$s"
+      fi
+    done
+  fi
+
+  # Warn about placeholder secrets
+  for s in smarty.auth.id smarty.auth.token billing.api.key billing.public.api.key; do
+    if [[ -f "secret/$s" ]] && [[ "$(cat "secret/$s")" == "12345" ]]; then
+      echo "  WARNING: secret/$s still has the default placeholder value"
+      ((warnings++))
+    fi
+  done
+
+  echo
+  echo "=== Summary ==="
+  if [[ $errors -eq 0 && $warnings -eq 0 ]]; then
+    echo "  Configuration is complete. No issues found."
+  else
+    [[ $warnings -gt 0 ]] && echo "  $warnings warning(s)"
+    [[ $errors -gt 0 ]] && echo "  $errors error(s) — run './arcuscmd.sh configure' to fix"
+  fi
+
+  return "$errors"
+}
+
+function backup_config() {
+  DATE=$(date '+%Y-%m-%d_%H-%M-%S')
+  BACKUP_FILE="arcus-config-backup-${DATE}.tar.gz"
+
+  DIRS=()
+  for dir in .config secret overlays/local-production-local overlays/local-production-cluster-local; do
+    if [[ -d "${ROOT}/${dir}" ]]; then
+      DIRS+=("${dir}")
+    fi
+  done
+
+  if [[ ${#DIRS[@]} -eq 0 ]]; then
+    echo "Nothing to back up — no local configuration directories found."
+    exit 1
+  fi
+
+  echo "Backing up: ${DIRS[*]}"
+  tar -czf "${BACKUP_FILE}" -C "${ROOT}" "${DIRS[@]}"
+  echo "Configuration saved to ${BACKUP_FILE}"
+}
+
 function backup_cassandra() {
   DATE=$(date '+%Y-%m-%d_%H-%M-%S')
   $KUBECTL exec cassandra-0 -- /bin/tar zcvf "/data/cassandra-${DATE}.tar.gz" cassandra
