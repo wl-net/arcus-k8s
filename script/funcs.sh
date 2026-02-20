@@ -543,7 +543,13 @@ function logs() {
   fi
   local app=$1
   shift
-  $KUBECTL logs --tail=1000 -l app="$app" -c "$app" "$@"
+  local pod
+  pod=$($KUBECTL get pod -l app="$app" --field-selector=status.phase=Running -o name | head -1)
+  if [[ -z "$pod" ]]; then
+    echo "Error: no running pod found for app=$app"
+    exit 1
+  fi
+  $KUBECTL logs --tail=1000 -c "$app" "$pod" "$@"
 }
 
 function certlogs() {
