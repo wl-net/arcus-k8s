@@ -548,6 +548,9 @@ function update() {
     return 0
   fi
 
+  mkdir -p "$ROOT/.cache"
+  echo "$(date -Iseconds) $before $after" >> "$ROOT/.cache/update-history"
+
   echo "Updated $branch: ${before:0:7} -> ${after:0:7}"
   git -C "$ROOT" --no-pager log --oneline "${before}..${after}"
 
@@ -570,6 +573,65 @@ function update() {
 
   echo ""
   echo "Run './arcuscmd.sh apply' to deploy the new configuration."
+  echo "Run './arcuscmd.sh rollback' to revert to the previous version."
+}
+
+function update_history() {
+  local history_file="$ROOT/.cache/update-history"
+  if [[ ! -f "$history_file" ]]; then
+    echo "No update history found."
+    return 0
+  fi
+  echo "Update history (most recent first):"
+  echo ""
+  local ts prev_rev new_rev
+  while read -r ts prev_rev new_rev; do
+    echo "  $ts  ${prev_rev:0:7} -> ${new_rev:0:7}"
+  done < <(tail -10 "$history_file" | tac)
+}
+
+function rollback() {
+  local history_file="$ROOT/.cache/update-history"
+  if [[ ! -f "$history_file" ]]; then
+    echo "No update history found. Nothing to roll back to."
+    return 1
+  fi
+
+  local count
+  count=$(wc -l < "$history_file")
+
+  if [[ "$count" -eq 1 ]]; then
+    local ts prev_rev new_rev
+    read -r ts prev_rev new_rev < "$history_file"
+    echo "Rolling back to ${prev_rev:0:7} (before update at $ts)"
+    git -C "$ROOT" checkout "$prev_rev"
+    echo "Rolled back. Run './arcuscmd.sh apply' to deploy."
+    return 0
+  fi
+
+  echo "Recent updates (most recent first):"
+  echo ""
+  local i=0
+  local -a revs timestamps
+  while read -r ts prev_rev new_rev; do
+    revs+=("$prev_rev")
+    timestamps+=("$ts")
+    echo "  $((i + 1))) $ts  ${prev_rev:0:7} -> ${new_rev:0:7}"
+    ((i++))
+  done < <(tail -10 "$history_file" | tac)
+
+  echo ""
+  local choice
+  prompt choice "Roll back to which version? [1-$i]:"
+  if [[ ! "$choice" =~ ^[0-9]+$ ]] || [[ "$choice" -lt 1 ]] || [[ "$choice" -gt "$i" ]]; then
+    echo "Invalid selection."
+    return 1
+  fi
+
+  local target="${revs[$((choice - 1))]}"
+  echo "Rolling back to ${target:0:7} (before update at ${timestamps[$((choice - 1))]})"
+  git -C "$ROOT" checkout "$target"
+  echo "Rolled back. Run './arcuscmd.sh apply' to deploy."
 }
 
 function logs() {

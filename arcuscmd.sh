@@ -51,6 +51,8 @@ Deploy:
   apply               Apply the current configuration to the cluster
   deploy              Rolling restart of all services, one at a time
   update              Pull latest changes and show what changed
+  rollback            Revert to a previous version
+  history             Show recent update history
   useprodcert         Switch from Let's Encrypt staging to production certificate
   updatehubkeystore   Convert production TLS key to PKCS#8 for hub-bridge
 
@@ -150,6 +152,12 @@ check)
   ;;
 update)
   update
+  ;;
+rollback)
+  rollback
+  ;;
+history)
+  update_history
   ;;
 logs)
   logs "${@:2}"
