@@ -92,7 +92,9 @@ Run `./arcuscmd.sh useprodcert`
 
 This will apply the configuration - wait a few minutes. You should no longer see a certificate warning when navigating to the site.
 
-You can use `microk8s.kubectl -n cert-manager logs $(/snap/bin/microk8s.kubectl get pod -n cert-manager | grep cert-manager- | awk '{print $1}' | grep -v cainject | grep -v webhook) -f` to view the logs for cert-manager if you don't get a certificate.
+You can view cert-manager logs if you don't get a certificate:
+
+`kubectl logs -n cert-manager -l app=cert-manager -f`
 
 ## Setting up the Hub Trust Store
 
