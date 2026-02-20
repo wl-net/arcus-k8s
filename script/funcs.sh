@@ -499,7 +499,7 @@ function update() {
     echo ""
   fi
 
-  git -C "$ROOT" pull --ff-only || {
+  git -C "$ROOT" pull --ff-only --quiet || {
     echo "Fast-forward failed. You may have local commits that diverge from the remote."
     echo "Resolve manually with: git -C $ROOT rebase origin/$branch"
     return 1
