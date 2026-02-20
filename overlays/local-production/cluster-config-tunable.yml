@@ -1,0 +1,11 @@
+# Edit this file to customize Cassandra/Kafka configuration for this deployment.
+# Changes here are preserved across 'arcuscmd apply' runs.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cluster-config
+  namespace: default
+data:
+  CASSANDRA_LOADBALANCINGPOLICY: roundrobin
+  METRICS_TOPIC_ENABLED: 'true'
+  KAFKA_COMPRESSION_TYPE: none

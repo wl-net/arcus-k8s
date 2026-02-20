@@ -215,7 +215,19 @@ function apply() {
   fi
 
   mkdir -p "overlays/${ARCUS_OVERLAY_NAME}-local"
+
+  # Preserve user-customized tunable files before overwriting the overlay
+  local arcus_tunable="overlays/${ARCUS_OVERLAY_NAME}-local/arcus-config-tunable.yml"
+  local cluster_tunable="overlays/${ARCUS_OVERLAY_NAME}-local/cluster-config-tunable.yml"
+  local saved_arcus_tunable="" saved_cluster_tunable=""
+  [[ -f "$arcus_tunable" ]] && saved_arcus_tunable=$(cat "$arcus_tunable")
+  [[ -f "$cluster_tunable" ]] && saved_cluster_tunable=$(cat "$cluster_tunable")
+
   cp -r "overlays/${ARCUS_OVERLAY_NAME}/"* "overlays/${ARCUS_OVERLAY_NAME}-local/"
+
+  # Restore tunable files if user had customized them
+  [[ -n "$saved_arcus_tunable" ]] && echo "$saved_arcus_tunable" > "$arcus_tunable"
+  [[ -n "$saved_cluster_tunable" ]] && echo "$saved_cluster_tunable" > "$cluster_tunable"
 
   sed -i "s/me@example.com/$ARCUS_ADMIN_EMAIL/" "overlays/${ARCUS_OVERLAY_NAME}-local/cert-provider.yaml"
 
