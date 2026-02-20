@@ -23,20 +23,6 @@ Simply execute:
 
 and choose "local" and then "k3s"
 
-# Run locally (microk8s) - Deprecated
-
-**Note**: although microk8s works on multiple linux distributions, the script will currently only work on debian based systems, and has only been tested on Ubuntu 18.04. 
-
-Simply execute:
-
-`./arcuscmd.sh setup`
-
-You will be prompted to answer some questions, including the credentials for SmartyStreets (which you will need to use to satisfy the requirement to verify your address). For instructions around setting up networking, see below:
-
-If something fails, wait a few minutes and try again.
-
-It will takes about 5-10 minutes for everything to come up. When `microk8s.kubectl get pods` shows a list of pods in the running or completed state, you are good to go.
-
 ## Configuring networking
 
 In order to Access the Arcus UI and connect a hub, you will need to configure your network. You have some options when it comes to this. If you are operating in a home environment (e.g. you have NAT and you're behind a gateway), then you have Arcus run a "LoadBalancer" on your local network. For this configuration, you will need to exclude a region of your network from DHCP. For example, if you are using the 192.168.1.1/24 subnet, then you should configure DHCP to assign addresses between 192.168.1.2-192.168.150, and use 192.168.151-192.168.155 for Arcus.
@@ -130,8 +116,9 @@ TIP: you may want to create an alias so that kubectl works, e.g. `alias kubectl=
 
 ### View pod log
 
-`kubectl logs kafka-0 kafka`
-`kubectl logs cassandra-0 cassandra`
+`./arcuscmd.sh logs kafka`
+
+`./arcuscmd.sh logs cassandra`
 
 ## Adjusting configuration
 
