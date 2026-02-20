@@ -194,6 +194,7 @@ function connectivity_check() {
     "https://static.${ARCUS_DOMAIN_NAME}"
   )
 
+  local failed=0
   echo "Connectivity Check:"
   for url in "${domains[@]}"; do
     local status
@@ -202,8 +203,10 @@ function connectivity_check() {
       printf "  %-50s %s  [OK]\n" "$url" "$status"
     else
       printf "  %-50s %s  [FAIL]\n" "$url" "$status"
+      failed=1
     fi
   done
+  return $failed
 }
 
 function load() {
