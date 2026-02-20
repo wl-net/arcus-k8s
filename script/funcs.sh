@@ -436,8 +436,11 @@ function logs() {
 }
 
 function certlogs() {
-  local component=${1:-cert-manager}
-  shift || true
+  local component=cert-manager
+  if [[ $# -gt 0 && $1 != -* ]]; then
+    component=$1
+    shift
+  fi
   $KUBECTL logs --tail=1000 -n cert-manager -l app.kubernetes.io/name=$component "$@"
 }
 
