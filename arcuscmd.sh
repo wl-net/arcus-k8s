@@ -144,7 +144,7 @@ shell)
   shell_exec "${@:2}"
   ;;
 dbshell)
-  $KUBECTL exec --stdin --tty cassandra-0 -- /opt/cassandra/bin/cqlsh localhost
+  shell_exec cassandra /opt/cassandra/bin/cqlsh localhost
   ;;
 deletepod)
   delete "${@:2}"
