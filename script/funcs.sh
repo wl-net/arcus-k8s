@@ -433,7 +433,7 @@ function arcus_status() {
   echo "Application Services:"
   set +e
   # shellcheck disable=SC2086
-  $KUBECTL get deployments $APPS
+  $KUBECTL get deployments $APPS --ignore-not-found
   set -e
 
   local found_stateful=()
@@ -460,7 +460,7 @@ function arcus_status() {
       local cert enddate
       cert=$($KUBECTL get secret "$secret" -o jsonpath='{.data.tls\.crt}' | base64 -d)
       enddate=$(echo "$cert" | openssl x509 -noout -enddate 2>/dev/null | cut -d= -f2)
-      if echo "$cert" | openssl x509 -checkend 0 -noout 2>/dev/null; then
+      if echo "$cert" | openssl x509 -checkend 0 -noout &>/dev/null; then
         echo "  $secret: valid, expires $enddate"
       else
         echo "  $secret: EXPIRED ($enddate)"
