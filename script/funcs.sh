@@ -106,20 +106,25 @@ function setup_helm() {
 }
 
 function setup_istio() {
-  set +e
-  $KUBECTL create namespace istio-system
-  set -e
-  mkdir -p .temp
-  cd .temp
-  curl -L https://git.io/getLatestIstio | sh -
-  cd "istio-${ISTIO_VERSION}"
-  $KUBECTL get crd gateways.gateway.networking.k8s.io &> /dev/null || { kubectl kustomize "github.com/kubernetes-sigs/gateway-api/config/crd?ref=v1.3.0-rc.1" | kubectl apply -f -; }
+  $KUBECTL create namespace istio-system --dry-run=client -o yaml | $KUBECTL apply -f -
+
+  $KUBECTL get crd gateways.gateway.networking.k8s.io &>/dev/null || \
+    $KUBECTL kustomize "github.com/kubernetes-sigs/gateway-api/config/crd?ref=v1.3.0" | $KUBECTL apply -f -
+
   helm repo add istio https://istio-release.storage.googleapis.com/charts
   helm repo update
-  KUBECONFIG=/etc/rancher/k3s/k3s.yaml helm install istio-base istio/base -n istio-system --set defaultRevision=default --create-namespace
-  KUBECONFIG=/etc/rancher/k3s/k3s.yaml helm install istiod istio/istiod --namespace istio-system --set mixer.telemetry.resources.requests.cpu=100m --set mixer.telemetry.resources.requests.memory=256Mi --set pilot.resources.requests.cpu=100m --set pilot.resources.requests.memory=512M
-  cd -
-  cd .. # leave .temp
+
+  KUBECONFIG=/etc/rancher/k3s/k3s.yaml helm upgrade --install istio-base istio/base \
+    --namespace istio-system \
+    --version "$ISTIO_VERSION" \
+    --set defaultRevision=default \
+    --create-namespace
+
+  KUBECONFIG=/etc/rancher/k3s/k3s.yaml helm upgrade --install istiod istio/istiod \
+    --namespace istio-system \
+    --version "$ISTIO_VERSION" \
+    --set pilot.resources.requests.cpu=100m \
+    --set pilot.resources.requests.memory=512M
 }
 
 function install() {
