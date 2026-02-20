@@ -141,10 +141,19 @@ function install() {
   $KUBECTL label namespace cert-manager certmanager.k8s.io/disable-validation=true --overwrite=true
   set -e
 
-  # TODO: only re-install metallb if this is a local deployment
-  $KUBECTL apply -f https://raw.githubusercontent.com/metallb/metallb/$METALLB_VERSION/config/manifests/metallb-native.yaml
+  if [[ -z "${DEPLOYMENT_TYPE:-}" ]]; then
+    prompt DEPLOYMENT_TYPE "Is this a local or cloud deployment? [local/cloud]:"
+    if [[ $DEPLOYMENT_TYPE != 'local' && $DEPLOYMENT_TYPE != 'cloud' ]]; then
+      echo "Invalid option $DEPLOYMENT_TYPE, must pick 'local' or 'cloud'"
+      exit 1
+    fi
+  fi
+
+  if [[ $DEPLOYMENT_TYPE == 'local' ]]; then
+    $KUBECTL apply -f https://raw.githubusercontent.com/metallb/metallb/$METALLB_VERSION/config/manifests/metallb-native.yaml
+  fi
   $KUBECTL apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-$NGINX_VERSION/deploy/static/provider/baremetal/deploy.yaml
-  $KUBECTL apply -f https://github.com/jetstack/cert-manager/releases/download/$CERT_MANAGER_VERSION/cert-manager.yaml
+  $KUBECTL apply -f https://github.com/cert-manager/cert-manager/releases/download/$CERT_MANAGER_VERSION/cert-manager.yaml
 
 }
 
