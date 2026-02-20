@@ -450,7 +450,7 @@ function arcus_status() {
   fi
 
   local found_certs=0
-  for secret in nginx-staging-tls nginx-production-tls; do
+  for secret in nginx-staging-tls nginx-production-tls dc-admin-production-tls; do
     if $KUBECTL get secret "$secret" &>/dev/null; then
       if [[ $found_certs -eq 0 ]]; then
         echo ""
