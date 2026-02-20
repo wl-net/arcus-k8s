@@ -31,10 +31,16 @@ function updatehubkeystore() {
 }
 
 function useprodcert() {
+  load
   echo 'production' > "$ARCUS_CONFIGDIR/cert-issuer"
-  sed -i 's/letsencrypt-staging/letsencrypt-production/g' overlays/local-production-local/ui-service-ingress.yml
-  sed -i 's/nginx-staging-tls/nginx-production-tls/g' overlays/local-production-local/ui-service-ingress.yml
-  $KUBECTL apply -f overlays/local-production-local/ui-service-ingress.yml
+  local ingress="overlays/${ARCUS_OVERLAY_NAME}-local/ui-service-ingress.yml"
+  if [[ ! -f "$ingress" ]]; then
+    echo "Error: $ingress not found. Run './arcuscmd.sh apply' first."
+    exit 1
+  fi
+  sed -i 's/letsencrypt-staging/letsencrypt-production/g' "$ingress"
+  sed -i 's/nginx-staging-tls/nginx-production-tls/g' "$ingress"
+  $KUBECTL apply -f "$ingress"
 }
 
 function runmodelmanager() {
