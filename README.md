@@ -94,7 +94,7 @@ This will apply the configuration - wait a few minutes. You should no longer see
 
 You can view cert-manager logs if you don't get a certificate:
 
-`kubectl logs -n cert-manager -l app=cert-manager -f`
+`./arcuscmd.sh certlogs -f`
 
 ## Setting up the Hub Trust Store
 
