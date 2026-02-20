@@ -62,17 +62,10 @@ APPS='alarm-service client-bridge driver-services subsystem-service history-serv
 # Deploy the platform in a way that causes minimal downtime
 function deploy_platform() {
   for app in $APPS; do
-    $KUBECTL scale deployments/$app --replicas=2
-    echo "Waiting for ${app} to come online..."
-    sleep 15
-    if [[ $app == 'driver-services' ]]; then
-      echo "driver-services..."
-      sleep 50
-    fi
-
-    to_delete=$($KUBECTL get pods --sort-by=.metadata.creationTimestamp -o custom-columns=":metadata.name" | grep $app | head -1)
-    $KUBECTL delete pod $to_delete
-    $KUBECTL scale deployments/$app --replicas=1
+    echo "Restarting ${app}..."
+    $KUBECTL rollout restart deployment/"$app"
+    $KUBECTL rollout status deployment/"$app" --timeout=120s
+    echo "${app} ready."
   done
 }
 
