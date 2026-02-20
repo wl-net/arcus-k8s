@@ -509,12 +509,31 @@ function update() {
 
   if [[ "$before" == "$after" ]]; then
     echo "Already up to date on $branch (${after:0:7})."
-  else
-    echo "Updated $branch: ${before:0:7} -> ${after:0:7}"
-    git -C "$ROOT" --no-pager log --oneline "${before}..${after}"
-    echo ""
-    echo "Run './arcuscmd.sh apply' to deploy the new configuration."
+    return 0
   fi
+
+  echo "Updated $branch: ${before:0:7} -> ${after:0:7}"
+  git -C "$ROOT" --no-pager log --oneline "${before}..${after}"
+
+  local config_changes
+  config_changes=$(git -C "$ROOT" --no-pager diff --name-only "${before}..${after}" -- \
+    'config/' 'overlays/' 'localk8s/' '*.yml' '*.yaml')
+
+  if [[ -n "$config_changes" ]]; then
+    echo ""
+    echo "Changed manifests/overlays:"
+    echo "${config_changes//$'\n'/$'\n'  }" | sed '1s/^/  /'
+    echo ""
+    local show_diff
+    prompt show_diff "Show full diff of manifest changes? [yes/no]:"
+    if [[ "$show_diff" == "yes" ]]; then
+      git -C "$ROOT" --no-pager diff "${before}..${after}" -- \
+        'config/' 'overlays/' 'localk8s/' '*.yml' '*.yaml'
+    fi
+  fi
+
+  echo ""
+  echo "Run './arcuscmd.sh apply' to deploy the new configuration."
 }
 
 function logs() {
@@ -803,6 +822,10 @@ function arcus_status() {
   done
 
   echo ""
+  infra_versions
+}
+
+function infra_versions() {
   echo "Infrastructure:"
   set +e
   _infra_version_check "metallb" \

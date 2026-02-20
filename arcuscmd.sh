@@ -58,6 +58,7 @@ Basic Commands:
   backupconfig - backup local configuration (.config, secrets, overlays) to a tarball
   verifyconfig - verify that all configuration and secrets are present
   status     - show status of services, certificates, and infrastructure versions
+  versions   - show installed vs configured infrastructure versions
   info       - show DNS to IP/port mappings
   check      - test public connectivity to Arcus services
 
@@ -173,6 +174,9 @@ verifyconfig)
   ;;
 status)
   arcus_status
+  ;;
+versions)
+  infra_versions
   ;;
 help)
   print_available
