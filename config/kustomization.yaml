@@ -47,8 +47,6 @@ images:
   newTag: 2019.10.0
 - name: gcr.io/arcus-238802/arcus/hub-bridge
   newTag: 2019.10.0
-- name: gcr.io/arcus-238802/arcus/tag-service
-  newTag: 2019.10.0
 - name: gcr.io/arcus-238802/arcus/history-service
   newTag: 2019.10.0
 - name: gcr.io/arcus-238802/arcus/scheduler-service
