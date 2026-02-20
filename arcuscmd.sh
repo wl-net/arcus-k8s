@@ -29,6 +29,13 @@ if [ -x "$(command -v k3s)" ]; then
   DEPLOYMENT_TYPE=local
 fi
 
+if [[ ${1:-help} != 'help' && ${1:-help} != 'setup' && ${1:-help} != 'configure' ]]; then
+  if ! command -v $KUBECTL &>/dev/null; then
+    echo "Error: kubectl not found. Is it installed and in your PATH?"
+    exit 1
+  fi
+fi
+
 function print_available() {
   cat <<ENDOFDOC
 arcuscmd: manage your arcus deployment
@@ -77,6 +84,12 @@ setup)
     apply
     provision
     info
+  else
+    echo "For cloud deployments, ensure kubectl is configured to point at your cluster, then run:"
+    echo "  ./arcuscmd.sh install"
+    echo "  ./arcuscmd.sh configure"
+    echo "  ./arcuscmd.sh apply"
+    echo "  ./arcuscmd.sh provision"
   fi
   ;;
 setupmetrics)
