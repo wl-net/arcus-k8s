@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # shared functions
 
 function updatehubkeystore() {
@@ -30,7 +31,7 @@ function updatehubkeystore() {
 }
 
 function useprodcert() {
-  echo 'production' > $ARCUS_CONFIGDIR/cert-issuer
+  echo 'production' > "$ARCUS_CONFIGDIR/cert-issuer"
   sed -i 's/letsencrypt-staging/letsencrypt-production/g' overlays/local-production-local/ui-service-ingress.yml
   sed -i 's/nginx-staging-tls/nginx-production-tls/g' overlays/local-production-local/ui-service-ingress.yml
   $KUBECTL apply -f overlays/local-production-local/ui-service-ingress.yml
@@ -53,8 +54,8 @@ function runmodelmanager() {
 
 function provision() {
   echo "Setting up cassandra and kafka"
-  retry 10 $KUBECTL exec cassandra-0 --stdin --tty -- '/bin/sh' '-c' 'CASSANDRA_KEYSPACE=production CASSANDRA_REPLICATION=1 CASSANDRA_HOSTNAME=localhost /usr/bin/cassandra-provision'
-  retry 10 $KUBECTL exec kafka-0 --stdin --tty -- '/bin/sh' '-c' 'KAFKA_REPLICATION=1 KAFKAOPS_REPLICATION=1 kafka-cmd setup'
+  retry 10 "$KUBECTL" exec cassandra-0 --stdin --tty -- '/bin/sh' '-c' 'CASSANDRA_KEYSPACE=production CASSANDRA_REPLICATION=1 CASSANDRA_HOSTNAME=localhost /usr/bin/cassandra-provision'
+  retry 10 "$KUBECTL" exec kafka-0 --stdin --tty -- '/bin/sh' '-c' 'KAFKA_REPLICATION=1 KAFKAOPS_REPLICATION=1 kafka-cmd setup'
 }
 
 APPS='alarm-service client-bridge driver-services subsystem-service history-service hub-bridge ivr-callback-server notification-services platform-services rule-service scheduler-service ui-server'
@@ -77,16 +78,16 @@ function deployfast() {
   $KUBECTL delete pod -l app=kafka
 
   for app in $APPS; do
-    $KUBECTL delete pod -l app=$app
+    $KUBECTL delete pod -l app="$app"
     sleep 5
   done
 }
 
 function killallpods() {
-  echo "cassandra zookeeper kafka" | tr ' ' '\n' | xargs -P 2 -I{} $KUBECTL delete pod -l app={} --ignore-not-found 2>/dev/null
-  echo "hub-bridge client-bridge" | tr ' ' '\n' | xargs -P 2 -I{} $KUBECTL delete pod -l app={} --ignore-not-found 2>/dev/null
-  echo "driver-services rule-service scheduler-service" | tr ' ' '\n' | xargs -P 2 -I{} $KUBECTL delete pod -l app={} --ignore-not-found 2>/dev/null
-  echo "alarm-service subsystem-service history-service ivr-callback-server notification-services platform-services ui-server" | tr ' ' '\n' | xargs -P 3 -I{} $KUBECTL delete pod -l app={} --ignore-not-found 2>/dev/null
+  echo "cassandra zookeeper kafka" | tr ' ' '\n' | xargs -P 2 -I{} "$KUBECTL" delete pod -l app={} --ignore-not-found 2>/dev/null
+  echo "hub-bridge client-bridge" | tr ' ' '\n' | xargs -P 2 -I{} "$KUBECTL" delete pod -l app={} --ignore-not-found 2>/dev/null
+  echo "driver-services rule-service scheduler-service" | tr ' ' '\n' | xargs -P 2 -I{} "$KUBECTL" delete pod -l app={} --ignore-not-found 2>/dev/null
+  echo "alarm-service subsystem-service history-service ivr-callback-server notification-services platform-services ui-server" | tr ' ' '\n' | xargs -P 3 -I{} "$KUBECTL" delete pod -l app={} --ignore-not-found 2>/dev/null
 }
 
 
@@ -123,11 +124,12 @@ function setup_istio() {
 function install() {
   $KUBECTL label namespace default istio-injection=enabled --overwrite
 
-  local count=$($KUBECTL get Issuers,ClusterIssuers,Certificates,CertificateRequests,Orders,Challenges --all-namespaces | grep cert-manager.io -c)
+  local count
+  count=$($KUBECTL get Issuers,ClusterIssuers,Certificates,CertificateRequests,Orders,Challenges --all-namespaces | grep cert-manager.io -c)
   if [[ $count -gt 0 ]]; then
     echo "Removing cert-manager, please see https://docs.cert-manager.io/en/latest/tasks/uninstall/kubernetes.html for more details"
     set +e
-    $KUBECTL delete -f https://github.com/cert-manager/cert-manager/releases/download/$CERT_MANAGER_VERSION/cert-manager.yaml
+    $KUBECTL delete -f "https://github.com/cert-manager/cert-manager/releases/download/${CERT_MANAGER_VERSION}/cert-manager.yaml"
     $KUBECTL delete apiservice v1beta1.webhook.certmanager.k8s.io
     $KUBECTL delete apiservice v1beta1.admission.certmanager.k8s.io
     $KUBECTL delete apiservice v1alpha1.certmanager.k8s.io
@@ -148,10 +150,10 @@ function install() {
   fi
 
   if [[ $DEPLOYMENT_TYPE == 'local' ]]; then
-    $KUBECTL apply -f https://raw.githubusercontent.com/metallb/metallb/$METALLB_VERSION/config/manifests/metallb-native.yaml
+    $KUBECTL apply -f "https://raw.githubusercontent.com/metallb/metallb/${METALLB_VERSION}/config/manifests/metallb-native.yaml"
   fi
-  $KUBECTL apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-$NGINX_VERSION/deploy/static/provider/baremetal/deploy.yaml
-  $KUBECTL apply -f https://github.com/cert-manager/cert-manager/releases/download/$CERT_MANAGER_VERSION/cert-manager.yaml
+  $KUBECTL apply -f "https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-${NGINX_VERSION}/deploy/static/provider/baremetal/deploy.yaml"
+  $KUBECTL apply -f "https://github.com/cert-manager/cert-manager/releases/download/${CERT_MANAGER_VERSION}/cert-manager.yaml"
 
 }
 

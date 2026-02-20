@@ -19,7 +19,7 @@ if ! ROOT=$(git rev-parse --show-toplevel 2>/dev/null); then
 fi
 
 ARCUS_CONFIGDIR="${ROOT}/.config"
-mkdir -p $ARCUS_CONFIGDIR
+mkdir -p "$ARCUS_CONFIGDIR"
 
 KUBECTL=${KUBECTL:-kubectl}
 
@@ -30,7 +30,7 @@ if [ -x "$(command -v k3s)" ]; then
 fi
 
 if [[ ${1:-help} != 'help' && ${1:-help} != 'setup' && ${1:-help} != 'configure' && ${1:-help} != 'verifyconfig' ]]; then
-  if ! command -v $KUBECTL &>/dev/null; then
+  if ! command -v "$KUBECTL" &>/dev/null; then
     echo "Error: kubectl not found. Is it installed and in your PATH?"
     exit 1
   fi
@@ -73,9 +73,9 @@ ENDOFDOC
 
 }
 
-cmd=${1:-help}
+subcmd=${1:-help}
 
-case "$cmd" in
+case "$subcmd" in
 setup)
   prompt answer "Setup Arcus on this machine, or in the cloud: [local/cloud]:"
   if [[ $answer != 'cloud' && $answer != 'local' ]]; then
@@ -177,7 +177,7 @@ help)
   print_available
   ;;
 *)
-  echo "Unsupported Command: $cmd"
+  echo "Unsupported Command: $subcmd"
   echo
   print_available
   ;;

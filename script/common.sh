@@ -7,9 +7,9 @@ function retry {
   local count=0
   until "$@"; do
     exit=$?
-    wait=$((2 ** $count))
-    count=$(($count + 1))
-    if [ $count -lt $retries ]; then
+    wait=$((2 ** count))
+    count=$((count + 1))
+    if [ "$count" -lt "$retries" ]; then
       echo "Retry $count/$retries exited $exit, retrying in $wait seconds..."
       sleep $wait
     else
@@ -24,7 +24,7 @@ function prompt() {
   local __resultvar=$1
   echo -n "${2} "
   local myresult=''
-  read myresult
-  eval $__resultvar="'$myresult'"
+  read -r myresult
+  printf -v "$__resultvar" '%s' "$myresult"
 }
 
