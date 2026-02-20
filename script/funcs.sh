@@ -413,7 +413,7 @@ function logs() {
 }
 
 function delete() {
-  $KUBECTL delete pod -l app=$2
+  $KUBECTL delete pod -l app=$1
 }
 
 function backup_cassandra() {

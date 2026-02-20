@@ -7,20 +7,16 @@ CERT_MANAGER_VERSION='v1.17.2'
 ISTIO_VERSION='1.26.0'
 
 SCRIPT_PATH="$0"
-SCRIPT_DIR=$(dirname ${SCRIPT_PATH})
+SCRIPT_DIR=$(dirname "${SCRIPT_PATH}")
 . "${SCRIPT_DIR}/script/common.sh"
 . "${SCRIPT_DIR}/script/funcs.sh"
 
 # setup
 
-set +e
-ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
-RESULT=$?
-if [ $RESULT -ne 0 ]; then
+if ! ROOT=$(git rev-parse --show-toplevel 2>/dev/null); then
   echo "Couldn't get root of git repository. You must checkout arcus-k8 as a git repository, not as an extracted zip."
-  exit $RESULT
+  exit 1
 fi
-set -e
 
 ARCUS_CONFIGDIR="${ROOT}/.config"
 mkdir -p $ARCUS_CONFIGDIR
@@ -145,10 +141,10 @@ logs)
   logs "${@:2}"
   ;;
 dbshell)
-  $KUBECTL exec --stdin --tty cassandra-0 /bin/bash -- /opt/cassandra/bin/cqlsh localhost
+  $KUBECTL exec --stdin --tty cassandra-0 -- /opt/cassandra/bin/cqlsh localhost
   ;;
 deletepod)
-  delete $*
+  delete "${@:2}"
   ;;
 backupdb)
   backup_cassandra
