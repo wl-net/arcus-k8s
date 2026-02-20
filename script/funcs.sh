@@ -76,18 +76,6 @@ function deploy_platform() {
   done
 }
 
-# Deploy "fast"
-function deployfast() {
-  # Always kill the khakis containers first to avoid failures later.
-  $KUBECTL delete pod -l app=cassandra
-  $KUBECTL delete pod -l app=zookeeper
-  $KUBECTL delete pod -l app=kafka
-
-  for app in $APPS; do
-    $KUBECTL delete pod -l app="$app"
-    sleep 5
-  done
-}
 
 function killallpods() {
   echo "cassandra zookeeper kafka" | tr ' ' '\n' | xargs -P 2 -I{} "$KUBECTL" delete pod -l app={} --ignore-not-found 2>/dev/null
