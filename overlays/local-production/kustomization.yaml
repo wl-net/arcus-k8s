@@ -1,12 +1,10 @@
-bases:
+resources:
 - ../../config
-patchesStrategicMerge:
+- cassandra.yaml
+- kafka.yaml
+patches:
 - cert-provider.yaml
 - shared-config.yaml
 - ui-service-ingress.yml
 - arcus-config-tunable.yml
 - cluster-config-tunable.yml
-
-resources:
-- cassandra.yaml
-- kafka.yaml

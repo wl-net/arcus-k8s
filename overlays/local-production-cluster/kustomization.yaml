@@ -1,6 +1,6 @@
-bases:
+resources:
 - ../../config
-patchesStrategicMerge:
+patches:
 - cert-provider.yaml
 - shared-config.yaml
 - ui-service-ingress.yml
