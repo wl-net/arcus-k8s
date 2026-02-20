@@ -57,7 +57,7 @@ function provision() {
   retry 10 $KUBECTL exec kafka-0 --stdin --tty -- '/bin/sh' '-c' 'KAFKA_REPLICATION=1 KAFKAOPS_REPLICATION=1 kafka-cmd setup'
 }
 
-APPS='alarm-service client-bridge driver-services subsystem-service history-service hub-bridge ipcd-bridge ivr-callback-server metrics-server notification-services platform-services rule-service scheduler-service ui-server'
+APPS='alarm-service client-bridge driver-services subsystem-service history-service hub-bridge ivr-callback-server notification-services platform-services rule-service scheduler-service ui-server'
 
 # Deploy the platform in a way that causes minimal downtime
 function deploy_platform() {
@@ -93,7 +93,7 @@ function killallpods() {
   echo "cassandra zookeeper kafka" | tr ' ' '\n' | xargs -P 2 -I{} $KUBECTL delete pod -l app={} --ignore-not-found 2>/dev/null
   echo "hub-bridge client-bridge" | tr ' ' '\n' | xargs -P 2 -I{} $KUBECTL delete pod -l app={} --ignore-not-found 2>/dev/null
   echo "driver-services rule-service scheduler-service" | tr ' ' '\n' | xargs -P 2 -I{} $KUBECTL delete pod -l app={} --ignore-not-found 2>/dev/null
-  echo "alarm-service subsystem-service history-service ipcd-bridge ivr-callback-server metrics-server notification-services platform-services ui-server" | tr ' ' '\n' | xargs -P 3 -I{} $KUBECTL delete pod -l app={} --ignore-not-found 2>/dev/null
+  echo "alarm-service subsystem-service history-service ivr-callback-server notification-services platform-services ui-server" | tr ' ' '\n' | xargs -P 3 -I{} $KUBECTL delete pod -l app={} --ignore-not-found 2>/dev/null
 }
 
 
@@ -468,8 +468,6 @@ function backup_cassandra() {
 
 function setup_metrics() {
   $KUBECTL apply -f config/stateful/grafana.yaml
-  $KUBECTL apply -f config/deployments/kairosdb.yml
-  $KUBECTL apply -f config/deployments/metrics-server.yml
 }
 
 function arcus_status() {

@@ -61,10 +61,6 @@ images:
   newTag: 2019.10.0
 - name: us-west1-docker.pkg.dev/arcus-238802/arcus-prod/arcus/ivr-callback-server
   newTag: 2019.10.0
-- name: us-west1-docker.pkg.dev/arcus-238802/arcus-prod/arcus/ipcd-bridge
-  newTag: 2019.10.0
-- name: us-west1-docker.pkg.dev/arcus-238802/arcus-prod/arcus/metrics-server
-  newTag: 2019.10.0
 - name: us-west1-docker.pkg.dev/arcus-238802/arcus-prod/arcus/alarm-service
   newTag: 2019.10.0
 - name: us-west1-docker.pkg.dev/arcus-238802/arcus-prod/arcus/notification-services
