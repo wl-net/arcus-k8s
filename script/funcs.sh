@@ -197,12 +197,20 @@ function connectivity_check() {
   local failed=0
   echo "Connectivity Check:"
   for url in "${domains[@]}"; do
-    local status
+    local host="${url#https://}"
+    local status enddate cert_info
     status=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "$url")
-    if [[ "$status" =~ ^[23] ]]; then
-      printf "  %-50s %s  [OK]\n" "$url" "$status"
+    enddate=$(echo | openssl s_client -connect "${host}:443" -servername "$host" 2>/dev/null \
+      | openssl x509 -noout -enddate 2>/dev/null | cut -d= -f2)
+    if [[ -n "$enddate" ]]; then
+      cert_info=" (cert expires $enddate)"
     else
-      printf "  %-50s %s  [FAIL]\n" "$url" "$status"
+      cert_info=""
+    fi
+    if [[ "$status" =~ ^[23] ]]; then
+      printf "  %-50s %s  [OK]%s\n" "$url" "$status" "$cert_info"
+    else
+      printf "  %-50s %s  [FAIL]%s\n" "$url" "$status" "$cert_info"
       failed=1
     fi
   done
