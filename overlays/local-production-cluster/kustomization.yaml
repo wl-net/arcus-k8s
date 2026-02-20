@@ -1,7 +1,7 @@
 resources:
 - ../../config
 patches:
-- cert-provider.yaml
-- shared-config.yaml
-- ui-service-ingress.yml
-- cluster-config.yml
+- path: cert-provider.yaml
+- path: shared-config.yaml
+- path: ui-service-ingress.yml
+- path: cluster-config.yml
