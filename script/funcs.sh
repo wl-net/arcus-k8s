@@ -2,17 +2,27 @@
 
 function updatehubkeystore() {
   echo "Creating hub-keystore..."
+
+  if ! $KUBECTL get secret nginx-production-tls &>/dev/null; then
+    echo "Error: nginx-production-tls secret not found. Has a production certificate been issued?"
+    exit 1
+  fi
+
   mkdir -p converted
-  KUBE_EDITOR=cat $KUBECTL edit secret nginx-production-tls 2>/dev/null | grep tls.key | awk '{print $2}' | head -n 1 | base64 -d >converted/orig.key
-  KUBE_EDITOR=cat $KUBECTL edit secret nginx-production-tls 2>/dev/null | grep tls.crt | awk '{print $2}' | head -n 1 | base64 -d >converted/tls.crt
+  $KUBECTL get secret nginx-production-tls -o jsonpath='{.data.tls\.key}' | base64 -d > converted/orig.key
+  $KUBECTL get secret nginx-production-tls -o jsonpath='{.data.tls\.crt}' | base64 -d > converted/tls.crt
+
+  if ! openssl x509 -in converted/tls.crt -checkend 0 -noout; then
+    echo "Error: certificate has expired. Renew it before updating the hub keystore."
+    rm -rf converted
+    exit 1
+  fi
 
   openssl pkcs8 -in converted/orig.key -topk8 -nocrypt -out converted/tls.key
   rm converted/orig.key
 
-  set +e
-  $KUBECTL delete secret hub-keystore
+  $KUBECTL delete secret hub-keystore --ignore-not-found
   $KUBECTL create secret generic truststore --from-file irisbylowes/truststore.jks
-  set -e
   $KUBECTL create secret tls hub-keystore --cert converted/tls.crt --key converted/tls.key
 
   rm -rf converted
@@ -420,6 +430,41 @@ function setup_metrics() {
 }
 
 function arcus_status() {
-  $KUBECTL describe statefulset cassandra | grep 'Pods Status'
-  $KUBECTL describe statefulset kafka | grep 'Pods Status'
+  echo "Application Services:"
+  set +e
+  # shellcheck disable=SC2086
+  $KUBECTL get deployments $APPS
+  set -e
+
+  local found_stateful=()
+  for svc in cassandra kafka zookeeper; do
+    if $KUBECTL get statefulset "$svc" &>/dev/null; then
+      found_stateful+=("$svc")
+    fi
+  done
+
+  if [[ ${#found_stateful[@]} -gt 0 ]]; then
+    echo ""
+    echo "Stateful Services:"
+    $KUBECTL get statefulset "${found_stateful[@]}"
+  fi
+
+  local found_certs=0
+  for secret in nginx-staging-tls nginx-production-tls; do
+    if $KUBECTL get secret "$secret" &>/dev/null; then
+      if [[ $found_certs -eq 0 ]]; then
+        echo ""
+        echo "Certificates:"
+        found_certs=1
+      fi
+      local cert enddate
+      cert=$($KUBECTL get secret "$secret" -o jsonpath='{.data.tls\.crt}' | base64 -d)
+      enddate=$(echo "$cert" | openssl x509 -noout -enddate 2>/dev/null | cut -d= -f2)
+      if echo "$cert" | openssl x509 -checkend 0 -noout 2>/dev/null; then
+        echo "  $secret: valid, expires $enddate"
+      else
+        echo "  $secret: EXPIRED ($enddate)"
+      fi
+    fi
+  done
 }
