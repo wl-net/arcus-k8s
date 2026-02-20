@@ -112,7 +112,6 @@ The only critical persistent system (at least for the minimum use case) is cassa
 
 ## Troubleshooting
 
-TIP: you may want to create an alias so that kubectl works, e.g. `alias kubectl=microk8s.kubectl`. It is recommended that you read through https://kubernetes.io/docs/reference/kubectl/cheatsheet/
 
 ### View pod log
 
