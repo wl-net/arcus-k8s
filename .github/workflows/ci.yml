@@ -21,4 +21,4 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Validate kustomize build
-        run: kubectl kustomize overlays/local-production-cluster > /dev/null
+        run: kubectl kustomize config > /dev/null
