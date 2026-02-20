@@ -481,4 +481,32 @@ function arcus_status() {
       fi
     fi
   done
+
+  echo ""
+  echo "Infrastructure:"
+  set +e
+  _infra_version_check "metallb" \
+    "$($KUBECTL get deployment -n metallb-system controller -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null | grep -oP 'v[\d.]+')" \
+    "$METALLB_VERSION"
+  _infra_version_check "ingress-nginx" \
+    "$($KUBECTL get deployment -n ingress-nginx ingress-nginx-controller -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null | grep -oP 'v[\d.]+')" \
+    "$NGINX_VERSION"
+  _infra_version_check "cert-manager" \
+    "$($KUBECTL get deployment -n cert-manager cert-manager -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null | grep -oP 'v[\d.]+')" \
+    "$CERT_MANAGER_VERSION"
+  _infra_version_check "istio" \
+    "$($KUBECTL get deployment -n istio-system istiod -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null | grep -oP '[\d.]+$')" \
+    "$ISTIO_VERSION"
+  set -e
+}
+
+function _infra_version_check() {
+  local name=$1 installed=$2 configured=$3
+  if [[ -z "$installed" ]]; then
+    printf "  %-16s not installed\n" "$name"
+  elif [[ "$installed" == "$configured" ]]; then
+    printf "  %-16s %s  [OK]\n" "$name" "$installed"
+  else
+    printf "  %-16s installed=%-10s configured=%-10s [UPGRADE AVAILABLE]\n" "$name" "$installed" "$configured"
+  fi
 }
