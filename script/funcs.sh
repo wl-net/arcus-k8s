@@ -416,6 +416,26 @@ function delete() {
   $KUBECTL delete pod -l app=$1
 }
 
+function shell_exec() {
+  if [[ $# -eq 0 ]]; then
+    echo "Usage: arcuscmd shell <app> [command]"
+    exit 1
+  fi
+  local app=$1
+  shift
+  local pod
+  pod=$($KUBECTL get pod -l app=$app -o name | head -1)
+  if [[ -z "$pod" ]]; then
+    echo "Error: no running pod found for app=$app"
+    exit 1
+  fi
+  local cmd=(/bin/sh)
+  if [[ $# -gt 0 ]]; then
+    cmd=("$@")
+  fi
+  $KUBECTL exec --stdin --tty "$pod" -- "${cmd[@]}"
+}
+
 function backup_cassandra() {
   DATE=$(date '+%Y-%m-%d_%H-%M-%S')
   $KUBECTL exec cassandra-0 -- /bin/tar zcvf "/data/cassandra-${DATE}.tar.gz" cassandra
