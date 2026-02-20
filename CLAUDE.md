@@ -91,6 +91,10 @@ Secrets are written to `secret/` and local overlay state to `overlays/local-prod
 - cert-manager handles Let's Encrypt certificates. Start with the staging issuer in `config/certprovider/` and switch to production via `./arcuscmd.sh useprodcert` once DNS is verified.
 - Hub-bridge requires PKCS#8 keys; run `./arcuscmd.sh updatehubkeystore` after obtaining a production certificate.
 
+## Cassandra / Kafka / Zookeeper
+
+The `local-production` overlay includes manifests to run Cassandra, Kafka, and Zookeeper inside k3s, which is fine for development. For production, these should run externally on a dedicated 3-datacenter Cassandra cluster — a single k3s node provides no real redundancy. Configure external hosts via `./arcuscmd.sh configure` or by setting `.config/cassandra-host`, `.config/kafka-host`, and `.config/zookeeper-host` directly.
+
 ## External Service Dependencies
 
 Arcus requires accounts with:
