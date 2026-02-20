@@ -32,7 +32,7 @@ spec:
           name: prometheus-storage
         - mountPath: /etc/prometheus
           name: config
-        args: ['--web.listen-address=127.0.0.1:9080', '--config.file=/etc/prometheus/prometheus.yml', '--storage.tsdb.path=/prometheus-data/data']
+        args: ['--web.listen-address=0.0.0.0:9080', '--config.file=/etc/prometheus/prometheus.yml', '--storage.tsdb.path=/prometheus-data/data']
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
