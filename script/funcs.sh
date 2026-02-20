@@ -393,7 +393,7 @@ function update() {
 }
 
 function logs() {
-  if [[ -z "${1:-}" ]]; then
+  if [[ $# -eq 0 ]]; then
     echo "Usage: arcuscmd logs <app> [--follow] [--tail=N]"
     exit 1
   fi
