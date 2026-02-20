@@ -480,6 +480,7 @@ function setup_metrics() {
 }
 
 function arcus_status() {
+  load
   echo "Application Services:"
   set +e
   # shellcheck disable=SC2086
