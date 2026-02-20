@@ -193,6 +193,7 @@ function connectivity_check() {
     "https://client.${ARCUS_DOMAIN_NAME}"
     "https://static.${ARCUS_DOMAIN_NAME}"
   )
+  [[ -n "${ARCUS_ADMIN_DOMAIN-}" ]] && domains+=("https://${ARCUS_ADMIN_DOMAIN}")
 
   local failed=0
   echo "Connectivity Check:"
@@ -246,6 +247,9 @@ function load() {
     fi
     if [ -f "$ARCUS_CONFIGDIR/proxy-real-ip" ]; then
       ARCUS_PROXY_REAL_IP=$(cat $ARCUS_CONFIGDIR/proxy-real-ip)
+    fi
+    if [ -f "$ARCUS_CONFIGDIR/admin-domain" ]; then
+      ARCUS_ADMIN_DOMAIN=$(cat $ARCUS_CONFIGDIR/admin-domain)
     fi
 
   fi
@@ -316,6 +320,16 @@ function apply() {
     $KUBECTL apply -f "overlays/${ARCUS_OVERLAY_NAME}-local/nginx-proxy.yml"
   fi
 
+  if [[ ! -z "${ARCUS_ADMIN_DOMAIN-}" ]]; then
+    cp config/service/dc-admin-ingress.yml "overlays/${ARCUS_OVERLAY_NAME}-local/dc-admin-ingress.yml"
+    sed -i "s!PLACEHOLDER_ADMIN_DOMAIN!${ARCUS_ADMIN_DOMAIN}!" "overlays/${ARCUS_OVERLAY_NAME}-local/dc-admin-ingress.yml"
+    $KUBECTL apply -f "overlays/${ARCUS_OVERLAY_NAME}-local/dc-admin-ingress.yml"
+
+    cp config/stateful/grafana.yaml "overlays/${ARCUS_OVERLAY_NAME}-local/grafana.yaml"
+    sed -i "s!PLACEHOLDER_ADMIN_DOMAIN!${ARCUS_ADMIN_DOMAIN}!" "overlays/${ARCUS_OVERLAY_NAME}-local/grafana.yaml"
+    $KUBECTL apply -f "overlays/${ARCUS_OVERLAY_NAME}-local/grafana.yaml"
+  fi
+
   if [ $ARCUS_CERT_TYPE = 'production' ]; then
     sed -i 's/letsencrypt-staging/letsencrypt-production/g' "overlays/${ARCUS_OVERLAY_NAME}-local/ui-service-ingress.yml"
     sed -i 's/nginx-staging-tls/nginx-production-tls/g' "overlays/${ARCUS_OVERLAY_NAME}-local/ui-service-ingress.yml"
@@ -338,6 +352,7 @@ function configure() {
   ARCUS_SUBNET=${ARCUS_SUBNET:-unconfigured}
   ARCUS_CERT_TYPE=${ARCUS_CERT_TYPE:-staging}
   ARCUS_PROXY_REAL_IP=${ARCUS_PROXY_REAL_IP:-}
+  ARCUS_ADMIN_DOMAIN=${ARCUS_ADMIN_DOMAIN:-}
 
   if [ "$ARCUS_ADMIN_EMAIL" = "me@example.com" ]; then
     prompt ARCUS_ADMIN_EMAIL "Please enter your admin email address (or set ARCUS_ADMIN_EMAIL): "
@@ -355,6 +370,15 @@ function configure() {
     if [[ "$use_proxy" == "yes" ]]; then
       prompt ARCUS_PROXY_REAL_IP "Enter upstream proxy IP/subnet (e.g. 192.168.1.1/32): "
       echo $ARCUS_PROXY_REAL_IP >$ARCUS_CONFIGDIR/proxy-real-ip
+    fi
+  fi
+
+  if [[ -z "$ARCUS_ADMIN_DOMAIN" ]]; then
+    local use_admin
+    prompt use_admin "Do you have a separate admin (Grafana) domain? [yes/no]:"
+    if [[ "$use_admin" == "yes" ]]; then
+      prompt ARCUS_ADMIN_DOMAIN "Enter admin domain (e.g. admin.arcus-dc1.example.com): "
+      echo $ARCUS_ADMIN_DOMAIN >$ARCUS_CONFIGDIR/admin-domain
     fi
   fi
 

@@ -32,7 +32,7 @@ spec:
         - name: GF_SERVER_HTTP_ADDR_NO
           value: '127.0.0.1'
         - name: GF_SERVER_ROOT_URL
-          value: https://admin.arcus.wl-net.net
+          value: https://PLACEHOLDER_ADMIN_DOMAIN
         - name: GF_INSTALL_PLUGINS
           value: grafana-kairosdb-datasource
         - name: GF_RENDERING_SERVER_URL

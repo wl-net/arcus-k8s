@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: dc-admin-ingress
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-production"
+spec:
+  rules:
+  - host: PLACEHOLDER_ADMIN_DOMAIN
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: grafana-service
+            port:
+              number: 3000
+  tls:
+  - secretName: dc-admin-production-tls
+    hosts:
+    - PLACEHOLDER_ADMIN_DOMAIN
