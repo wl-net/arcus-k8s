@@ -11,8 +11,6 @@ arcuscmd.sh                  # Main CLI — entry point for all operations
 script/
   funcs.sh                   # Core deployment functions (~1600 lines)
   common.sh                  # Shared utilities (retry, prompts, status checks)
-  shared-secret.sh           # Secret generation
-  shared-config.sh           # Config generation
 config/
   kustomization.yaml         # Root Kustomize manifest (image tags live here)
   configmaps/arcus-config.yml  # Global app config (domains, Cassandra, Kafka)
