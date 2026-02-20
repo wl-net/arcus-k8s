@@ -393,9 +393,13 @@ function update() {
 }
 
 function logs() {
-  set +u
-  $KUBECTL logs --tail=10000 -l app=$2 -c $2 $3
-  set -u
+  if [[ -z "${1:-}" ]]; then
+    echo "Usage: arcuscmd logs <app> [--follow] [--tail=N]"
+    exit 1
+  fi
+  local app=$1
+  shift
+  $KUBECTL logs --tail=1000 -l app=$app -c $app "$@"
 }
 
 function delete() {

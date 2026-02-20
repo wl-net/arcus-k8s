@@ -142,7 +142,7 @@ update)
   update
   ;;
 logs)
-  logs $*
+  logs "${@:2}"
   ;;
 dbshell)
   $KUBECTL exec --stdin --tty cassandra-0 /bin/bash -- /opt/cassandra/bin/cqlsh localhost
