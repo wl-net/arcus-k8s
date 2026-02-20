@@ -21,8 +21,7 @@ function retry {
 }
 
 function check_k8 {
-  echo > /dev/tcp/localhost/16443 >/dev/null 2>&1
-  microk8s.status --wait-ready
+  $KUBECTL cluster-info &>/dev/null
 }
 
 function prompt() {

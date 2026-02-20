@@ -150,11 +150,7 @@ It is generally recommended to update both at the same time - if you do not upda
 
 If you'd like to start over (including wiping any data, or configuration):
 
-`microk8s.reset`
-
-If you experience difficulties (like microk8s.reset hanging), then you may also need to uninstall microk8s:
-
-`snap remove microk8s`
+`k3s-uninstall.sh`
 
 # In Google Cloud
 

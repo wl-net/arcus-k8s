@@ -96,27 +96,6 @@ function killallpods() {
   echo "alarm-service subsystem-service history-service ipcd-bridge ivr-callback-server metrics-server notification-services platform-services ui-server" | tr ' ' '\n' | xargs -P 3 -I{} $KUBECTL delete pod -l app={} --ignore-not-found 2>/dev/null
 }
 
-# Setup MicroK8s for local.
-function setup_microk8s() {
-  if [ -f /etc/debian_version ]; then
-    PKGMGR=apt-get
-  elif [ -f /etc/redhat-release ]; then
-    PKGMGR=dnf
-  fi
-  echo "Installing snap..."
-  sudo $PKGMGR install snapd curl -y
-  sudo snap install microk8s --classic
-
-  retry 6 check_k8
-
-  retry 15 /snap/bin/microk8s.enable dns
-  /snap/bin/microk8s.enable storage
-  echo y | /snap/bin/microk8s.enable istio
-
-  # metallb needed
-  $KUBECTL apply -f https://raw.githubusercontent.com/google/metallb/$METALLB_VERSION/manifests/metallb.yaml
-
-}
 
 function setup_k3s() {
   curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC='--disable=servicelb --disable=traefik --write-kubeconfig-mode 644' sh -
