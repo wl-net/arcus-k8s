@@ -78,6 +78,18 @@ function deploy_platform() {
 
 
 function killallpods() {
+  load
+  if [[ "${ARCUS_OVERLAY_NAME:-}" == *cluster* ]]; then
+    echo "WARNING: This will delete ALL pods including stateful services (Cassandra, Kafka, Zookeeper)."
+    echo "Consider using './arcuscmd.sh deploy' for a safe rolling restart instead."
+    echo ""
+    local confirm
+    prompt confirm "Are you sure you want to continue? [yes/no]:"
+    if [[ "$confirm" != "yes" ]]; then
+      echo "Aborted."
+      return 0
+    fi
+  fi
   echo "cassandra zookeeper kafka" | tr ' ' '\n' | xargs -P 2 -I{} "$KUBECTL" delete pod -l app={} --ignore-not-found 2>/dev/null
   echo "hub-bridge client-bridge" | tr ' ' '\n' | xargs -P 2 -I{} "$KUBECTL" delete pod -l app={} --ignore-not-found 2>/dev/null
   echo "driver-services rule-service scheduler-service" | tr ' ' '\n' | xargs -P 2 -I{} "$KUBECTL" delete pod -l app={} --ignore-not-found 2>/dev/null
