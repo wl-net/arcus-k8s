@@ -89,11 +89,6 @@ spec:
             configMapKeyRef:
               key: BOUNCE_APP_URL
               name: arcus-config
-        - name: BOUNCE_APP_URL
-          valueFrom:
-            configMapKeyRef:
-              key: BOUNCE_APP_URL
-              name: arcus-config
         - name: BOUNCE_ANDROID_URL
           valueFrom:
             configMapKeyRef:

@@ -29,8 +29,6 @@ spec:
             configMapKeyRef:
               key: CASSANDRA_KEYSPACE
               name: arcus-config
-        - name: GF_SERVER_HTTP_ADDR_NO
-          value: '127.0.0.1'
         - name: GF_SERVER_ROOT_URL
           value: https://PLACEHOLDER_ADMIN_DOMAIN
         - name: GF_INSTALL_PLUGINS

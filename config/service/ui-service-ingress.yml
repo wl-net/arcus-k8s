@@ -52,16 +52,6 @@ spec:
             name: client-bridge-service
             port:
               number: 80
-  - host: ipcd.arcussmarthome.com
-    http:
-      paths:
-      - path: /
-        pathType: Prefix  # `pathType` is required in Kubernetes v1 Ingress
-        backend:
-          service:
-            name: ipcd-bridge-service
-            port:
-              number: 8084
   - host: admin.arcussmarthome.com
     http:
       paths:
@@ -78,7 +68,6 @@ spec:
     - arcussmarthome.com
     - client.arcussmarthome.com
     - hub.arcussmarthome.com
-    - ipcd.arcussmarthome.com
     - admin.arcussmarthome.com
     - static.arcussmarthome.com
 
