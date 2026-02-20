@@ -201,6 +201,9 @@ function load() {
     if [ -f "$ARCUS_CONFIGDIR/kafka-host" ]; then
       ARCUS_KAFKA_HOST=$(cat $ARCUS_CONFIGDIR/kafka-host)
     fi
+    if [ -f "$ARCUS_CONFIGDIR/proxy-real-ip" ]; then
+      ARCUS_PROXY_REAL_IP=$(cat $ARCUS_CONFIGDIR/proxy-real-ip)
+    fi
 
   fi
 }
@@ -254,6 +257,12 @@ function apply() {
 
   $KUBECTL apply -f "overlays/${ARCUS_OVERLAY_NAME}-local/metallb.yml"
 
+  if [[ ! -z "${ARCUS_PROXY_REAL_IP-}" ]]; then
+    cp config/nginx-proxy.yml "overlays/${ARCUS_OVERLAY_NAME}-local/nginx-proxy.yml"
+    sed -i "s!PLACEHOLDER_PROXY_IP!${ARCUS_PROXY_REAL_IP}!" "overlays/${ARCUS_OVERLAY_NAME}-local/nginx-proxy.yml"
+    $KUBECTL apply -f "overlays/${ARCUS_OVERLAY_NAME}-local/nginx-proxy.yml"
+  fi
+
   if [ $ARCUS_CERT_TYPE = 'production' ]; then
     sed -i 's/letsencrypt-staging/letsencrypt-production/g' "overlays/${ARCUS_OVERLAY_NAME}-local/ui-service-ingress.yml"
     sed -i 's/nginx-staging-tls/nginx-production-tls/g' "overlays/${ARCUS_OVERLAY_NAME}-local/ui-service-ingress.yml"
@@ -275,6 +284,7 @@ function configure() {
   ARCUS_DOMAIN_NAME=${ARCUS_DOMAIN_NAME:-example.com}
   ARCUS_SUBNET=${ARCUS_SUBNET:-unconfigured}
   ARCUS_CERT_TYPE=${ARCUS_CERT_TYPE:-staging}
+  ARCUS_PROXY_REAL_IP=${ARCUS_PROXY_REAL_IP:-}
 
   if [ "$ARCUS_ADMIN_EMAIL" = "me@example.com" ]; then
     prompt ARCUS_ADMIN_EMAIL "Please enter your admin email address (or set ARCUS_ADMIN_EMAIL): "
@@ -285,6 +295,13 @@ function configure() {
     prompt ARCUS_DOMAIN_NAME "Please enter your domain name (or set ARCUS_DOMAIN_NAME): "
   fi
   echo $ARCUS_DOMAIN_NAME >$ARCUS_CONFIGDIR/domain.name
+
+  if [[ -z "$ARCUS_PROXY_REAL_IP" ]]; then
+    prompt ARCUS_PROXY_REAL_IP "Enter upstream proxy IP/subnet for real IP detection (or leave blank to skip): "
+    if [[ -n "$ARCUS_PROXY_REAL_IP" ]]; then
+      echo $ARCUS_PROXY_REAL_IP >$ARCUS_CONFIGDIR/proxy-real-ip
+    fi
+  fi
 
   if [[ $DEPLOYMENT_TYPE == 'local' && "$ARCUS_SUBNET" == "unconfigured" ]]; then
     echo "Arcus requires a pre-defined subnet for services to be served behind. This subnet must be unallocated (e.g. no IP addresses are used, *and* reserved for static clients)."
