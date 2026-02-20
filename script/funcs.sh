@@ -307,10 +307,11 @@ function apply() {
   cp config/service/ui-service-ingress.yml "overlays/${ARCUS_OVERLAY_NAME}-local/"ui-service-ingress.yml
   sed -i "s/arcussmarthome.com/$ARCUS_DOMAIN_NAME/" "overlays/${ARCUS_OVERLAY_NAME}-local/ui-service-ingress.yml"
 
-  cp localk8s/metallb.yml "overlays/${ARCUS_OVERLAY_NAME}-local/metallb.yml"
-  sed -i "s!PLACEHOLDER_1!$ARCUS_SUBNET!" "overlays/${ARCUS_OVERLAY_NAME}-local/metallb.yml"
-
-  $KUBECTL apply -f "overlays/${ARCUS_OVERLAY_NAME}-local/metallb.yml"
+  if [[ $DEPLOYMENT_TYPE == 'local' ]]; then
+    cp localk8s/metallb.yml "overlays/${ARCUS_OVERLAY_NAME}-local/metallb.yml"
+    sed -i "s!PLACEHOLDER_1!$ARCUS_SUBNET!" "overlays/${ARCUS_OVERLAY_NAME}-local/metallb.yml"
+    $KUBECTL apply -f "overlays/${ARCUS_OVERLAY_NAME}-local/metallb.yml"
+  fi
 
   if [[ -n "${ARCUS_PROXY_REAL_IP-}" ]]; then
     cp config/nginx-proxy.yml "overlays/${ARCUS_OVERLAY_NAME}-local/nginx-proxy.yml"
