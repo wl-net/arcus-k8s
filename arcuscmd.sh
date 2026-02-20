@@ -41,10 +41,13 @@ function print_available() {
 arcuscmd: manage your arcus deployment
 
 Setup Commands:
-  setup        - setup a new instance of Arcus
-  setupmetrics - setup grafana metrics
-  configure    - configure Arcus by answering a few questions
-  install      - install kubernetes components (e.g. cert-manager)
+  setup          - setup a new instance of Arcus
+  installk3s     - install k3s on this machine
+  setupmetrics   - setup grafana metrics
+  configure      - configure Arcus by answering a few questions
+  install        - install/upgrade kubernetes components (MetalLB, nginx-ingress, cert-manager)
+  useprodcert    - switch from Let's Encrypt staging to production certificate
+  updatehubkeystore - convert production TLS key to PKCS#8 for hub-bridge
 
 Basic Commands:
   apply      - apply the existing configured configuration
@@ -52,11 +55,13 @@ Basic Commands:
   update     - update your local copy with the latest changes
   deletepod  - delete pods matching an application
   backupdb   - backup cassandra
-  logs       - shows logs of a running container
+  status     - show status of services, certificates, and infrastructure versions
+  info       - show DNS to IP/port mappings
 
 Debug Commands:
   logs       - get the logs for an application
-  dbshell    - Get a shell (cqlsh) on the database
+  shell      - get an interactive shell on a pod
+  dbshell    - get a cqlsh shell on the Cassandra database
 
 Dangerous Commands:
   killall    - Deletes all Arcus pods, triggering their controllers to reschedule them.
