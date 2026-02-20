@@ -510,12 +510,16 @@ function arcus_status() {
     echo "External Services:"
     for entry in "${external_hosts[@]}"; do
       local name="${entry%%:*}"
-      local host="${entry#*:}"
-      if ping -c 1 -W 2 "$host" &>/dev/null; then
-        printf "  %-16s %s  [OK]\n" "$name" "$host"
-      else
-        printf "  %-16s %s  [UNREACHABLE]\n" "$name" "$host"
-      fi
+      local hosts_str="${entry#*:}"
+      IFS=',' read -ra hosts <<< "$hosts_str"
+      for host in "${hosts[@]}"; do
+        host="${host// /}"  # trim spaces
+        if ping -c 1 -W 2 "$host" &>/dev/null; then
+          printf "  %-16s %s  [OK]\n" "$name" "$host"
+        else
+          printf "  %-16s %s  [UNREACHABLE]\n" "$name" "$host"
+        fi
+      done
     done
   fi
 
