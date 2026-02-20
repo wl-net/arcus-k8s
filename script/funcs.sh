@@ -380,6 +380,9 @@ function apply() {
   $KUBECTL apply -f config/certprovider/
 
   $KUBECTL apply -k "overlays/${ARCUS_OVERLAY_NAME}-local"
+
+  mkdir -p "$ROOT/.cache"
+  git -C "$ROOT" rev-parse HEAD > "$ROOT/.cache/last-applied-rev"
 }
 
 function configure() {
@@ -529,6 +532,16 @@ function update() {
   branch=$(git -C "$ROOT" rev-parse --abbrev-ref HEAD)
   before=$(git -C "$ROOT" rev-parse HEAD)
 
+  local last_applied=""
+  if [[ -f "$ROOT/.cache/last-applied-rev" ]]; then
+    last_applied=$(cat "$ROOT/.cache/last-applied-rev")
+  fi
+
+  if [[ -n "$last_applied" && "$last_applied" != "$before" ]]; then
+    echo "Warning: current revision (${before:0:7}) has not been applied (last applied: ${last_applied:0:7})"
+    echo ""
+  fi
+
   if ! git -C "$ROOT" diff --quiet; then
     echo "Warning: you have uncommitted changes"
     git -C "$ROOT" --no-pager diff --stat
@@ -582,11 +595,26 @@ function update_history() {
     echo "No update history found."
     return 0
   fi
+
+  local last_applied=""
+  if [[ -f "$ROOT/.cache/last-applied-rev" ]]; then
+    last_applied=$(cat "$ROOT/.cache/last-applied-rev")
+  fi
+
   echo "Update history (most recent first):"
   echo ""
-  local ts prev_rev new_rev
+  local ts prev_rev new_rev status
   while read -r ts prev_rev new_rev; do
-    echo "  $ts  ${prev_rev:0:7} -> ${new_rev:0:7}"
+    if [[ -n "$last_applied" ]]; then
+      if git -C "$ROOT" merge-base --is-ancestor "$new_rev" "$last_applied" 2>/dev/null; then
+        status="[applied]"
+      else
+        status="[pending]"
+      fi
+    else
+      status=""
+    fi
+    echo "  $ts  ${prev_rev:0:7} -> ${new_rev:0:7}  $status"
   done < <(tail -10 "$history_file" | tac)
 }
 
