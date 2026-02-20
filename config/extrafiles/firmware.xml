@@ -8,5 +8,6 @@
    <!-- FIXME: Set correct v3 versions here, once we finalize them -->
    <!--<firmware model="IH304" min="3.0.0.001" max="3.0.1.018" target="IH30x/hubOSv3_3.0.1.025" population="general, qa, beta"/>-->
 
-   <firmware model="IH200" min="2.0.0.024" max="3.0.1.29" target="hub/v2/firmware/hubOS_3.0.1.030-PROD" population="general" />
+   <firmware model="IH200" min="2.0.0.024" max="3.0.1.030" target="hub/v2/firmware/hubOS_3.0.1.032-PROD" population="general" />
+   <firmware model="IH200" min="2.0.0.024" max="3.0.1.31" target="hub/v2/firmware/hubOS_3.0.1.032-PROD" population="beta" />
 </firmwares>
