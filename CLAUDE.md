@@ -35,7 +35,7 @@ Secrets are written to `secret/` and local overlay state to `overlays/local-prod
 
 | Layer | Tool / Version |
 |---|---|
-| Kubernetes distro | k3s v1.26.0 (recommended) |
+| Kubernetes distro | k3s v1.32.4 (recommended) |
 | Config management | Kustomize |
 | Service mesh | Istio v1.26.0 |
 | Ingress | nginx-ingress v1.12.2 |
