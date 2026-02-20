@@ -13,7 +13,6 @@ script/
   common.sh                  # Shared utilities (retry, prompts, status checks)
   shared-secret.sh           # Secret generation
   shared-config.sh           # Config generation
-  gcloud.sh                  # Google Cloud helpers
 config/
   kustomization.yaml         # Root Kustomize manifest (image tags live here)
   configmaps/arcus-config.yml  # Global app config (domains, Cassandra, Kafka)
