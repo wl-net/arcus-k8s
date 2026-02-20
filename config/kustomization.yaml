@@ -19,6 +19,7 @@ resources:
 - deployments/ui-server.yml
 - destinationrules/cassandra.yml
 - destinationrules/zookeeper.yml
+- istio/apple.yml
 - istio/sendgrid.yml
 - istio/smartystreets.yml
 - istio/twilio.yml
