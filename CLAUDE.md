@@ -38,8 +38,8 @@ Secrets are written to `secret/` and local overlay state to `overlays/local-prod
 | Kubernetes distro | k3s v1.32.4 (recommended) |
 | Config management | Kustomize |
 | Service mesh | Istio v1.26.0 |
-| Ingress | nginx-ingress v1.12.2 |
-| Load balancer | MetalLB v0.14.9 |
+| Ingress | nginx-ingress v1.14.3 |
+| Load balancer | MetalLB v0.15.3 |
 | Certificates | cert-manager v1.17.2 + Let's Encrypt |
 | Database | Apache Cassandra |
 | Messaging | Apache Kafka + Zookeeper |
