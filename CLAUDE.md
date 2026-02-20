@@ -91,6 +91,25 @@ Secrets are written to `secret/` and local overlay state to `overlays/local-prod
 - cert-manager handles Let's Encrypt certificates. Start with the staging issuer in `config/certprovider/` and switch to production via `./arcuscmd.sh useprodcert` once DNS is verified.
 - Hub-bridge requires PKCS#8 keys; run `./arcuscmd.sh updatehubkeystore` after obtaining a production certificate.
 
+## Per-Node Configuration (`.config/`)
+
+Each node stores its local configuration in `.config/` (git-ignored). These files are read by `load()` at startup and written by `./arcuscmd.sh configure`.
+
+| File | Required | Description |
+|---|---|---|
+| `domain.name` | Yes | Main Arcus domain (e.g. `arcus.example.com`) |
+| `admin.email` | Yes | Let's Encrypt admin email |
+| `cert-issuer` | Yes | `staging` or `production` |
+| `overlay-name` | Yes | Kustomize overlay to use (e.g. `local-production-cluster`) |
+| `subnet` | Local only | MetalLB IP range (e.g. `192.168.1.200-192.168.1.207`) |
+| `proxy-real-ip` | Optional | Upstream proxy IP/subnet for PROXY protocol (e.g. `192.168.1.1/32`) |
+| `cassandra-host` | Optional | External Cassandra contact points (omit to use in-cluster) |
+| `zookeeper-host` | Optional | External Zookeeper host (omit to use in-cluster) |
+| `kafka-host` | Optional | External Kafka host (omit to use in-cluster) |
+| `admin-domain` | Optional | Grafana admin domain (e.g. `admin.arcus-dc1.example.com`) |
+
+Run `./arcuscmd.sh configure` to set these interactively, or write the files directly.
+
 ## Cassandra / Kafka / Zookeeper
 
 The `local-production` overlay includes manifests to run Cassandra, Kafka, and Zookeeper inside k3s, which is fine for development. For production, these should run externally on a dedicated 3-datacenter Cassandra cluster — a single k3s node provides no real redundancy. Configure external hosts via `./arcuscmd.sh configure` or by setting `.config/cassandra-host`, `.config/kafka-host`, and `.config/zookeeper-host` directly.
