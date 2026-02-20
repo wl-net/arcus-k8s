@@ -297,8 +297,10 @@ function configure() {
   echo $ARCUS_DOMAIN_NAME >$ARCUS_CONFIGDIR/domain.name
 
   if [[ -z "$ARCUS_PROXY_REAL_IP" ]]; then
-    prompt ARCUS_PROXY_REAL_IP "Enter upstream proxy IP/subnet for real IP detection (or leave blank to skip): "
-    if [[ -n "$ARCUS_PROXY_REAL_IP" ]]; then
+    local use_proxy
+    prompt use_proxy "Is traffic arriving via a proxy that sends PROXY protocol (e.g. HAProxy, cloud LB)? [yes/no]:"
+    if [[ "$use_proxy" == "yes" ]]; then
+      prompt ARCUS_PROXY_REAL_IP "Enter upstream proxy IP/subnet (e.g. 192.168.1.1/32): "
       echo $ARCUS_PROXY_REAL_IP >$ARCUS_CONFIGDIR/proxy-real-ip
     fi
   fi
