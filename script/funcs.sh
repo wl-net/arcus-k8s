@@ -90,16 +90,10 @@ function deployfast() {
 }
 
 function killallpods() {
-  $KUBECTL delete pod -l app=cassandra &
-  $KUBECTL delete pod -l app=zookeeper &
-  $KUBECTL delete pod -l app=kafka &
-
-  for app in $APPS; do
-    $KUBECTL delete pod -l app=$app &
-    sleep 1
-  done
-
-  wait
+  echo "cassandra zookeeper kafka" | tr ' ' '\n' | xargs -P 2 -I{} $KUBECTL delete pod -l app={}
+  echo "hub-bridge client-bridge" | tr ' ' '\n' | xargs -P 2 -I{} $KUBECTL delete pod -l app={}
+  echo "driver-services rule-service scheduler-service" | tr ' ' '\n' | xargs -P 2 -I{} $KUBECTL delete pod -l app={}
+  echo "alarm-service subsystem-service history-service ipcd-bridge ivr-callback-server metrics-server notification-services platform-services ui-server" | tr ' ' '\n' | xargs -P 3 -I{} $KUBECTL delete pod -l app={}
 }
 
 # Setup MicroK8s for local.
