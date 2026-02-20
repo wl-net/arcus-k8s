@@ -75,6 +75,11 @@ spec:
             memory: "768Mi"
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
+        readinessProbe:
+          tcpSocket:
+            port: 9000
+          initialDelaySeconds: 60
+          periodSeconds: 10
         livenessProbe:
           tcpSocket:
             port: 9000
