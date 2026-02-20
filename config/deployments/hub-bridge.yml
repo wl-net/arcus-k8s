@@ -83,7 +83,7 @@ spec:
             configMapKeyRef:
               key: BOUNCE_APPLE_URL
               name: arcus-config
-        - name: BOUNCE_APPLE_URL
+        - name: BOUNCE_APP_URL
           valueFrom:
             configMapKeyRef:
               key: BOUNCE_APP_URL
