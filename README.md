@@ -110,7 +110,9 @@ where $POD is something like "alarm-service"
 
 ## Backups
 
-The only critical persistent system (at least for the minimum use case) is cassandra. Utility scripts have been provided to assist with backing up and restoring cassandra. Typically you'd want to use snapshots to backup cassandra, however in low-activity use cases like Arcus, you can also just make a tarball of the working directory and restore it.
+The only critical persistent system is Cassandra. For development, Cassandra can be run inside k3s using the manifests in the `local-production` overlay. For production, Cassandra should run on a dedicated 3-datacenter cluster external to Kubernetes — a single k3s node provides no real redundancy. Kafka and Zookeeper follow the same model.
+
+Utility scripts have been provided to assist with backing up and restoring Cassandra. Typically you'd want to use snapshots to backup Cassandra, however in low-activity use cases like Arcus, you can also just make a tarball of the working directory and restore it.
 
 ## Troubleshooting
 
