@@ -20,10 +20,6 @@ function retry {
   return 0
 }
 
-function check_k8 {
-  $KUBECTL cluster-info &>/dev/null
-}
-
 function prompt() {
   local  __resultvar=$1
   echo -n "${2} "
