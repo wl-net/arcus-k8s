@@ -90,10 +90,10 @@ function deployfast() {
 }
 
 function killallpods() {
-  echo "cassandra zookeeper kafka" | tr ' ' '\n' | xargs -P 2 -I{} $KUBECTL delete pod -l app={} --ignore-not-found
-  echo "hub-bridge client-bridge" | tr ' ' '\n' | xargs -P 2 -I{} $KUBECTL delete pod -l app={} --ignore-not-found
-  echo "driver-services rule-service scheduler-service" | tr ' ' '\n' | xargs -P 2 -I{} $KUBECTL delete pod -l app={} --ignore-not-found
-  echo "alarm-service subsystem-service history-service ipcd-bridge ivr-callback-server metrics-server notification-services platform-services ui-server" | tr ' ' '\n' | xargs -P 3 -I{} $KUBECTL delete pod -l app={} --ignore-not-found
+  echo "cassandra zookeeper kafka" | tr ' ' '\n' | xargs -P 2 -I{} $KUBECTL delete pod -l app={} --ignore-not-found 2>/dev/null
+  echo "hub-bridge client-bridge" | tr ' ' '\n' | xargs -P 2 -I{} $KUBECTL delete pod -l app={} --ignore-not-found 2>/dev/null
+  echo "driver-services rule-service scheduler-service" | tr ' ' '\n' | xargs -P 2 -I{} $KUBECTL delete pod -l app={} --ignore-not-found 2>/dev/null
+  echo "alarm-service subsystem-service history-service ipcd-bridge ivr-callback-server metrics-server notification-services platform-services ui-server" | tr ' ' '\n' | xargs -P 3 -I{} $KUBECTL delete pod -l app={} --ignore-not-found 2>/dev/null
 }
 
 # Setup MicroK8s for local.
