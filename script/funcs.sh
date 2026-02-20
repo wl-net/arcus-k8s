@@ -68,6 +68,14 @@ APPS='alarm-service client-bridge driver-services subsystem-service history-serv
 
 # Deploy the platform in a way that causes minimal downtime
 function deploy_platform() {
+  local verify_output
+  verify_output=$(verify_config 2>&1) || {
+    echo "$verify_output"
+    echo ""
+    echo "Fix configuration issues before deploying, or run './arcuscmd.sh configure'."
+    return 1
+  }
+
   local targets
   if [[ $# -gt 0 ]]; then
     targets="$*"
