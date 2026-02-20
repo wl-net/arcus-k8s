@@ -488,9 +488,33 @@ function configure() {
 }
 
 function update() {
-  git -C "$ROOT" fetch
-  git -C "$ROOT" pull
-  echo "on $(git rev-parse --abbrev-ref HEAD)"
+  local branch before after
+
+  branch=$(git -C "$ROOT" rev-parse --abbrev-ref HEAD)
+  before=$(git -C "$ROOT" rev-parse HEAD)
+
+  if ! git -C "$ROOT" diff --quiet; then
+    echo "Warning: you have uncommitted changes"
+    git -C "$ROOT" --no-pager diff --stat
+    echo ""
+  fi
+
+  git -C "$ROOT" pull --ff-only || {
+    echo "Fast-forward failed. You may have local commits that diverge from the remote."
+    echo "Resolve manually with: git -C $ROOT rebase origin/$branch"
+    return 1
+  }
+
+  after=$(git -C "$ROOT" rev-parse HEAD)
+
+  if [[ "$before" == "$after" ]]; then
+    echo "Already up to date on $branch (${after:0:7})."
+  else
+    echo "Updated $branch: ${before:0:7} -> ${after:0:7}"
+    git -C "$ROOT" --no-pager log --oneline "${before}..${after}"
+    echo ""
+    echo "Run './arcuscmd.sh apply' to deploy the new configuration."
+  fi
 }
 
 function logs() {
