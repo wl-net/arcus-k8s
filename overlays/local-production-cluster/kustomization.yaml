@@ -5,3 +5,5 @@ patches:
 - path: shared-config.yaml
 - path: ui-service-ingress.yml
 - path: cluster-config.yml
+- path: arcus-config-tunable.yml
+- path: cluster-config-tunable.yml
