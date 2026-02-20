@@ -68,7 +68,21 @@ APPS='alarm-service client-bridge driver-services subsystem-service history-serv
 
 # Deploy the platform in a way that causes minimal downtime
 function deploy_platform() {
-  for app in $APPS; do
+  local targets
+  if [[ $# -gt 0 ]]; then
+    targets="$*"
+    for app in $targets; do
+      if ! echo "$APPS" | tr ' ' '\n' | grep -qx "$app"; then
+        echo "Error: unknown service '$app'"
+        echo "Available: $APPS"
+        return 1
+      fi
+    done
+  else
+    targets="$APPS"
+  fi
+
+  for app in $targets; do
     echo "Restarting ${app}..."
     $KUBECTL rollout restart deployment/"$app"
     $KUBECTL rollout status deployment/"$app" --timeout=120s

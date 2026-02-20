@@ -49,7 +49,7 @@ Setup:
 
 Deploy:
   apply               Apply the current configuration to the cluster
-  deploy              Rolling restart of all services, one at a time
+  deploy [service...] Rolling restart of services (all if none specified)
   update              Pull latest changes and show what changed
   rollback            Revert to a previous version
   history             Show recent update history
@@ -127,7 +127,7 @@ configure)
   configure
   ;;
 deploy)
-  deploy_platform
+  deploy_platform "${@:2}"
   ;;
 killall)
   killallpods
