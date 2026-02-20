@@ -1,4 +1,5 @@
 .config
+.cache
 kustomize
 overlays/local-production-local
 overlays/local-production-cluster-local

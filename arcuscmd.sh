@@ -57,6 +57,7 @@ Basic Commands:
   backupdb   - backup cassandra
   status     - show status of services, certificates, and infrastructure versions
   info       - show DNS to IP/port mappings
+  check      - test public connectivity to Arcus services
 
 Debug Commands:
   logs       - get the logs for an application
@@ -136,6 +137,9 @@ useprodcert)
   ;;
 info)
   info
+  ;;
+check)
+  connectivity_check
   ;;
 update)
   update

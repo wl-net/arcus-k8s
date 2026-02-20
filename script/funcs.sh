@@ -174,6 +174,38 @@ function info() {
   echo "hub.${ARCUS_DOMAIN_NAME}:443      -> $IPADDRESS:443 OR $HUB_IPADDRESS:8082"
 }
 
+function connectivity_check() {
+  load
+  local public_ip
+  local ip_cache=".cache/public-ip"
+  mkdir -p .cache
+  if [[ -f "$ip_cache" ]] && [[ $(( $(date +%s) - $(date -r "$ip_cache" +%s) )) -lt 3600 ]]; then
+    public_ip=$(cat "$ip_cache")
+  else
+    public_ip=$(curl -s --max-time 5 ifconfig.me) || { echo "Failed to determine public IP"; exit 1; }
+    echo "$public_ip" > "$ip_cache"
+  fi
+  echo "Public IP: $public_ip"
+  echo ""
+
+  local domains=(
+    "https://${ARCUS_DOMAIN_NAME}"
+    "https://client.${ARCUS_DOMAIN_NAME}"
+    "https://static.${ARCUS_DOMAIN_NAME}"
+  )
+
+  echo "Connectivity Check:"
+  for url in "${domains[@]}"; do
+    local status
+    status=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "$url")
+    if [[ "$status" =~ ^[23] ]]; then
+      printf "  %-50s %s  [OK]\n" "$url" "$status"
+    else
+      printf "  %-50s %s  [FAIL]\n" "$url" "$status"
+    fi
+  done
+}
+
 function load() {
   ARCUS_OVERLAY_NAME="local-production"
   if [ -d $ARCUS_CONFIGDIR ]; then
