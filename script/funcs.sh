@@ -492,6 +492,14 @@ function apply() {
 
   $KUBECTL apply -f config/certprovider/
 
+  # Show what would change before applying.
+  # kubectl diff exits 0 = no diff, 1 = has diff, >1 = error.
+  local diff_exit=0
+  $KUBECTL diff -k "overlays/${ARCUS_OVERLAY_NAME}-local" 2>/dev/null || diff_exit=$?
+  if [[ $diff_exit -eq 0 ]]; then
+    echo "No changes to apply."
+  fi
+
   $KUBECTL apply -k "overlays/${ARCUS_OVERLAY_NAME}-local"
 
   mkdir -p "$ROOT/.cache"
