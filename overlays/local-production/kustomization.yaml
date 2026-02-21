@@ -2,6 +2,7 @@ resources:
 - ../../config
 - cassandra.yaml
 - kafka.yaml
+- zookeeper.yml
 patches:
 - path: cert-provider.yaml
 - path: shared-config.yaml

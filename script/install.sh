@@ -105,6 +105,7 @@ function install_istio() {
 }
 
 function install() {
+  load
   local targets=("$@")
   if [[ ${#targets[@]} -eq 0 ]]; then
     targets=(nginx cert-manager istio)
