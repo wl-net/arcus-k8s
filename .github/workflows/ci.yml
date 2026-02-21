@@ -49,9 +49,13 @@ jobs:
             exit 1
           fi
 
-  kustomize:
+  manifests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Validate kustomize build
-        run: kubectl kustomize config > /dev/null
+      - name: Install kubeconform
+        run: |
+          curl -fsSL https://github.com/yannh/kubeconform/releases/latest/download/kubeconform-linux-amd64.tar.gz \
+            | sudo tar xz -C /usr/local/bin kubeconform
+      - name: Validate manifests
+        run: ./arcuscmd.sh validate

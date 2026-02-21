@@ -34,7 +34,7 @@ if [ -x "$(command -v k3s)" ]; then
   DEPLOYMENT_TYPE=local
 fi
 
-if [[ ${1:-help} != 'help' && ${1:-help} != 'setup' && ${1:-help} != 'configure' && ${1:-help} != 'verifyconfig' && ${1:-help} != 'shell-setup' ]]; then
+if [[ ${1:-help} != 'help' && ${1:-help} != 'setup' && ${1:-help} != 'configure' && ${1:-help} != 'verifyconfig' && ${1:-help} != 'shell-setup' && ${1:-help} != 'validate' ]]; then
   if ! command -v "$KUBECTL" &>/dev/null; then
     echo "Error: kubectl not found. Is it installed and in your PATH?"
     exit 1
@@ -67,6 +67,7 @@ Status:
   versions            Show installed vs configured infrastructure versions
   info                Show DNS to IP/port mappings
   check               Test public connectivity to Arcus services
+  validate            Validate YAML syntax, kustomize build, and Kubernetes schemas
   verifyconfig        Verify that all configuration and secrets are present
 
 Operations:
@@ -186,6 +187,9 @@ backupdb)
   ;;
 backupconfig)
   backup_config
+  ;;
+validate)
+  validate_manifests
   ;;
 verifyconfig)
   verify_config
