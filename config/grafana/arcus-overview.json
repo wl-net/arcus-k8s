@@ -83,7 +83,7 @@
       },
       "targets": [
         {
-          "expr": "up",
+          "expr": "max by (job) (up)",
           "legendFormat": "{{job}}",
           "refId": "A"
         }
