@@ -56,6 +56,13 @@ spec:
         image: us-west1-docker.pkg.dev/arcus-238802/arcus-prod/arcus/scheduler-service:2019.10.0
         imagePullPolicy: IfNotPresent
         name: scheduler-service
+        resources:
+          limits:
+            cpu: "1"
+            memory: "384Mi"
+          requests:
+            cpu: "10m"
+            memory: "128Mi"
         readinessProbe:
           tcpSocket:
             port: 9100
