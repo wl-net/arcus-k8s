@@ -494,9 +494,9 @@ function apply() {
   $KUBECTL diff -k "overlays/${ARCUS_OVERLAY_NAME}-local" 2>/dev/null || diff_exit=$?
   if [[ $diff_exit -eq 0 ]]; then
     echo "No changes to apply."
+  else
+    $KUBECTL apply -k "overlays/${ARCUS_OVERLAY_NAME}-local"
   fi
-
-  $KUBECTL apply -k "overlays/${ARCUS_OVERLAY_NAME}-local"
 
   mkdir -p "$ROOT/.cache"
   git -C "$ROOT" rev-parse HEAD > "$ROOT/.cache/last-applied-rev"
