@@ -369,6 +369,15 @@ function load() {
       # using MetalLB before the opt-in flag existed.  Preserve that behavior.
       ARCUS_METALLB="yes"
     fi
+    if [[ -f "$ARCUS_CONFIGDIR/cert-solver" ]]; then
+      ARCUS_CERT_SOLVER=$(cat "$ARCUS_CONFIGDIR/cert-solver")
+    fi
+    if [[ -f "$ARCUS_CONFIGDIR/route53-hosted-zone-id" ]]; then
+      ARCUS_ROUTE53_ZONE_ID=$(cat "$ARCUS_CONFIGDIR/route53-hosted-zone-id")
+    fi
+    if [[ -f "$ARCUS_CONFIGDIR/route53-region" ]]; then
+      ARCUS_ROUTE53_REGION=$(cat "$ARCUS_CONFIGDIR/route53-region")
+    fi
 
   fi
 }
@@ -405,7 +414,14 @@ function apply() {
   [[ -n "$saved_arcus_tunable" ]] && echo "$saved_arcus_tunable" > "$arcus_tunable"
   [[ -n "$saved_cluster_tunable" ]] && echo "$saved_cluster_tunable" > "$cluster_tunable"
 
-  sed -i "s/me@example.com/$ARCUS_ADMIN_EMAIL/" "overlays/${ARCUS_OVERLAY_NAME}-local/cert-provider.yaml"
+  if [[ "${ARCUS_CERT_SOLVER:-http}" == "dns" ]]; then
+    cp config/templates/cert-provider-dns.yaml "overlays/${ARCUS_OVERLAY_NAME}-local/cert-provider.yaml"
+    sed -i "s!PLACEHOLDER_EMAIL!${ARCUS_ADMIN_EMAIL}!" "overlays/${ARCUS_OVERLAY_NAME}-local/cert-provider.yaml"
+    sed -i "s!PLACEHOLDER_ROUTE53_REGION!${ARCUS_ROUTE53_REGION}!" "overlays/${ARCUS_OVERLAY_NAME}-local/cert-provider.yaml"
+    sed -i "s!PLACEHOLDER_ROUTE53_ZONE_ID!${ARCUS_ROUTE53_ZONE_ID}!" "overlays/${ARCUS_OVERLAY_NAME}-local/cert-provider.yaml"
+  else
+    sed -i "s/me@example.com/$ARCUS_ADMIN_EMAIL/" "overlays/${ARCUS_OVERLAY_NAME}-local/cert-provider.yaml"
+  fi
 
   cp config/configmaps/arcus-config.yml "overlays/${ARCUS_OVERLAY_NAME}-local/shared-config.yaml"
   sed -i "s/arcussmarthome.com/$ARCUS_DOMAIN_NAME/g" "overlays/${ARCUS_OVERLAY_NAME}-local/shared-config.yaml"
@@ -450,6 +466,14 @@ function apply() {
   if [[ "${ARCUS_CERT_TYPE:-}" == 'production' ]]; then
     sed -i 's/letsencrypt-staging/letsencrypt-production/g' "overlays/${ARCUS_OVERLAY_NAME}-local/ui-service-ingress.yml"
     sed -i 's/nginx-staging-tls/nginx-production-tls/g' "overlays/${ARCUS_OVERLAY_NAME}-local/ui-service-ingress.yml"
+  fi
+
+  if [[ "${ARCUS_CERT_SOLVER:-http}" == "dns" ]]; then
+    $KUBECTL create secret generic route53-credentials \
+      --namespace cert-manager \
+      --from-file=access-key-id=secret/route53-access-key-id \
+      --from-file=secret-access-key=secret/route53-secret-access-key \
+      --dry-run=client -o yaml | $KUBECTL apply -f - > /dev/null
   fi
 
   $KUBECTL delete configmap extrafiles --ignore-not-found > /dev/null
@@ -543,7 +567,43 @@ function configure() {
 
   echo "$ARCUS_CERT_TYPE" > "$ARCUS_CONFIGDIR/cert-issuer"
 
+  if [[ -z "${ARCUS_CERT_SOLVER:-}" ]]; then
+    local cert_solver
+    prompt cert_solver "Certificate solver type — http (default) or dns (Route 53 DNS-01): "
+    cert_solver="${cert_solver:-http}"
+    if [[ "$cert_solver" != "http" && "$cert_solver" != "dns" ]]; then
+      echo "Invalid solver type '$cert_solver', using http"
+      cert_solver="http"
+    fi
+    ARCUS_CERT_SOLVER="$cert_solver"
+    echo "$ARCUS_CERT_SOLVER" > "$ARCUS_CONFIGDIR/cert-solver"
+  fi
+
+  if [[ "${ARCUS_CERT_SOLVER}" == "dns" ]]; then
+    if [[ -z "${ARCUS_ROUTE53_ZONE_ID:-}" ]]; then
+      prompt ARCUS_ROUTE53_ZONE_ID "Enter Route 53 hosted zone ID: "
+      echo "$ARCUS_ROUTE53_ZONE_ID" > "$ARCUS_CONFIGDIR/route53-hosted-zone-id"
+    fi
+    if [[ -z "${ARCUS_ROUTE53_REGION:-}" ]]; then
+      prompt ARCUS_ROUTE53_REGION "Enter AWS region for Route 53 (e.g. us-east-1): "
+      echo "$ARCUS_ROUTE53_REGION" > "$ARCUS_CONFIGDIR/route53-region"
+    fi
+  fi
+
   mkdir -p secret
+
+  if [[ "${ARCUS_CERT_SOLVER:-}" == "dns" ]]; then
+    if [[ ! -e secret/route53-access-key-id ]]; then
+      local r53_key_id
+      prompt r53_key_id "Enter AWS access key ID for Route 53: "
+      echo -n "$r53_key_id" > secret/route53-access-key-id
+    fi
+    if [[ ! -e secret/route53-secret-access-key ]]; then
+      local r53_secret_key
+      prompt r53_secret_key "Enter AWS secret access key for Route 53: "
+      echo -n "$r53_secret_key" > secret/route53-secret-access-key
+    fi
+  fi
   if [[ ! -e secret/billing.api.key ]]; then
     echo "Setting up default secret for billing.api.key"
     echo -n "12345" > secret/billing.api.key
@@ -896,11 +956,26 @@ function verify_config() {
   fi
 
   # Optional config files
-  for file in proxy-real-ip cassandra-host zookeeper-host kafka-host admin-domain; do
+  for file in proxy-real-ip cassandra-host zookeeper-host kafka-host admin-domain cert-solver; do
     if [[ -f "$ARCUS_CONFIGDIR/$file" ]]; then
       echo "  OK:      .config/$file = $(cat "$ARCUS_CONFIGDIR/$file")"
     fi
   done
+
+  # Route 53 config (required when cert-solver=dns)
+  if [[ "${ARCUS_CERT_SOLVER:-}" == "dns" ]]; then
+    for file in route53-hosted-zone-id route53-region; do
+      if [[ ! -f "$ARCUS_CONFIGDIR/$file" ]]; then
+        echo "  MISSING: .config/$file (required when cert-solver=dns)"
+        ((errors++))
+      elif [[ ! -s "$ARCUS_CONFIGDIR/$file" ]]; then
+        echo "  EMPTY:   .config/$file (required when cert-solver=dns)"
+        ((errors++))
+      else
+        echo "  OK:      .config/$file = $(cat "$ARCUS_CONFIGDIR/$file")"
+      fi
+    done
+  fi
 
   echo
 
@@ -971,6 +1046,21 @@ function verify_config() {
         ((errors++))
       elif [[ ! -s "secret/$s" ]]; then
         echo "  EMPTY:   secret/$s"
+        ((errors++))
+      else
+        echo "  OK:      secret/$s"
+      fi
+    done
+  fi
+
+  # Route 53 secrets (required when cert-solver=dns)
+  if [[ "${ARCUS_CERT_SOLVER:-}" == "dns" ]]; then
+    for s in route53-access-key-id route53-secret-access-key; do
+      if [[ ! -f "secret/$s" ]]; then
+        echo "  MISSING: secret/$s (required when cert-solver=dns)"
+        ((errors++))
+      elif [[ ! -s "secret/$s" ]]; then
+        echo "  EMPTY:   secret/$s (required when cert-solver=dns)"
         ((errors++))
       else
         echo "  OK:      secret/$s"

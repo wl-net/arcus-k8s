@@ -173,6 +173,9 @@ You can also write the files directly:
 | `zookeeper-host` | Optional | External Zookeeper host (omit to use in-cluster) |
 | `kafka-host` | Optional | External Kafka host (omit to use in-cluster) |
 | `admin-domain` | Optional | Grafana admin domain (e.g. `admin.arcus-dc1.example.com`) |
+| `cert-solver` | Optional | `http` (default) or `dns` — use DNS-01 challenges via Route 53 |
+| `route53-hosted-zone-id` | If DNS solver | Route 53 hosted zone ID |
+| `route53-region` | If DNS solver | AWS region for Route 53 (e.g. `us-east-1`) |
 
 You can also adjust the configuration in overlays/local-production-local/, however your changes will be lost if you run `./arcuscmd.sh apply`.
 

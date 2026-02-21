@@ -129,6 +129,9 @@ Each node stores its local configuration in `.config/` (git-ignored). These file
 | `zookeeper-host` | Optional | External Zookeeper host (omit to use in-cluster) |
 | `kafka-host` | Optional | External Kafka host (omit to use in-cluster) |
 | `admin-domain` | Optional | Grafana admin domain (e.g. `admin.arcus-dc1.example.com`) |
+| `cert-solver` | Optional | `http` (default) or `dns` — use DNS-01 challenges via Route 53 |
+| `route53-hosted-zone-id` | If DNS solver | Route 53 hosted zone ID |
+| `route53-region` | If DNS solver | AWS region for Route 53 (e.g. `us-east-1`) |
 
 Run `./arcuscmd.sh configure` to set these interactively, or write the files directly.
 

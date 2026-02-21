@@ -1,0 +1,37 @@
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-staging
+spec:
+  acme:
+    email: PLACEHOLDER_EMAIL
+    solvers:
+    - dns01:
+        route53:
+          region: PLACEHOLDER_ROUTE53_REGION
+          hostedZoneID: PLACEHOLDER_ROUTE53_ZONE_ID
+          accessKeyIDSecretRef:
+            name: route53-credentials
+            key: access-key-id
+          secretAccessKeySecretRef:
+            name: route53-credentials
+            key: secret-access-key
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-production
+spec:
+  acme:
+    email: PLACEHOLDER_EMAIL
+    solvers:
+    - dns01:
+        route53:
+          region: PLACEHOLDER_ROUTE53_REGION
+          hostedZoneID: PLACEHOLDER_ROUTE53_ZONE_ID
+          accessKeyIDSecretRef:
+            name: route53-credentials
+            key: access-key-id
+          secretAccessKeySecretRef:
+            name: route53-credentials
+            key: secret-access-key
