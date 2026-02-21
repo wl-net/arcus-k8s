@@ -54,7 +54,7 @@ spec:
               key: questions.aes.secret
               name: shared
         image: us-west1-docker.pkg.dev/arcus-238802/arcus-prod/arcus/history-service:2019.10.0
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         name: history-service
         resources:
           limits:

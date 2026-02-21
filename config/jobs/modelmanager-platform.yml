@@ -58,7 +58,7 @@ spec:
               key: questions.aes.secret
               name: shared
         image: us-west1-docker.pkg.dev/arcus-238802/arcus-prod/arcus/modelmanager:2019.10.0
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         command: ["/modelmanager-2019.10.0/bin/modelmanager"]
         args: ["-c", "/modelmanager-2019.10.0/conf/arcus-modelmanager.properties", "-P", "production"]
         name: modelmanager-platform

@@ -52,7 +52,7 @@ spec:
           #- containerPort: 3000
           #name: tcp-3000
         image: grafana/grafana
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         name: grafana
         resources:
           limits:
@@ -96,7 +96,7 @@ spec:
     spec:
       containers:
       - image: grafana/grafana-image-renderer:latest
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         name: grafana-renderer
         resources:
           limits:

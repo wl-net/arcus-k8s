@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
       - image: us-west1-docker.pkg.dev/arcus-238802/arcus-prod/arcus/ui-server:latest
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         name: ui-server
         resources: {}
         terminationMessagePath: /dev/termination-log

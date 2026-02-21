@@ -8,3 +8,6 @@ patches:
 - path: ui-service-ingress.yml
 - path: arcus-config-tunable.yml
 - path: cluster-config-tunable.yml
+- target:
+    kind: Deployment
+  path: image-pull-policy.yml

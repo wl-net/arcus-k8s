@@ -61,7 +61,7 @@ spec:
               key: REDIRECT_BASE_URL
               name: arcus-config              
         image: us-west1-docker.pkg.dev/arcus-238802/arcus-prod/arcus/driver-services:2019.10.0
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         name: driver-services
         volumeMounts:
           - mountPath: /config
