@@ -1,5 +1,7 @@
 # arcus-k8s
 
+[![CI](https://github.com/wl-net/arcus-k8s/actions/workflows/ci.yml/badge.svg)](https://github.com/wl-net/arcus-k8s/actions/workflows/ci.yml)
+
 Kubernetes deployment infrastructure for [Arcus Smart Home](https://github.com/arcus-smart-home). Provides shell scripts and Kustomize manifests to deploy Arcus on local (k3s) or cloud Kubernetes clusters.
 
 # Quickstart
