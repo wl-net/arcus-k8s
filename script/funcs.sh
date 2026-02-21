@@ -490,8 +490,6 @@ function apply() {
   $KUBECTL create configmap extrafiles --from-file config/extrafiles
   set -e
 
-  $KUBECTL apply -f config/certprovider/
-
   # Show what would change before applying.
   # kubectl diff exits 0 = no diff, 1 = has diff, >1 = error.
   local diff_exit=0
