@@ -174,26 +174,12 @@ You can also write the files directly:
 
 You can also adjust the configuration in overlays/local-production-local/, however your changes will be lost if you run `./arcuscmd.sh apply`.
 
-## Updating
-
-Update your local copy and see what changed:
-
-`./arcuscmd.sh update`
-
-Then apply the new configuration. To install updates for Kubernetes components like cert-manager, do:
-
-`./arcuscmd.sh install`
-
-NOTE: this make take some time, as pods terminate and restart.
-
-To update arcus configuration, do:
-
-`./arcuscmd.sh apply`
-
-It is generally recommended to update both at the same time - if you do not update the Kubernetes components for an extended period of time, they may no longer be supported with a newer Arcus configuration.
 ## Starting over
 
-If you'd like to start over (including wiping any data, or configuration):
+To completely remove k3s and all cluster data:
 
-`k3s-uninstall.sh`
+```
+/usr/local/bin/k3s-uninstall.sh
+```
 
+This script is installed by k3s and removes the k3s installation, all pods, volumes, and configuration. Your local `.config/` and `secret/` directories are not affected.
