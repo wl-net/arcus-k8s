@@ -18,3 +18,4 @@ data:
   CASSANDRA_LOADBALANCINGPOLICY: roundrobin
   ZOOKEEPER: zookeeper-service.default.svc.cluster.local:2181
   ZOOKEEPEROPS: zookeeper-service.default.svc.cluster.local:2181
+  SCHEDULER_SANITY_CHECK: "true"
