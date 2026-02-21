@@ -485,10 +485,8 @@ function apply() {
     sed -i 's/nginx-staging-tls/nginx-production-tls/g' "overlays/${ARCUS_OVERLAY_NAME}-local/ui-service-ingress.yml"
   fi
 
-  set +e
-  $KUBECTL delete configmap extrafiles
-  $KUBECTL create configmap extrafiles --from-file config/extrafiles
-  set -e
+  $KUBECTL delete configmap extrafiles --ignore-not-found > /dev/null
+  $KUBECTL create configmap extrafiles --from-file config/extrafiles > /dev/null
 
   # Show what would change before applying.
   # kubectl diff exits 0 = no diff, 1 = has diff, >1 = error.
