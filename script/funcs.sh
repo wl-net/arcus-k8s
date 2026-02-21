@@ -488,6 +488,8 @@ function apply() {
   $KUBECTL delete configmap extrafiles --ignore-not-found > /dev/null
   $KUBECTL create configmap extrafiles --from-file config/extrafiles > /dev/null
 
+  $KUBECTL create secret generic shared --from-file secret/ --dry-run=client -o yaml | $KUBECTL apply -f - > /dev/null
+
   # Show what would change before applying.
   # kubectl diff exits 0 = no diff, 1 = has diff, >1 = error.
   local diff_exit=0
@@ -688,11 +690,6 @@ function configure() {
   elif [[ "$skip_creds" != "done" ]]; then
     echo "Skipping external service credentials. Run './arcuscmd.sh configure' when you're ready to set them up."
   fi
-
-  set +e
-  $KUBECTL delete secret shared
-  set -e
-  $KUBECTL create secret generic shared --from-file secret/
 }
 
 function update() {
