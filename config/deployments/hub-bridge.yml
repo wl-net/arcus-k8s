@@ -27,7 +27,7 @@ spec:
               name: cluster-config
         env:
         - name: JAVA_OPTS
-          value: "-Xms64m -Dlogback.configurationFile=/config/logback.xml"
+          value: "-Xms64m -Xmx256m -Dlogback.configurationFile=/config/logback.xml"
         - name: PARTITION_MEMBERS
           valueFrom:
             configMapKeyRef:
@@ -172,7 +172,13 @@ spec:
         image: us-west1-docker.pkg.dev/arcus-238802/arcus-prod/arcus/hub-bridge:2019.10.0
         imagePullPolicy: IfNotPresent
         name: hub-bridge
-        resources: {}
+        resources:
+          limits:
+            cpu: "1"
+            memory: "512Mi"
+          requests:
+            cpu: "50m"
+            memory: "192Mi"
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
         readinessProbe:
