@@ -5,6 +5,10 @@ metadata:
 spec:
   acme:
     email: me@example.com
+    solvers:
+    - http01:
+        ingress:
+          class: nginx
 ---
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
@@ -13,4 +17,8 @@ metadata:
 spec:
   acme:
     email: me@example.com
+    solvers:
+    - http01:
+        ingress:
+          class: nginx
 

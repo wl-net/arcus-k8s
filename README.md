@@ -46,7 +46,7 @@ It is recommended to do this at least weekly. Running `install` and `apply` toge
 
 # Run locally (k3s) - Recommended
 
-[k3s by rancher](https://k3s.io/) is the recommended means of installing Kubernetes, as it's more trimmed down and allows this project to use more modern versions of Kubernetes projects, like istio.
+[k3s by rancher](https://k3s.io/) is the recommended means of installing Kubernetes, as it's more trimmed down and allows this project to use more modern versions of Kubernetes projects, like Istio.
 
 Simply execute:
 
@@ -56,7 +56,7 @@ and choose "local" and then "k3s"
 
 ## Configuring networking
 
-In order to access the Arcus UI and connect a hub, you will need to configure your network. You have some options when it comes to this. If you are operating in a home environment (e.g. you have NAT and you're behind a gateway), then you have Arcus run a "LoadBalancer" on your local network. For this configuration, you will need to exclude a region of your network from DHCP. For example, if you are using the 192.168.1.1/24 subnet, then you should configure DHCP to assign addresses between 192.168.1.2-192.168.150, and use 192.168.151-192.168.155 for Arcus.
+In order to access the Arcus UI and connect a hub, you will need to configure your network. You have some options when it comes to this. If you are operating in a home environment (e.g. you have NAT and you're behind a gateway), then you have Arcus run a "LoadBalancer" on your local network. For this configuration, you will need to exclude a region of your network from DHCP. For example, if you are using the 192.168.1.1/24 subnet, then you should configure DHCP to assign addresses between 192.168.1.2-192.168.1.150, and use 192.168.151-192.168.155 for Arcus.
 
 Once you have configured this, and Arcus is running you should check to see which IP addresses in that space are actually being used. You can either do this via kubectl, or with the `info` utility in arcuscmd.
 
@@ -98,7 +98,7 @@ ingress-nginx   LoadBalancer   10.152.183.146   172.16.6.0    80:31535/TCP,443:3
 
 This shows that 172.16.6.0 is the IP address of the ui-service and client-bridge services (via nginx proxy). 
 
-It's beyond the scope of this document to describe how to configure your network, but at a high level you will need to forward traffic to these ports (e.g. port forwarding)
+It's beyond the scope of this document to describe how to configure your network, but at a high level you will need to forward traffic to these ports (e.g. port forwarding).
 
 Example (note, you must replace GATEWAY_IP accordingly):
 
@@ -197,7 +197,6 @@ The only critical persistent system is Cassandra. For development, Cassandra can
 Utility scripts have been provided to assist with backing up and restoring Cassandra. Typically you'd want to use snapshots to backup Cassandra, however in low-activity use cases like Arcus, you can also just make a tarball of the working directory and restore it.
 
 ## Troubleshooting
-
 
 ### View pod log
 
