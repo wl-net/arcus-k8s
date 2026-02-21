@@ -36,6 +36,7 @@ resources:
 - configmaps/arcus-config.yml
 - configmaps/cluster-config.yml
 - clusterrole.yml
+- cronjob/hub-keystore-renewal.yml
 
 images:
 - name: us-west1-docker.pkg.dev/arcus-238802/arcus-prod/arcus/client-bridge

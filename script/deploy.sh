@@ -218,8 +218,19 @@ function updatehubkeystore() {
   $KUBECTL create secret generic truststore --from-file util/truststore.jks --dry-run=client -o yaml | $KUBECTL apply -f -
   $KUBECTL create secret tls hub-keystore --cert converted/tls.crt --key converted/tls.key
 
+  # Annotate hub-keystore with source resourceVersion so the renewal CronJob
+  # can detect when the certificate has been rotated.
+  local source_rv
+  source_rv=$($KUBECTL get secret nginx-production-tls -o jsonpath='{.metadata.resourceVersion}')
+  $KUBECTL annotate secret hub-keystore "arcus.io/source-resource-version=${source_rv}" --overwrite
+
   rm -rf converted
-  echo "Hub keystore created with production certificate and trust store. Restart hub-bridge to pick up changes."
+  echo "Hub keystore created with production certificate and trust store."
+
+  echo "Restarting hub-bridge..."
+  $KUBECTL rollout restart deployment/hub-bridge
+  $KUBECTL rollout status deployment/hub-bridge --timeout=120s
+  echo "hub-bridge restarted."
 }
 
 function runmodelmanager() {
