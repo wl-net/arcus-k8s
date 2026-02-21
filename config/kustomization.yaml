@@ -23,9 +23,6 @@ resources:
 - istio/sendgrid.yml
 - istio/smartystreets.yml
 - istio/twilio.yml
-- jobs/modelmanager-history.yml
-- jobs/modelmanager-platform.yml
-- jobs/modelmanager-video.yml
 - service/cassandra.yml
 - service/client-bridge.yml
 - service/hub-bridge.yml

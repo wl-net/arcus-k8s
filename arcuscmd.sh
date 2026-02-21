@@ -74,6 +74,7 @@ Operations:
   restoredb <file>    Restore Cassandra from a snapshot backup
   restoredb-full <file>  Full Cassandra restore (destructive, replaces data dir)
   backupconfig        Backup local configuration to a tarball
+  modelmanager        Run model manager jobs (provision database schemas)
   setupmetrics        Setup Grafana metrics
   deletepod           Delete pods matching an application
   logs                Get logs for an application
