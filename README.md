@@ -131,12 +131,6 @@ Unfortunately, the hub-bridge doesn't work out of the box because it expects a J
 
 This can be acomplished by running `./arcuscmd.sh updatehubkeystore` once you have production certificates (see above).
 
-## Viewing pod status
-
-`kubectl describe pod $POD`
-
-where $POD is something like "alarm-service"
-
 ## Backups
 
 The only critical persistent system is Cassandra. For development, Cassandra can be run inside k3s using the manifests in the `local-production` overlay. For production, Cassandra should run on a dedicated 3-datacenter cluster external to Kubernetes — a single k3s node provides no real redundancy. Kafka and Zookeeper follow the same model.
