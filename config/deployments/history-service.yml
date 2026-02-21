@@ -64,10 +64,15 @@ spec:
             memory: "256M"
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
-        livenessProbe:
+        readinessProbe:
           tcpSocket:
             port: 9001
           initialDelaySeconds: 15
+          periodSeconds: 10
+        livenessProbe:
+          tcpSocket:
+            port: 9001
+          initialDelaySeconds: 30
           periodSeconds: 60
       dnsPolicy: ClusterFirst
       restartPolicy: Always

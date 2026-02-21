@@ -25,6 +25,16 @@ spec:
         imagePullPolicy: IfNotPresent
         name: ui-server
         resources: {}
+        readinessProbe:
+          tcpSocket:
+            port: 8096
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          tcpSocket:
+            port: 8096
+          initialDelaySeconds: 10
+          periodSeconds: 60
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
         env:

@@ -56,6 +56,16 @@ spec:
         image: us-west1-docker.pkg.dev/arcus-238802/arcus-prod/arcus/scheduler-service:2019.10.0
         imagePullPolicy: IfNotPresent
         name: scheduler-service
+        readinessProbe:
+          tcpSocket:
+            port: 9100
+          initialDelaySeconds: 15
+          periodSeconds: 10
+        livenessProbe:
+          tcpSocket:
+            port: 9100
+          initialDelaySeconds: 30
+          periodSeconds: 60
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
       dnsPolicy: ClusterFirst

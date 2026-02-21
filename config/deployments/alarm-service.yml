@@ -63,10 +63,15 @@ spec:
         volumeMounts:
           - mountPath: /config
             name: config
-        livenessProbe:
+        readinessProbe:
           tcpSocket:
             port: 9008
           initialDelaySeconds: 15
+          periodSeconds: 10
+        livenessProbe:
+          tcpSocket:
+            port: 9008
+          initialDelaySeconds: 30
           periodSeconds: 60
       dnsPolicy: ClusterFirst
       restartPolicy: Always
