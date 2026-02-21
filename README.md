@@ -176,6 +176,7 @@ You can also write the files directly:
 | `cert-solver` | Optional | `http` (default) or `dns` — use DNS-01 challenges via Route 53 |
 | `route53-hosted-zone-id` | If DNS solver | Route 53 hosted zone ID |
 | `route53-region` | If DNS solver | AWS region for Route 53 (e.g. `us-east-1`) |
+| `route53-set-identifier` | Optional | Route 53 set identifier for weighted record (used by `drain`/`resume`) |
 
 You can also adjust the configuration in overlays/local-production-local/, however your changes will be lost if you run `./arcuscmd.sh apply`.
 

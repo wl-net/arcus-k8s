@@ -73,6 +73,8 @@ Secrets are written to `secret/` and local overlay state to `overlays/<overlay>-
 # Operations
 ./arcuscmd.sh backupdb       # Backup Cassandra database
 ./arcuscmd.sh backupconfig   # Backup local configuration (.config, secrets, overlays) to a tarball
+./arcuscmd.sh drain          # Set Route 53 weighted record to 0 (drain traffic from this cluster)
+./arcuscmd.sh resume         # Restore Route 53 weighted record to its previous value
 ./arcuscmd.sh logs <app>     # Get logs for a service (targets running pods only)
 ./arcuscmd.sh shell <app>    # Get an interactive shell on a pod
 ./arcuscmd.sh dbshell        # Open Cassandra CQL shell
@@ -132,6 +134,7 @@ Each node stores its local configuration in `.config/` (git-ignored). These file
 | `cert-solver` | Optional | `http` (default) or `dns` — use DNS-01 challenges via Route 53 |
 | `route53-hosted-zone-id` | If DNS solver | Route 53 hosted zone ID |
 | `route53-region` | If DNS solver | AWS region for Route 53 (e.g. `us-east-1`) |
+| `route53-set-identifier` | Optional | Route 53 set identifier for weighted record (used by `drain`/`resume`) |
 
 Run `./arcuscmd.sh configure` to set these interactively, or write the files directly.
 

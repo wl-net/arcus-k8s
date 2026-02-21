@@ -28,14 +28,14 @@ mkdir -p "$ARCUS_CONFIGDIR"
 
 KUBECTL=${KUBECTL:-kubectl}
 
-if [[ ${1:-help} != 'help' && ${1:-help} != 'setup' && ${1:-help} != 'configure' && ${1:-help} != 'verifyconfig' && ${1:-help} != 'shell-setup' && ${1:-help} != 'validate' ]]; then
+if [[ ${1:-help} != 'help' && ${1:-help} != 'setup' && ${1:-help} != 'configure' && ${1:-help} != 'verifyconfig' && ${1:-help} != 'shell-setup' && ${1:-help} != 'validate' && ${1:-help} != 'drain' && ${1:-help} != 'resume' ]]; then
   if ! command -v "$KUBECTL" &>/dev/null; then
     echo "Error: kubectl not found. Is it installed and in your PATH?"
     exit 1
   fi
 fi
 
-if [[ ${1:-help} != 'help' && ${1:-help} != 'setup' && ${1:-help} != 'configure' && ${1:-help} != 'verifyconfig' && ${1:-help} != 'shell-setup' && ${1:-help} != 'validate' && ${1:-help} != 'k3s' && ${1:-help} != 'install' ]]; then
+if [[ ${1:-help} != 'help' && ${1:-help} != 'setup' && ${1:-help} != 'configure' && ${1:-help} != 'verifyconfig' && ${1:-help} != 'shell-setup' && ${1:-help} != 'validate' && ${1:-help} != 'k3s' && ${1:-help} != 'install' && ${1:-help} != 'drain' && ${1:-help} != 'resume' ]]; then
   require_config
 fi
 
@@ -76,6 +76,8 @@ Operations:
   backupconfig        Backup local configuration to a tarball
   modelmanager        Run model manager jobs (provision database schemas)
   setupmetrics        Setup Grafana metrics
+  drain               Set Route 53 weighted record to 0 (remove traffic from this cluster)
+  resume              Restore Route 53 weighted record to its previous value
   deletepod           Delete pods matching an application
   logs                Get logs for an application
   certlogs            Get logs for cert-manager (optionally: webhook, cainjector)
@@ -190,6 +192,12 @@ restoredb-full)
   ;;
 backupconfig)
   backup_config
+  ;;
+drain)
+  route53_drain
+  ;;
+resume)
+  route53_resume
   ;;
 validate)
   validate_manifests
