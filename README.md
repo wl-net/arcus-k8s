@@ -127,6 +127,63 @@ You can view cert-manager logs if you don't get a certificate:
 
 `./arcuscmd.sh certlogs -f`
 
+## DNS-01 certificates via Route 53
+
+By default, cert-manager uses HTTP-01 challenges to verify domain ownership — it serves a token on port 80. This works for most setups, but DNS-01 challenges are required when:
+
+- You need **wildcard certificates** (e.g. `*.arcus.example.com`)
+- Your cluster is **not publicly accessible on port 80** (e.g. behind a firewall or NAT without port forwarding)
+
+DNS-01 proves domain ownership by creating a TXT record in Route 53 instead of serving an HTTP response.
+
+### AWS prerequisites
+
+1. A **Route 53 hosted zone** for your domain
+2. An **IAM user** (or role) with the following permissions on your hosted zone:
+   - `route53:GetChange`
+   - `route53:ChangeResourceRecordSets`
+   - `route53:ListResourceRecordSets`
+
+### Setup
+
+Run `./arcuscmd.sh configure` and select `dns` when prompted for the certificate solver. You will be asked for:
+
+- **Route 53 hosted zone ID** — stored in `.config/route53-hosted-zone-id`
+- **AWS region** (e.g. `us-east-1`) — stored in `.config/route53-region`
+- **AWS access key ID** — stored in `secret/route53-access-key-id`
+- **AWS secret access key** — stored in `secret/route53-secret-access-key`
+
+Then run `./arcuscmd.sh apply` to deploy the updated cert-manager configuration. The staging and production ClusterIssuers will use Route 53 for domain validation instead of HTTP-01.
+
+You can verify your configuration at any time with `./arcuscmd.sh verifyconfig`.
+
+## Multi-cluster traffic management
+
+If you run multiple Arcus clusters behind Route 53 weighted records, you can use the `drain` and `resume` commands to shift traffic away from a cluster for maintenance.
+
+### Prerequisites
+
+- DNS-01 solver configured (see above)
+- The `aws` CLI installed on the node
+- A **Route 53 weighted record** pointing to this cluster
+- The **set identifier** for this cluster's record, configured via `./arcuscmd.sh configure` or by writing it to `.config/route53-set-identifier`
+
+### Usage
+
+```bash
+./arcuscmd.sh drain    # Set this cluster's Route 53 weight to 0 (stop receiving traffic)
+./arcuscmd.sh resume   # Restore the previous weight (resume traffic)
+```
+
+`drain` saves the current weight to `.cache/route53-saved-weight` before setting it to 0. `resume` reads the saved weight and restores it, then removes the saved file.
+
+### Typical maintenance workflow
+
+1. `./arcuscmd.sh drain` — stop traffic to this cluster
+2. Wait for in-flight requests to complete
+3. Perform maintenance (upgrades, restarts, etc.)
+4. `./arcuscmd.sh resume` — restore traffic
+
 ## Setting up the Hub Trust Store
 
 Unfortunately, the hub-bridge doesn't work out of the box because it expects a Java Key Store, something we can't provide with cert-manager. Arcusplatform now supports PKCS#8 keys as well (via netty's internal support for PKCS#8), but the private key that cert-manager generates is in PKCS#1 format. As a result, you'll have to manually convert the private key to PKCS#8.
