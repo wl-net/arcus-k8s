@@ -1,0 +1,528 @@
+{
+  "__inputs": [
+    {
+      "name": "DS_PROMETHEUS",
+      "label": "Prometheus",
+      "description": "",
+      "type": "datasource",
+      "pluginId": "prometheus",
+      "pluginName": "Prometheus"
+    }
+  ],
+  "__requires": [
+    {
+      "type": "datasource",
+      "id": "prometheus",
+      "name": "Prometheus",
+      "version": "1.0.0"
+    },
+    {
+      "type": "grafana",
+      "id": "grafana",
+      "name": "Grafana",
+      "version": "8.0.0"
+    },
+    {
+      "type": "panel",
+      "id": "timeseries",
+      "name": "Time series",
+      "version": "8.0.0"
+    },
+    {
+      "type": "panel",
+      "id": "stat",
+      "name": "Stat",
+      "version": "8.0.0"
+    }
+  ],
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "id": 100,
+      "title": "Service Health",
+      "type": "row"
+    },
+    {
+      "title": "Service Up/Down",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 24, "x": 0, "y": 1 },
+      "id": 1,
+      "datasource": "${DS_PROMETHEUS}",
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            { "options": { "0": { "color": "red", "text": "DOWN" }, "1": { "color": "green", "text": "UP" } }, "type": "value" }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "green", "value": 1 }
+            ]
+          },
+          "color": { "mode": "thresholds" }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "background",
+        "graphMode": "none"
+      },
+      "targets": [
+        {
+          "expr": "up",
+          "legendFormat": "{{job}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
+      "id": 101,
+      "title": "Hub & Client Bridge",
+      "type": "row"
+    },
+    {
+      "title": "Active Sessions",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 6 },
+      "id": 2,
+      "datasource": "${DS_PROMETHEUS}",
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "lineWidth": 2, "fillOpacity": 10, "showPoints": "never" }
+        },
+        "overrides": []
+      },
+      "targets": [
+        { "expr": "bridge_sessions_active", "legendFormat": "Active", "refId": "A" },
+        { "expr": "bridge_sessions_hub_total", "legendFormat": "Hub Total", "refId": "B" },
+        { "expr": "bridge_sessions_hub_authorized", "legendFormat": "Hub Authorized", "refId": "C" }
+      ]
+    },
+    {
+      "title": "Hub Sessions (Detail)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 6 },
+      "id": 3,
+      "datasource": "${DS_PROMETHEUS}",
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "lineWidth": 2, "fillOpacity": 10, "showPoints": "never" }
+        },
+        "overrides": []
+      },
+      "targets": [
+        { "expr": "bridge_sessions_hub_cellbackup", "legendFormat": "Cell Backup", "refId": "A" },
+        { "expr": "bridge_sessions_hub_unauth_handshaking", "legendFormat": "Handshaking", "refId": "B" },
+        { "expr": "bridge_sessions_hub_unauth_registering", "legendFormat": "Registering", "refId": "C" },
+        { "expr": "bridge_sessions_hub_unauth_orphaned", "legendFormat": "Orphaned", "refId": "D" }
+      ]
+    },
+    {
+      "title": "Bridge Throughput (bytes/s)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 6 },
+      "id": 4,
+      "datasource": "${DS_PROMETHEUS}",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Bps",
+          "custom": { "lineWidth": 2, "fillOpacity": 10, "showPoints": "never" }
+        },
+        "overrides": []
+      },
+      "targets": [
+        { "expr": "rate(bridge_hub_bytes_received[5m])", "legendFormat": "Hub RX", "refId": "A" },
+        { "expr": "rate(bridge_hub_bytes_sent[5m])", "legendFormat": "Hub TX", "refId": "B" },
+        { "expr": "rate(bridge_client_bytes_received[5m])", "legendFormat": "Client RX", "refId": "C" },
+        { "expr": "rate(bridge_client_bytes_sent[5m])", "legendFormat": "Client TX", "refId": "D" }
+      ]
+    },
+    {
+      "title": "SSL Handshakes (/s)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 14 },
+      "id": 5,
+      "datasource": "${DS_PROMETHEUS}",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "custom": { "lineWidth": 2, "fillOpacity": 10, "showPoints": "never" }
+        },
+        "overrides": []
+      },
+      "targets": [
+        { "expr": "rate(bridge_ssl_handshake_successes[5m])", "legendFormat": "Successes", "refId": "A" },
+        { "expr": "rate(bridge_ssl_handshake_failures[5m])", "legendFormat": "Failures", "refId": "B" }
+      ]
+    },
+    {
+      "title": "Authorization",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 14 },
+      "id": 6,
+      "datasource": "${DS_PROMETHEUS}",
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "lineWidth": 2, "fillOpacity": 10, "showPoints": "never" }
+        },
+        "overrides": []
+      },
+      "targets": [
+        { "expr": "rate(bridge_authz_authorized[5m])", "legendFormat": "Authorized", "refId": "A" },
+        { "expr": "rate(bridge_authz_unauthorized_noplace[5m])", "legendFormat": "Unauth: No Place", "refId": "B" },
+        { "expr": "rate(bridge_authz_unauthorized_wrongperson[5m])", "legendFormat": "Unauth: Wrong Person", "refId": "C" },
+        { "expr": "rate(bridge_authz_unauthorized_wrongplace[5m])", "legendFormat": "Unauth: Wrong Place", "refId": "D" }
+      ]
+    },
+    {
+      "title": "Hub Heartbeats (/s)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 14 },
+      "id": 7,
+      "datasource": "${DS_PROMETHEUS}",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "custom": { "lineWidth": 2, "fillOpacity": 10, "showPoints": "never" }
+        },
+        "overrides": []
+      },
+      "targets": [
+        { "expr": "rate(bridge_hub_heartbeat[5m])", "legendFormat": "Heartbeats", "refId": "A" }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 22 },
+      "id": 102,
+      "title": "JVM Memory",
+      "type": "row"
+    },
+    {
+      "title": "Heap Usage",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 23 },
+      "id": 10,
+      "datasource": "${DS_PROMETHEUS}",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "custom": { "lineWidth": 2, "fillOpacity": 10, "showPoints": "never" }
+        },
+        "overrides": []
+      },
+      "targets": [
+        { "expr": "jvm_memory_heap_used", "legendFormat": "{{job}} used", "refId": "A" },
+        { "expr": "jvm_memory_heap_max", "legendFormat": "{{job}} max", "refId": "B" }
+      ]
+    },
+    {
+      "title": "Non-Heap (Metaspace) Usage",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 23 },
+      "id": 11,
+      "datasource": "${DS_PROMETHEUS}",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "custom": { "lineWidth": 2, "fillOpacity": 10, "showPoints": "never" }
+        },
+        "overrides": []
+      },
+      "targets": [
+        { "expr": "jvm_memory_non_heap_used", "legendFormat": "{{job}} used", "refId": "A" },
+        { "expr": "jvm_memory_non_heap_committed", "legendFormat": "{{job}} committed", "refId": "B" }
+      ]
+    },
+    {
+      "title": "GC Rate (/s)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 31 },
+      "id": 12,
+      "datasource": "${DS_PROMETHEUS}",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "custom": { "lineWidth": 2, "fillOpacity": 10, "showPoints": "never" }
+        },
+        "overrides": []
+      },
+      "targets": [
+        { "expr": "rate(jvm_gc_Copy_count[5m])", "legendFormat": "{{job}} Young GC", "refId": "A" },
+        { "expr": "rate(jvm_gc_MarkSweepCompact_count[5m])", "legendFormat": "{{job}} Full GC", "refId": "B" }
+      ]
+    },
+    {
+      "title": "GC Time (ms/s)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 31 },
+      "id": 13,
+      "datasource": "${DS_PROMETHEUS}",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "custom": { "lineWidth": 2, "fillOpacity": 10, "showPoints": "never" }
+        },
+        "overrides": []
+      },
+      "targets": [
+        { "expr": "rate(jvm_gc_Copy_time[5m])", "legendFormat": "{{job}} Young GC", "refId": "A" },
+        { "expr": "rate(jvm_gc_MarkSweepCompact_time[5m])", "legendFormat": "{{job}} Full GC", "refId": "B" }
+      ]
+    },
+    {
+      "title": "Thread Count",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 39 },
+      "id": 14,
+      "datasource": "${DS_PROMETHEUS}",
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "lineWidth": 2, "fillOpacity": 10, "showPoints": "never" }
+        },
+        "overrides": []
+      },
+      "targets": [
+        { "expr": "jvm_threads_count", "legendFormat": "{{job}} total", "refId": "A" },
+        { "expr": "jvm_threads_blocked_count", "legendFormat": "{{job}} blocked", "refId": "B" },
+        { "expr": "jvm_threads_deadlock_count", "legendFormat": "{{job}} deadlock", "refId": "C" }
+      ]
+    },
+    {
+      "title": "Service Uptime",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 39 },
+      "id": 15,
+      "datasource": "${DS_PROMETHEUS}",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": { "lineWidth": 2, "fillOpacity": 10, "showPoints": "never" }
+        },
+        "overrides": []
+      },
+      "targets": [
+        { "expr": "jvm_attribute_uptime / 1000", "legendFormat": "{{job}}", "refId": "A" }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 47 },
+      "id": 103,
+      "title": "Cassandra DAO",
+      "type": "row"
+    },
+    {
+      "title": "DAO Latency (ms/op)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 48 },
+      "id": 20,
+      "datasource": "${DS_PROMETHEUS}",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "custom": { "lineWidth": 2, "fillOpacity": 10, "showPoints": "never" }
+        },
+        "overrides": []
+      },
+      "targets": [
+        { "expr": "rate(dao_read_time[5m]) / rate(dao_read_time_count[5m])", "legendFormat": "{{job}} read", "refId": "A" },
+        { "expr": "rate(dao_insert_time[5m]) / rate(dao_insert_time_count[5m])", "legendFormat": "{{job}} insert", "refId": "B" },
+        { "expr": "rate(dao_update_time[5m]) / rate(dao_update_time_count[5m])", "legendFormat": "{{job}} update", "refId": "C" },
+        { "expr": "rate(dao_delete_time[5m]) / rate(dao_delete_time_count[5m])", "legendFormat": "{{job}} delete", "refId": "D" }
+      ]
+    },
+    {
+      "title": "DAO Throughput (ops/s)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 48 },
+      "id": 21,
+      "datasource": "${DS_PROMETHEUS}",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "custom": { "lineWidth": 2, "fillOpacity": 10, "showPoints": "never" }
+        },
+        "overrides": []
+      },
+      "targets": [
+        { "expr": "rate(dao_read_time_count[5m])", "legendFormat": "{{job}} reads", "refId": "A" },
+        { "expr": "rate(dao_insert_time_count[5m])", "legendFormat": "{{job}} inserts", "refId": "B" },
+        { "expr": "rate(dao_update_time_count[5m])", "legendFormat": "{{job}} updates", "refId": "C" },
+        { "expr": "rate(dao_delete_time_count[5m])", "legendFormat": "{{job}} deletes", "refId": "D" }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 56 },
+      "id": 104,
+      "title": "Scheduler",
+      "type": "row"
+    },
+    {
+      "title": "Scheduled Commands",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 57 },
+      "id": 30,
+      "datasource": "${DS_PROMETHEUS}",
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "lineWidth": 2, "fillOpacity": 10, "showPoints": "never" }
+        },
+        "overrides": []
+      },
+      "targets": [
+        { "expr": "rate(scheduler_command_scheduled[5m])", "legendFormat": "Scheduled", "refId": "A" },
+        { "expr": "rate(scheduler_command_sent[5m])", "legendFormat": "Sent", "refId": "B" },
+        { "expr": "rate(scheduler_command_error[5m])", "legendFormat": "Error", "refId": "C" },
+        { "expr": "rate(scheduler_command_expired[5m])", "legendFormat": "Expired", "refId": "D" },
+        { "expr": "rate(scheduler_command_rescheduled[5m])", "legendFormat": "Rescheduled", "refId": "E" }
+      ]
+    },
+    {
+      "title": "Scheduler Partitions",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 57 },
+      "id": 31,
+      "datasource": "${DS_PROMETHEUS}",
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "lineWidth": 2, "fillOpacity": 10, "showPoints": "never" }
+        },
+        "overrides": []
+      },
+      "targets": [
+        { "expr": "scheduler_partition_count", "legendFormat": "Total", "refId": "A" },
+        { "expr": "scheduler_partition_pending", "legendFormat": "Pending", "refId": "B" },
+        { "expr": "scheduler_partition_completed", "legendFormat": "Completed", "refId": "C" },
+        { "expr": "scheduler_partition_errors", "legendFormat": "Errors", "refId": "D" }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 65 },
+      "id": 105,
+      "title": "Platform & Drivers",
+      "type": "row"
+    },
+    {
+      "title": "Hub Registry",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 66 },
+      "id": 40,
+      "datasource": "${DS_PROMETHEUS}",
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "lineWidth": 2, "fillOpacity": 10, "showPoints": "never" }
+        },
+        "overrides": []
+      },
+      "targets": [
+        { "expr": "service_platform_hubregistry_online", "legendFormat": "Online", "refId": "A" },
+        { "expr": "service_platform_hubregistry_disconnected", "legendFormat": "Disconnected", "refId": "B" },
+        { "expr": "service_platform_hubregistry_timedout", "legendFormat": "Timed Out", "refId": "C" }
+      ]
+    },
+    {
+      "title": "Device Drivers (connected)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 66 },
+      "id": 41,
+      "datasource": "${DS_PROMETHEUS}",
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "lineWidth": 2, "fillOpacity": 10, "showPoints": "never" }
+        },
+        "overrides": []
+      },
+      "targets": [
+        { "expr": "drivers_connected", "legendFormat": "Connected", "refId": "A" },
+        { "expr": "drivers_disconnected", "legendFormat": "Disconnected", "refId": "B" }
+      ]
+    },
+    {
+      "title": "Notifications (/s)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 66 },
+      "id": 42,
+      "datasource": "${DS_PROMETHEUS}",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "custom": { "lineWidth": 2, "fillOpacity": 10, "showPoints": "never" }
+        },
+        "overrides": []
+      },
+      "targets": [
+        { "expr": "rate(notifications_sent[5m])", "legendFormat": "Sent", "refId": "A" },
+        { "expr": "rate(notifications_failed[5m])", "legendFormat": "Failed", "refId": "B" }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 74 },
+      "id": 106,
+      "title": "Thread Pools",
+      "type": "row"
+    },
+    {
+      "title": "Pool Tasks Running",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 75 },
+      "id": 50,
+      "datasource": "${DS_PROMETHEUS}",
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "lineWidth": 2, "fillOpacity": 10, "showPoints": "never" }
+        },
+        "overrides": []
+      },
+      "targets": [
+        { "expr": "{__name__=~\".+_pool_tasks_running\"}", "legendFormat": "{{job}} {{__name__}}", "refId": "A" }
+      ]
+    },
+    {
+      "title": "Pool Tasks Queued",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 75 },
+      "id": 51,
+      "datasource": "${DS_PROMETHEUS}",
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "lineWidth": 2, "fillOpacity": 10, "showPoints": "never" }
+        },
+        "overrides": []
+      },
+      "targets": [
+        { "expr": "{__name__=~\".+_pool_tasks_queued\"}", "legendFormat": "{{job}} {{__name__}}", "refId": "A" }
+      ]
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 37,
+  "style": "dark",
+  "tags": ["arcus"],
+  "templating": { "list": [] },
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Arcus Overview",
+  "uid": "arcus-overview",
+  "version": 1
+}
