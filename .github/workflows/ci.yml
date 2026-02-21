@@ -16,6 +16,39 @@ jobs:
       - name: Run shellcheck
         run: shellcheck -x arcuscmd.sh script/common.sh script/funcs.sh
 
+  cli:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Help prints without kubectl
+        run: |
+          # kubectl is available on GHA runners; hide it to prove help doesn't need it
+          sudo mv "$(command -v kubectl)" /usr/local/bin/_kubectl_hidden
+          output=$(./arcuscmd.sh help)
+          echo "$output"
+          echo "$output" | grep -q 'deploy'
+      - name: Commands that need kubectl fail early without it
+        run: |
+          # kubectl is still hidden from the previous step
+          if ./arcuscmd.sh status 2>&1; then
+            echo "Expected non-zero exit when kubectl is missing"
+            exit 1
+          fi
+          output=$(./arcuscmd.sh status 2>&1 || true)
+          echo "$output"
+          echo "$output" | grep -q 'kubectl not found'
+      - name: Root guard rejects running as root
+        run: |
+          output=$(sudo ./arcuscmd.sh help 2>&1 || true)
+          echo "$output"
+          echo "$output" | grep -q 'Do not run arcuscmd as root'
+      - name: Unknown subcommand exits non-zero
+        run: |
+          if ./arcuscmd.sh notarealcommand 2>&1; then
+            echo "Expected non-zero exit for unknown subcommand"
+            exit 1
+          fi
+
   kustomize:
     runs-on: ubuntu-latest
     steps:

@@ -203,5 +203,6 @@ help)
   echo "Unsupported Command: $subcmd"
   echo
   print_available
+  exit 1
   ;;
 esac
