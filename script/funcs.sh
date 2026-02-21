@@ -321,13 +321,32 @@ function connectivity_check() {
   [[ -n "${ARCUS_ADMIN_DOMAIN-}" ]] && domains+=("https://${ARCUS_ADMIN_DOMAIN}")
 
   local failed=0
+  echo "DNS Resolution:"
+  for url in "${domains[@]}"; do
+    local host="${url#https://}"
+    local resolved
+    resolved=$(dig +short "$host" 2>/dev/null | tail -1)
+    if [[ -z "$resolved" ]]; then
+      resolved=$(getent hosts "$host" 2>/dev/null | awk '{print $1}')
+    fi
+    if [[ -z "$resolved" ]]; then
+      printf "  %-50s [FAIL] not resolved\n" "$host"
+      failed=1
+    elif [[ "$resolved" != "$public_ip" ]]; then
+      printf "  %-50s %s  [WARN] expected %s\n" "$host" "$resolved" "$public_ip"
+    else
+      printf "  %-50s %s  [OK]\n" "$host" "$resolved"
+    fi
+  done
+
+  echo ""
   echo "Connectivity Check:"
   for url in "${domains[@]}"; do
     local host="${url#https://}"
     local status enddate cert_info
     status=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "$url") || status="000"
     enddate=$(echo | openssl s_client -connect "${host}:443" -servername "$host" 2>/dev/null \
-      | openssl x509 -noout -enddate 2>/dev/null | cut -d= -f2)
+      | openssl x509 -noout -enddate 2>/dev/null | cut -d= -f2) || true
     if [[ -n "$enddate" ]]; then
       cert_info=" (cert expires $enddate)"
     else
