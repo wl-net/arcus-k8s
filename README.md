@@ -1,5 +1,27 @@
 # arcus-k8s
-This project contains configuration and scripts to support running Arcus Smart Home in Kubernetes (on-prem, and in the future in the cloud).
+
+Kubernetes deployment infrastructure for [Arcus Smart Home](https://github.com/arcus-smart-home). Provides shell scripts and Kustomize manifests to deploy Arcus on local (k3s) or cloud Kubernetes clusters.
+
+# Quickstart
+
+```bash
+# Local deployment (k3s)
+./arcuscmd.sh setup              # Interactive first-time setup (installs k3s, configures, deploys)
+
+# Or step by step / cloud deployment
+./arcuscmd.sh k3s                # Install k3s (skip for cloud)
+./arcuscmd.sh install            # Install infrastructure (nginx-ingress, cert-manager, istio)
+./arcuscmd.sh configure          # Configure domain, secrets, and external services
+./arcuscmd.sh apply              # Deploy Arcus to the cluster
+./arcuscmd.sh provision          # Initialize Cassandra and Kafka (first time only)
+
+# Day-to-day
+./arcuscmd.sh update             # Pull latest changes and see what changed
+./arcuscmd.sh apply              # Deploy updated configuration
+./arcuscmd.sh deploy             # Rolling restart of services
+./arcuscmd.sh status             # Show services, certs, and infrastructure versions
+./arcuscmd.sh help               # List all commands
+```
 
 # Prerequisites
 
@@ -11,7 +33,7 @@ For notifications, you must create a Twilio and Sendgrid account. APNS and GCM s
 
 # Update Policy
 
-Kubernetes is a fast-moving environment. As a result, only the latest version is currently supported. In order to get security updates, you should roll your containers on a frequent basis, depending on your risk tolerance. It is recommended that you do this at least weekly. In the intest of security future releases of Arcus may "expire" such that they will not work if you forget to patch. Further, some third-party dependencies may require a rebuild of the cluster. Ideally, `arcuscmd.sh install` will try to solve this as much as possible, but it may not be possible in all circumstances.
+Kubernetes is a fast-moving environment. As a result, only the latest version is currently supported. In order to get security updates, you should roll your containers on a frequent basis, depending on your risk tolerance. It is recommended that you do this at least weekly. In the interest of security future releases of Arcus may "expire" such that they will not work if you forget to patch. Further, some third-party dependencies may require a rebuild of the cluster. Ideally, `arcuscmd.sh install` will try to solve this as much as possible, but it may not be possible in all circumstances.
 
 # Run locally (k3s) - Recommended
 
@@ -98,7 +120,7 @@ You can view cert-manager logs if you don't get a certificate:
 
 ## Setting up the Hub Trust Store
 
-Unfortunately, the hub-bridge doesn't work out of the box because it expects a Java Key Store, something we can't provide with cert-manager. Arcusplatform now supports PKCS#8 keys as well (via netty's internal support for PKCS#8), but the private key that cert-manager generates is in PKCS#1 format. As a result, you'll have to manually convert the private key to PKCS#1.
+Unfortunately, the hub-bridge doesn't work out of the box because it expects a Java Key Store, something we can't provide with cert-manager. Arcusplatform now supports PKCS#8 keys as well (via netty's internal support for PKCS#8), but the private key that cert-manager generates is in PKCS#1 format. As a result, you'll have to manually convert the private key to PKCS#8.
 
 This can be acomplished by running `./arcuscmd.sh updatehubkeystore` once you have production certificates (see above).
 
@@ -141,7 +163,8 @@ You can also write the files directly:
 | `admin.email` | Yes | Let's Encrypt admin email |
 | `cert-issuer` | Yes | `staging` or `production` |
 | `overlay-name` | Yes | Kustomize overlay to use (e.g. `local-production-cluster`) |
-| `subnet` | Local only | MetalLB IP range (e.g. `192.168.1.200-192.168.1.207`) |
+| `subnet` | MetalLB only | MetalLB IP range (e.g. `192.168.1.200-192.168.1.207`) |
+| `metallb` | Optional | `yes` or `no` — enable MetalLB for load balancer IPs |
 | `proxy-real-ip` | Optional | Upstream proxy IP/subnet for PROXY protocol (e.g. `192.168.1.1/32`) |
 | `cassandra-host` | Optional | External Cassandra contact points (omit to use in-cluster) |
 | `zookeeper-host` | Optional | External Zookeeper host (omit to use in-cluster) |
@@ -152,13 +175,11 @@ You can also adjust the configuration in overlays/local-production-local/, howev
 
 ## Updating
 
-First update your local copy with `git pull` or the equivalent arcuscmd command:
+Update your local copy and see what changed:
 
 `./arcuscmd.sh update`
 
-Then apply the new configuration:
-
-To install updates for Kubernetes components like cert-manager, do:
+Then apply the new configuration. To install updates for Kubernetes components like cert-manager, do:
 
 `./arcuscmd.sh install`
 
@@ -174,9 +195,4 @@ It is generally recommended to update both at the same time - if you do not upda
 If you'd like to start over (including wiping any data, or configuration):
 
 `k3s-uninstall.sh`
-
-# In Google Cloud
-
-You need to have a Google Cloud account, and have configured gcloud and docker on your local system. Instructions on how do this are currently beyond the scope of this project.
-
 
