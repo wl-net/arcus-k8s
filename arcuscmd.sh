@@ -28,12 +28,6 @@ mkdir -p "$ARCUS_CONFIGDIR"
 
 KUBECTL=${KUBECTL:-kubectl}
 
-DEPLOYMENT_TYPE=cloud
-
-if [ -x "$(command -v k3s)" ]; then
-  DEPLOYMENT_TYPE=local
-fi
-
 if [[ ${1:-help} != 'help' && ${1:-help} != 'setup' && ${1:-help} != 'configure' && ${1:-help} != 'verifyconfig' && ${1:-help} != 'shell-setup' && ${1:-help} != 'validate' ]]; then
   if ! command -v "$KUBECTL" &>/dev/null; then
     echo "Error: kubectl not found. Is it installed and in your PATH?"
@@ -106,7 +100,6 @@ setup)
   fi
 
   if [[ $answer == 'local' ]]; then
-    DEPLOYMENT_TYPE=local
     setup_k3s
     setup_helm
     install

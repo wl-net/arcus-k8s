@@ -34,6 +34,7 @@ resources:
 - service/static-service.yml
 - service/ui-service-ingress.yml
 - service/ui-service.yml
+- service/tcp-services.yml
 - service/zookeeper.yml
 - configmaps/arcus-config.yml
 - configmaps/cluster-config.yml

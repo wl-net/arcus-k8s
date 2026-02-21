@@ -202,16 +202,8 @@ function setup_shell() {
 }
 
 function install_metallb() {
-  if [[ -z "${DEPLOYMENT_TYPE:-}" ]]; then
-    prompt DEPLOYMENT_TYPE "Is this a local or cloud deployment? [local/cloud]:"
-    if [[ $DEPLOYMENT_TYPE != 'local' && $DEPLOYMENT_TYPE != 'cloud' ]]; then
-      echo "Invalid option $DEPLOYMENT_TYPE, must pick 'local' or 'cloud'"
-      exit 1
-    fi
-  fi
-
-  if [[ $DEPLOYMENT_TYPE != 'local' ]]; then
-    echo "Skipping MetalLB (cloud deployment)"
+  if [[ "${ARCUS_METALLB:-no}" != "yes" ]]; then
+    echo "Skipping MetalLB (not enabled — run './arcuscmd.sh configure' to enable)"
     return 0
   fi
 
@@ -273,7 +265,7 @@ function install_istio() {
 function install() {
   local targets=("$@")
   if [[ ${#targets[@]} -eq 0 ]]; then
-    targets=(metallb nginx cert-manager istio)
+    targets=(nginx cert-manager istio)
   fi
   for target in "${targets[@]}"; do
     case "$target" in
@@ -384,6 +376,13 @@ function load() {
     if [[ -f "$ARCUS_CONFIGDIR/admin-domain" ]]; then
       ARCUS_ADMIN_DOMAIN=$(cat "$ARCUS_CONFIGDIR/admin-domain")
     fi
+    if [[ -f "$ARCUS_CONFIGDIR/metallb" ]]; then
+      ARCUS_METALLB=$(cat "$ARCUS_CONFIGDIR/metallb")
+    elif [[ -f "$ARCUS_CONFIGDIR/subnet" ]]; then
+      # Upgrade path: existing installs that have a subnet configured were
+      # using MetalLB before the opt-in flag existed.  Preserve that behavior.
+      ARCUS_METALLB="yes"
+    fi
 
   fi
 }
@@ -440,8 +439,8 @@ function apply() {
   cp config/service/ui-service-ingress.yml "overlays/${ARCUS_OVERLAY_NAME}-local/"ui-service-ingress.yml
   sed -i "s/arcussmarthome.com/$ARCUS_DOMAIN_NAME/" "overlays/${ARCUS_OVERLAY_NAME}-local/ui-service-ingress.yml"
 
-  if [[ $DEPLOYMENT_TYPE == 'local' ]]; then
-    cp localk8s/metallb.yml "overlays/${ARCUS_OVERLAY_NAME}-local/metallb.yml"
+  if [[ "${ARCUS_METALLB:-}" == "yes" ]]; then
+    cp config/templates/metallb.yml "overlays/${ARCUS_OVERLAY_NAME}-local/metallb.yml"
     sed -i "s!PLACEHOLDER_1!$ARCUS_SUBNET!" "overlays/${ARCUS_OVERLAY_NAME}-local/metallb.yml"
     $KUBECTL apply -f "overlays/${ARCUS_OVERLAY_NAME}-local/metallb.yml"
   fi
@@ -517,12 +516,37 @@ function configure() {
     fi
   fi
 
-  if [[ $DEPLOYMENT_TYPE == 'local' && "$ARCUS_SUBNET" == "unconfigured" ]]; then
-    echo "Arcus requires a pre-defined subnet for services to be served behind. This subnet must be unallocated (e.g. no IP addresses are used, *and* reserved for static clients)."
+  if [[ -z "${ARCUS_METALLB:-}" ]]; then
+    # Auto-detect: if MetalLB is already running, default to yes and read its subnet
+    if $KUBECTL get deployment -n metallb-system controller &>/dev/null; then
+      ARCUS_METALLB="yes"
+      echo "MetalLB detected in cluster — enabling automatically."
+      if [[ "$ARCUS_SUBNET" == "unconfigured" ]]; then
+        local detected_subnet
+        detected_subnet=$($KUBECTL get ipaddresspool -n metallb-system arcus-pool -o jsonpath='{.spec.addresses[0]}' 2>/dev/null) || true
+        if [[ -n "$detected_subnet" ]]; then
+          ARCUS_SUBNET="$detected_subnet"
+          echo "  Using existing subnet: $ARCUS_SUBNET"
+          echo "$ARCUS_SUBNET" > "$ARCUS_CONFIGDIR/subnet"
+        fi
+      fi
+    else
+      local use_metallb
+      prompt use_metallb "Do you need MetalLB for load balancer IPs? [yes/no]:"
+      if [[ "$use_metallb" == "yes" ]]; then
+        ARCUS_METALLB="yes"
+      else
+        ARCUS_METALLB="no"
+      fi
+    fi
+    echo "$ARCUS_METALLB" > "$ARCUS_CONFIGDIR/metallb"
+  fi
+
+  if [[ "$ARCUS_METALLB" == "yes" && "$ARCUS_SUBNET" == "unconfigured" ]]; then
+    echo "MetalLB requires a pre-defined subnet for services to be served behind. This subnet must be unallocated (e.g. no IP addresses are used, *and* reserved for static clients)."
     echo "Examples: 192.168.1.200/29, 192.168.1.200-192.168.1.207"
     prompt ARCUS_SUBNET "Please enter your subnet for Arcus services to be exposed on (or set ARCUS_SUBNET): "
     echo "$ARCUS_SUBNET" > "$ARCUS_CONFIGDIR/subnet"
-
   fi
 
   echo "$ARCUS_CERT_TYPE" > "$ARCUS_CONFIGDIR/cert-issuer"
@@ -691,7 +715,7 @@ function update() {
 
   local config_changes
   config_changes=$(git -C "$ROOT" --no-pager diff --name-only "${before}..${after}" -- \
-    'config/' 'overlays/' 'localk8s/' '*.yml' '*.yaml')
+    'config/' 'overlays/' '*.yml' '*.yaml')
 
   if [[ -n "$config_changes" ]]; then
     echo ""
@@ -702,7 +726,7 @@ function update() {
     prompt show_diff "Show full diff of manifest changes? [yes/no]:"
     if [[ "$show_diff" == "yes" ]]; then
       git -C "$ROOT" --no-pager diff "${before}..${after}" -- \
-        'config/' 'overlays/' 'localk8s/' '*.yml' '*.yaml'
+        'config/' 'overlays/' '*.yml' '*.yaml'
     fi
   fi
 
@@ -864,17 +888,24 @@ function verify_config() {
     echo "  DEFAULT: .config/overlay-name (using local-production)"
   fi
 
-  # subnet is required for local (k3s) deployments
-  if [[ $DEPLOYMENT_TYPE == 'local' ]]; then
+  # subnet is required when MetalLB is enabled
+  if [[ "${ARCUS_METALLB:-}" == "yes" ]]; then
     if [[ ! -f "$ARCUS_CONFIGDIR/subnet" ]]; then
-      echo "  MISSING: .config/subnet (required for local deployments)"
+      echo "  MISSING: .config/subnet (required when MetalLB is enabled)"
       ((errors++))
     elif [[ ! -s "$ARCUS_CONFIGDIR/subnet" ]]; then
-      echo "  EMPTY:   .config/subnet (required for local deployments)"
+      echo "  EMPTY:   .config/subnet (required when MetalLB is enabled)"
       ((errors++))
     else
       echo "  OK:      .config/subnet = $(cat "$ARCUS_CONFIGDIR/subnet")"
     fi
+  fi
+
+  # metallb config
+  if [[ -f "$ARCUS_CONFIGDIR/metallb" ]]; then
+    echo "  OK:      .config/metallb = $(cat "$ARCUS_CONFIGDIR/metallb")"
+  else
+    echo "  DEFAULT: .config/metallb (MetalLB not configured — run configure to set)"
   fi
 
   # Optional config files
@@ -1180,7 +1211,7 @@ function validate_manifests() {
       while IFS= read -r line; do echo "        $line"; done <<< "$err"
       ((errors++))
     fi
-  done < <(find config/ overlays/ localk8s/ -name '*.yml' -o -name '*.yaml' | sort)
+  done < <(find config/ overlays/ -name '*.yml' -o -name '*.yaml' | sort)
 
   echo ""
   echo "=== Kustomize Build ==="

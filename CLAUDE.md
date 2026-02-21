@@ -20,10 +20,10 @@ config/
   certprovider/              # Let's Encrypt issuers
   jobs/                      # One-shot Kubernetes jobs
   istio/                     # Egress rules (Twilio, Sendgrid, SmartyStreets, APNS)
+  templates/                 # Templates applied at runtime (MetalLB address pool)
 overlays/
   local-production/          # Base overlay for single-node dev deployments
   local-production-cluster/  # Cluster-specific overrides
-localk8s/                    # MetalLB and TCP service config
 .github/workflows/ci.yml    # GitHub Actions CI (shellcheck + kustomize validation)
 ```
 
@@ -37,7 +37,7 @@ Secrets are written to `secret/` and local overlay state to `overlays/<overlay>-
 | Config management | Kustomize |
 | Service mesh | Istio v1.26.0 (installed via Helm) |
 | Ingress | nginx-ingress v1.14.3 |
-| Load balancer | MetalLB v0.15.3 (local deployments only) |
+| Load balancer | MetalLB v0.15.3 (opt-in) |
 | Certificates | cert-manager v1.19.2 + Let's Encrypt |
 | Database | Apache Cassandra |
 | Messaging | Apache Kafka + Zookeeper |
@@ -105,7 +105,7 @@ Secrets are written to `secret/` and local overlay state to `overlays/<overlay>-
 ## Infrastructure Notes
 
 - The project targets **k3s** as the recommended Kubernetes distribution.
-- MetalLB provides LoadBalancer IPs for local clusters only (skipped for cloud deployments). Configure the address pool in `localk8s/metallb.yml` to match a static range excluded from your DHCP scope.
+- MetalLB is opt-in (enable via `./arcuscmd.sh configure` or write `yes` to `.config/metallb`). When enabled, it provides LoadBalancer IPs using the address pool template in `config/templates/metallb.yml`. Configure the subnet to a static range excluded from your DHCP scope.
 - Istio is installed via Helm charts, pinned to `$ISTIO_VERSION`. Egress rules in `config/istio/` control outbound traffic to external APIs (Twilio, Sendgrid, SmartyStreets, APNS).
 - cert-manager handles Let's Encrypt certificates. Start with the staging issuer and switch to production via `./arcuscmd.sh useprodcert` once DNS is verified.
 - Hub-bridge requires PKCS#8 keys; run `./arcuscmd.sh updatehubkeystore` after obtaining a production certificate.
@@ -120,7 +120,8 @@ Each node stores its local configuration in `.config/` (git-ignored). These file
 | `admin.email` | Yes | Let's Encrypt admin email |
 | `cert-issuer` | Yes | `staging` or `production` |
 | `overlay-name` | Yes | Kustomize overlay to use (e.g. `local-production-cluster`) |
-| `subnet` | Local only | MetalLB IP range (e.g. `192.168.1.200-192.168.1.207`) |
+| `metallb` | Optional | `yes` or `no` — enable MetalLB for load balancer IPs |
+| `subnet` | If MetalLB | MetalLB IP range (e.g. `192.168.1.200-192.168.1.207`) |
 | `proxy-real-ip` | Optional | Upstream proxy IP/subnet for PROXY protocol (e.g. `192.168.1.1/32`) |
 | `cassandra-host` | Optional | External Cassandra contact points (omit to use in-cluster) |
 | `zookeeper-host` | Optional | External Zookeeper host (omit to use in-cluster) |
