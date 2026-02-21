@@ -31,9 +31,16 @@ In order to create an account, you will need to have a smarty streets account (f
 
 For notifications, you must create a Twilio and Sendgrid account. APNS and GCM support is disabled by default and must be configured if desired. Typically this also requires that you distribute and side-load the app onto you device.
 
-# Update Policy
+# Keeping Up to Date
 
-Kubernetes is a fast-moving environment. As a result, only the latest version is currently supported. In order to get security updates, you should roll your containers on a frequent basis, depending on your risk tolerance. It is recommended that you do this at least weekly. In the interest of security future releases of Arcus may "expire" such that they will not work if you forget to patch. Further, some third-party dependencies may require a rebuild of the cluster. Ideally, `arcuscmd.sh install` will try to solve this as much as possible, but it may not be possible in all circumstances.
+Only the latest version of this project is supported. To stay current:
+
+1. **Pull changes:** `./arcuscmd.sh update`
+2. **Upgrade infrastructure** (nginx-ingress, cert-manager, istio): `./arcuscmd.sh install`
+3. **Apply configuration:** `./arcuscmd.sh apply`
+4. **Restart services** to pick up new images: `./arcuscmd.sh deploy`
+
+It is recommended to do this at least weekly. Running `install` and `apply` together ensures infrastructure components and Arcus configuration stay in sync.
 
 # Run locally (k3s) - Recommended
 
