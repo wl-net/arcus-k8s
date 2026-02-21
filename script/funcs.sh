@@ -201,7 +201,52 @@ function setup_shell() {
   echo "Added arcuscmd to $rcfile — run 'source $rcfile' or open a new terminal to use it."
 }
 
-function setup_istio() {
+function install_metallb() {
+  if [[ -z "${DEPLOYMENT_TYPE:-}" ]]; then
+    prompt DEPLOYMENT_TYPE "Is this a local or cloud deployment? [local/cloud]:"
+    if [[ $DEPLOYMENT_TYPE != 'local' && $DEPLOYMENT_TYPE != 'cloud' ]]; then
+      echo "Invalid option $DEPLOYMENT_TYPE, must pick 'local' or 'cloud'"
+      exit 1
+    fi
+  fi
+
+  if [[ $DEPLOYMENT_TYPE != 'local' ]]; then
+    echo "Skipping MetalLB (cloud deployment)"
+    return 0
+  fi
+
+  $KUBECTL apply -f "https://raw.githubusercontent.com/metallb/metallb/${METALLB_VERSION}/config/manifests/metallb-native.yaml"
+}
+
+function install_nginx() {
+  # Delete completed admission jobs — their spec.template is immutable and
+  # kubectl apply will fail if they already exist from a previous install.
+  $KUBECTL delete job -n ingress-nginx ingress-nginx-admission-create ingress-nginx-admission-patch 2>/dev/null || true
+  $KUBECTL apply -f "https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-${NGINX_VERSION}/deploy/static/provider/baremetal/deploy.yaml"
+}
+
+function install_certmanager() {
+  local count
+  count=$($KUBECTL get Issuers,ClusterIssuers,Certificates,CertificateRequests,Orders,Challenges --all-namespaces 2>/dev/null | grep -c cert-manager.io || true)
+  if [[ $count -gt 0 ]]; then
+    echo "Removing cert-manager, please see https://docs.cert-manager.io/en/latest/tasks/uninstall/kubernetes.html for more details"
+    set +e
+    $KUBECTL delete -f "https://github.com/cert-manager/cert-manager/releases/download/${CERT_MANAGER_VERSION}/cert-manager.yaml"
+    $KUBECTL delete apiservice v1beta1.webhook.certmanager.k8s.io
+    $KUBECTL delete apiservice v1beta1.admission.certmanager.k8s.io
+    $KUBECTL delete apiservice v1alpha1.certmanager.k8s.io
+    $KUBECTL delete namespace cert-manager
+    set -e
+  fi
+  set +e
+  $KUBECTL create namespace cert-manager 2>/dev/null
+  $KUBECTL label namespace cert-manager certmanager.k8s.io/disable-validation=true --overwrite=true &>/dev/null
+  set -e
+
+  $KUBECTL apply -f "https://github.com/cert-manager/cert-manager/releases/download/${CERT_MANAGER_VERSION}/cert-manager.yaml"
+}
+
+function install_istio() {
   $KUBECTL create namespace istio-system --dry-run=client -o yaml | $KUBECTL apply -f -
 
   $KUBECTL get crd gateways.gateway.networking.k8s.io &>/dev/null || \
@@ -221,45 +266,28 @@ function setup_istio() {
     --version "$ISTIO_VERSION" \
     --set pilot.resources.requests.cpu=100m \
     --set pilot.resources.requests.memory=512M
+
+  $KUBECTL label namespace default istio-injection=enabled --overwrite &>/dev/null || true
 }
 
 function install() {
-  $KUBECTL label namespace default istio-injection=enabled --overwrite &>/dev/null || true
-
-  local count
-  count=$($KUBECTL get Issuers,ClusterIssuers,Certificates,CertificateRequests,Orders,Challenges --all-namespaces 2>/dev/null | grep -c cert-manager.io || true)
-  if [[ $count -gt 0 ]]; then
-    echo "Removing cert-manager, please see https://docs.cert-manager.io/en/latest/tasks/uninstall/kubernetes.html for more details"
-    set +e
-    $KUBECTL delete -f "https://github.com/cert-manager/cert-manager/releases/download/${CERT_MANAGER_VERSION}/cert-manager.yaml"
-    $KUBECTL delete apiservice v1beta1.webhook.certmanager.k8s.io
-    $KUBECTL delete apiservice v1beta1.admission.certmanager.k8s.io
-    $KUBECTL delete apiservice v1alpha1.certmanager.k8s.io
-    $KUBECTL delete namespace cert-manager
-    set -e
+  local targets=("$@")
+  if [[ ${#targets[@]} -eq 0 ]]; then
+    targets=(metallb nginx cert-manager istio)
   fi
-  set +e
-  $KUBECTL create namespace cert-manager 2>/dev/null
-  $KUBECTL label namespace cert-manager certmanager.k8s.io/disable-validation=true --overwrite=true &>/dev/null
-  set -e
-
-  if [[ -z "${DEPLOYMENT_TYPE:-}" ]]; then
-    prompt DEPLOYMENT_TYPE "Is this a local or cloud deployment? [local/cloud]:"
-    if [[ $DEPLOYMENT_TYPE != 'local' && $DEPLOYMENT_TYPE != 'cloud' ]]; then
-      echo "Invalid option $DEPLOYMENT_TYPE, must pick 'local' or 'cloud'"
-      exit 1
-    fi
-  fi
-
-  if [[ $DEPLOYMENT_TYPE == 'local' ]]; then
-    $KUBECTL apply -f "https://raw.githubusercontent.com/metallb/metallb/${METALLB_VERSION}/config/manifests/metallb-native.yaml"
-  fi
-  # Delete completed admission jobs — their spec.template is immutable and
-  # kubectl apply will fail if they already exist from a previous install.
-  $KUBECTL delete job -n ingress-nginx ingress-nginx-admission-create ingress-nginx-admission-patch 2>/dev/null || true
-  $KUBECTL apply -f "https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-${NGINX_VERSION}/deploy/static/provider/baremetal/deploy.yaml"
-  $KUBECTL apply -f "https://github.com/cert-manager/cert-manager/releases/download/${CERT_MANAGER_VERSION}/cert-manager.yaml"
-
+  for target in "${targets[@]}"; do
+    case "$target" in
+      metallb)      install_metallb ;;
+      nginx)        install_nginx ;;
+      cert-manager) install_certmanager ;;
+      istio)        install_istio ;;
+      *)
+        echo "Unknown component: $target"
+        echo "Available: metallb, nginx, cert-manager, istio"
+        return 1
+        ;;
+    esac
+  done
 }
 
 function info() {

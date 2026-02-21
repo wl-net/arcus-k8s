@@ -41,7 +41,7 @@ if [[ ${1:-help} != 'help' && ${1:-help} != 'setup' && ${1:-help} != 'configure'
   fi
 fi
 
-if [[ ${1:-help} != 'help' && ${1:-help} != 'setup' && ${1:-help} != 'configure' && ${1:-help} != 'verifyconfig' && ${1:-help} != 'shell-setup' && ${1:-help} != 'validate' && ${1:-help} != 'installk3s' && ${1:-help} != 'install' ]]; then
+if [[ ${1:-help} != 'help' && ${1:-help} != 'setup' && ${1:-help} != 'configure' && ${1:-help} != 'verifyconfig' && ${1:-help} != 'shell-setup' && ${1:-help} != 'validate' && ${1:-help} != 'k3s' && ${1:-help} != 'install' ]]; then
   require_config
 fi
 
@@ -51,8 +51,9 @@ arcuscmd: manage your arcus deployment
 
 Setup:
   setup               Setup a new instance of Arcus
-  installk3s          Install k3s on this machine
-  install             Install/upgrade kubernetes components (MetalLB, nginx-ingress, cert-manager)
+  k3s                 Install or upgrade k3s
+  install [component] Install/upgrade infrastructure (metallb, nginx, cert-manager, istio)
+                        Installs all if none specified
   configure           Configure Arcus by answering a few questions
   shell-setup         Add 'arcuscmd' shortcut to your shell config
 
@@ -108,7 +109,6 @@ setup)
     DEPLOYMENT_TYPE=local
     setup_k3s
     setup_helm
-    setup_istio
     install
     configure
     apply
@@ -131,11 +131,11 @@ apply)
 provision)
   provision
   ;;
-installk3s)
+k3s)
   setup_k3s
   ;;
 install)
-  install
+  install "${@:2}"
   ;;
 configure)
   configure
