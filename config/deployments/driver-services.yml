@@ -55,6 +55,8 @@ spec:
             secretKeyRef:
               key: questions.aes.secret
               name: shared
+        - name: CLUSTER_ZK_TIMEOUT
+          value: "30000"
         - name: REDIRECT_BASE_URL
           valueFrom:
             configMapKeyRef:
