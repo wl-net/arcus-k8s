@@ -59,17 +59,7 @@ function useprodcert() {
 }
 
 function runmodelmanager() {
-  set +e
-  $KUBECTL delete pod -l app=modelmanager-platform
-  $KUBECTL delete job modelmanager-platform
-
-  $KUBECTL delete pod -l app=modelmanager-history
-  $KUBECTL delete job modelmanager-history
-
-  $KUBECTL delete pod -l app=modelmanager-video
-  $KUBECTL delete job modelmanager-video
-
-  set -e
+  $KUBECTL delete job modelmanager-platform modelmanager-history modelmanager-video --ignore-not-found
   $KUBECTL apply -f config/jobs/
 }
 
@@ -218,23 +208,6 @@ function install_nginx() {
 }
 
 function install_certmanager() {
-  local count
-  count=$($KUBECTL get Issuers,ClusterIssuers,Certificates,CertificateRequests,Orders,Challenges --all-namespaces 2>/dev/null | grep -c cert-manager.io || true)
-  if [[ $count -gt 0 ]]; then
-    echo "Removing cert-manager, please see https://docs.cert-manager.io/en/latest/tasks/uninstall/kubernetes.html for more details"
-    set +e
-    $KUBECTL delete -f "https://github.com/cert-manager/cert-manager/releases/download/${CERT_MANAGER_VERSION}/cert-manager.yaml"
-    $KUBECTL delete apiservice v1beta1.webhook.certmanager.k8s.io
-    $KUBECTL delete apiservice v1beta1.admission.certmanager.k8s.io
-    $KUBECTL delete apiservice v1alpha1.certmanager.k8s.io
-    $KUBECTL delete namespace cert-manager
-    set -e
-  fi
-  set +e
-  $KUBECTL create namespace cert-manager 2>/dev/null
-  $KUBECTL label namespace cert-manager certmanager.k8s.io/disable-validation=true --overwrite=true &>/dev/null
-  set -e
-
   $KUBECTL apply -f "https://github.com/cert-manager/cert-manager/releases/download/${CERT_MANAGER_VERSION}/cert-manager.yaml"
 }
 
