@@ -38,7 +38,7 @@ function updatehubkeystore() {
   rm converted/orig.key
 
   $KUBECTL delete secret hub-keystore --ignore-not-found
-  $KUBECTL create secret generic truststore --from-file irisbylowes/truststore.jks --dry-run=client -o yaml | $KUBECTL apply -f -
+  $KUBECTL create secret generic truststore --from-file util/truststore.jks --dry-run=client -o yaml | $KUBECTL apply -f -
   $KUBECTL create secret tls hub-keystore --cert converted/tls.crt --key converted/tls.key
 
   rm -rf converted
@@ -986,6 +986,7 @@ function backup_cassandra() {
   echo "Exporting schema..."
   $KUBECTL exec cassandra-0 -- /bin/bash -c '/usr/bin/cqlsh -e "DESCRIBE SCHEMA" > keyspaces.cqlsh'
   echo "Creating tarball..."
+  # shellcheck disable=SC2016
   $KUBECTL exec cassandra-0 -- /bin/bash -c '/bin/tar czf "/data/cassandra-backup.tar.gz" $(find /data/cassandra -type d -name arcus-backup) keyspaces.cqlsh'
   $KUBECTL cp cassandra-0:/data/cassandra-backup.tar.gz "cassandra-${date_stamp}.tar.gz"
   $KUBECTL exec cassandra-0 -- /bin/rm /data/cassandra-backup.tar.gz
@@ -1012,6 +1013,7 @@ function restore_cassandra_snapshot() {
   echo "Applying schema..."
   $KUBECTL exec cassandra-0 -- /bin/bash -c 'cd /data/restore; /usr/bin/cqlsh < /data/restore/keyspaces.cqlsh'
   echo "Loading SSTables..."
+  # shellcheck disable=SC2016
   $KUBECTL exec cassandra-0 -- /bin/bash -c 'cd /data/restore; for i in $(find . -type d -name arcus-backup); do cp $i/* $i/../.. && /opt/cassandra/bin/sstableloader -d localhost $(echo $i | sed "s/snapshots\/arcus-backup//"); done'
   $KUBECTL exec cassandra-0 -- /bin/rm -rf /data/restore
   echo "Restore complete. You may need to restart some pods to make the system consistent."
