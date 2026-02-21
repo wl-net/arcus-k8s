@@ -18,6 +18,7 @@ config/
   service/                   # Service and Ingress definitions
   stateful/                  # Prometheus & Grafana StatefulSets
   certprovider/              # Let's Encrypt issuers
+  cronjob/                   # Scheduled jobs (hub-keystore renewal)
   jobs/                      # One-shot Kubernetes jobs
   istio/                     # Egress rules (Twilio, Sendgrid, SmartyStreets, APNS)
   templates/                 # Templates applied at runtime (MetalLB address pool)
@@ -112,7 +113,7 @@ Secrets are written to `secret/` and local overlay state to `overlays/<overlay>-
 - MetalLB is opt-in (enable via `./arcuscmd.sh configure` or write `yes` to `.config/metallb`). When enabled, it provides LoadBalancer IPs using the address pool template in `config/templates/metallb.yml`. Configure the subnet to a static range excluded from your DHCP scope.
 - Istio is installed via Helm charts, pinned to `$ISTIO_VERSION`. Egress rules in `config/istio/` control outbound traffic to external APIs (Twilio, Sendgrid, SmartyStreets, APNS).
 - cert-manager handles Let's Encrypt certificates. Start with the staging issuer and switch to production via `./arcuscmd.sh useprodcert` once DNS is verified.
-- Hub-bridge requires PKCS#8 keys; run `./arcuscmd.sh updatehubkeystore` after obtaining a production certificate.
+- Hub-bridge requires PKCS#8 keys; run `./arcuscmd.sh updatehubkeystore` after obtaining a production certificate. A CronJob (`hub-keystore-renewal`) runs every 6 hours to automatically detect cert-manager renewals of `nginx-production-tls` and recreate the `hub-keystore` secret + restart hub-bridge. It uses an `arcus.io/source-resource-version` annotation for idempotency. To test manually: `kubectl create job --from=cronjob/hub-keystore-renewal hub-keystore-test`.
 
 ## Per-Node Configuration (`.config/`)
 
