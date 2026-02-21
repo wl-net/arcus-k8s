@@ -27,11 +27,11 @@ Kubernetes deployment infrastructure for [Arcus Smart Home](https://github.com/a
 
 # Prerequisites
 
-You either access to a Kubernetes environment, or suitable bare metal to run one on. You should have 12GB or more of RAM, and at least 20GB of disk space. In order to obtain browser-trusted certificates, you will need to have Arcus publicly accessible, on a well known port (80/443). Using self-signed certificates is not recommended, and will not be supported by the iOS or Android applications (outside of modifying the trust store yourself).
+You either need access to a Kubernetes environment, or suitable bare metal to run one on. You should have 12GB or more of RAM, and at least 20GB of disk space. In order to obtain browser-trusted certificates, you will need to have Arcus publicly accessible, on a well known port (80/443). Using self-signed certificates is not recommended, and will not be supported by the iOS or Android applications (outside of modifying the trust store yourself).
 
 In order to create an account, you will need to have a smarty streets account (for address verification).
 
-For notifications, you must create a Twilio and Sendgrid account. APNS and GCM support is disabled by default and must be configured if desired. Typically this also requires that you distribute and side-load the app onto you device.
+For notifications, you must create a Twilio and Sendgrid account. APNS and GCM support is disabled by default and must be configured if desired. Typically this also requires that you distribute and side-load the app onto your device.
 
 # Keeping Up to Date
 
@@ -131,7 +131,7 @@ You can view cert-manager logs if you don't get a certificate:
 
 Unfortunately, the hub-bridge doesn't work out of the box because it expects a Java Key Store, something we can't provide with cert-manager. Arcusplatform now supports PKCS#8 keys as well (via netty's internal support for PKCS#8), but the private key that cert-manager generates is in PKCS#1 format. As a result, you'll have to manually convert the private key to PKCS#8.
 
-This can be acomplished by running `./arcuscmd.sh updatehubkeystore` once you have production certificates (see above).
+This can be accomplished by running `./arcuscmd.sh updatehubkeystore` once you have production certificates (see above).
 
 ## Backups
 
