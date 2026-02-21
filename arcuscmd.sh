@@ -41,6 +41,10 @@ if [[ ${1:-help} != 'help' && ${1:-help} != 'setup' && ${1:-help} != 'configure'
   fi
 fi
 
+if [[ ${1:-help} != 'help' && ${1:-help} != 'setup' && ${1:-help} != 'configure' && ${1:-help} != 'verifyconfig' && ${1:-help} != 'shell-setup' && ${1:-help} != 'validate' && ${1:-help} != 'installk3s' && ${1:-help} != 'install' ]]; then
+  require_config
+fi
+
 function print_available() {
   cat <<ENDOFDOC
 arcuscmd: manage your arcus deployment

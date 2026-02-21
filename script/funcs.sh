@@ -360,19 +360,17 @@ function load() {
   fi
 }
 
+function require_config() {
+  load
+  if [[ -z "${ARCUS_DOMAIN_NAME:-}" || "${ARCUS_DOMAIN_NAME:-}" == "example.com" ]]; then
+    echo "Error: Arcus is not configured. Run './arcuscmd.sh configure' first."
+    exit 1
+  fi
+}
+
 function apply() {
   # Apply the configuration
   load
-
-  if [[ -z "${ARCUS_DOMAIN_NAME:-}" || "${ARCUS_DOMAIN_NAME:-}" == "example.com" ]]; then
-    echo "Error: Arcus is not configured. Please run './arcuscmd.sh configure' first."
-    exit 1
-  fi
-
-  if [[ -z "${ARCUS_ADMIN_EMAIL:-}" || "${ARCUS_ADMIN_EMAIL:-}" == "me@example.com" ]]; then
-    echo "Error: Arcus is not configured. Please run './arcuscmd.sh configure' first."
-    exit 1
-  fi
 
   if [ ! -d "overlays/${ARCUS_OVERLAY_NAME}" ] && [ "${ARCUS_OVERLAY_NAME}" != 'local-production-local' ]; then
     echo "Could not find overlay ${ARCUS_OVERLAY_NAME}"
