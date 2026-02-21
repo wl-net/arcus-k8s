@@ -54,7 +54,8 @@ Setup:
 
 Deploy:
   apply               Apply the current configuration to the cluster
-  deploy [service...] Rolling restart of services (all if none specified)
+  deploy [svc...]       Rolling restart of services (all if none specified)
+                          --pull  Force re-pull images before restarting
   update              Pull latest changes and show what changed
   rollback            Revert to a previous version
   history             Show recent update history

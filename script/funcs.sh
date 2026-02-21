@@ -91,6 +91,12 @@ function deploy_platform() {
     return 1
   }
 
+  local pull=0
+  if [[ "${1:-}" == "--pull" ]]; then
+    pull=1
+    shift
+  fi
+
   local targets
   if [[ $# -gt 0 ]]; then
     targets="$*"
@@ -103,6 +109,23 @@ function deploy_platform() {
     done
   else
     targets="$APPS"
+  fi
+
+  if [[ $pull -eq 1 ]]; then
+    for app in $targets; do
+      local image
+      image=$($KUBECTL get deployment/"$app" -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null) || true
+      if [[ -z "$image" ]]; then
+        echo "Warning: could not determine image for ${app}, skipping pull"
+        continue
+      fi
+      echo "Pulling ${image}..."
+      if sudo crictl pull "$image" 2>/dev/null; then
+        echo "Pulled ${image}."
+      else
+        echo "Failed to pull ${image}, continuing with cached image."
+      fi
+    done
   fi
 
   for app in $targets; do
@@ -201,10 +224,10 @@ function setup_istio() {
 }
 
 function install() {
-  $KUBECTL label namespace default istio-injection=enabled --overwrite
+  $KUBECTL label namespace default istio-injection=enabled --overwrite &>/dev/null || true
 
   local count
-  count=$($KUBECTL get Issuers,ClusterIssuers,Certificates,CertificateRequests,Orders,Challenges --all-namespaces | grep cert-manager.io -c)
+  count=$($KUBECTL get Issuers,ClusterIssuers,Certificates,CertificateRequests,Orders,Challenges --all-namespaces 2>/dev/null | grep -c cert-manager.io || true)
   if [[ $count -gt 0 ]]; then
     echo "Removing cert-manager, please see https://docs.cert-manager.io/en/latest/tasks/uninstall/kubernetes.html for more details"
     set +e
@@ -217,7 +240,7 @@ function install() {
   fi
   set +e
   $KUBECTL create namespace cert-manager 2>/dev/null
-  $KUBECTL label namespace cert-manager certmanager.k8s.io/disable-validation=true --overwrite=true
+  $KUBECTL label namespace cert-manager certmanager.k8s.io/disable-validation=true --overwrite=true &>/dev/null
   set -e
 
   if [[ -z "${DEPLOYMENT_TYPE:-}" ]]; then
@@ -231,6 +254,9 @@ function install() {
   if [[ $DEPLOYMENT_TYPE == 'local' ]]; then
     $KUBECTL apply -f "https://raw.githubusercontent.com/metallb/metallb/${METALLB_VERSION}/config/manifests/metallb-native.yaml"
   fi
+  # Delete completed admission jobs — their spec.template is immutable and
+  # kubectl apply will fail if they already exist from a previous install.
+  $KUBECTL delete job -n ingress-nginx ingress-nginx-admission-create ingress-nginx-admission-patch 2>/dev/null || true
   $KUBECTL apply -f "https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-${NGINX_VERSION}/deploy/static/provider/baremetal/deploy.yaml"
   $KUBECTL apply -f "https://github.com/cert-manager/cert-manager/releases/download/${CERT_MANAGER_VERSION}/cert-manager.yaml"
 
@@ -279,7 +305,7 @@ function connectivity_check() {
   for url in "${domains[@]}"; do
     local host="${url#https://}"
     local status enddate cert_info
-    status=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "$url")
+    status=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "$url") || status="000"
     enddate=$(echo | openssl s_client -connect "${host}:443" -servername "$host" 2>/dev/null \
       | openssl x509 -noout -enddate 2>/dev/null | cut -d= -f2)
     if [[ -n "$enddate" ]]; then
