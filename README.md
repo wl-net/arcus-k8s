@@ -29,7 +29,7 @@ Kubernetes deployment infrastructure for [Arcus Smart Home](https://github.com/a
 
 You either need access to a Kubernetes environment, or suitable bare metal to run one on. You should have 12GB or more of RAM, and at least 20GB of disk space. In order to obtain browser-trusted certificates, you will need to have Arcus publicly accessible, on a well known port (80/443). Using self-signed certificates is not recommended, and will not be supported by the iOS or Android applications (outside of modifying the trust store yourself).
 
-In order to create an account, you will need to have a smarty streets account (for address verification).
+In order to create an account, you will need to have a SmartyStreets account (for address verification).
 
 For notifications, you must create a Twilio and Sendgrid account. APNS and GCM support is disabled by default and must be configured if desired. Typically this also requires that you distribute and side-load the app onto your device.
 
@@ -46,7 +46,7 @@ It is recommended to do this at least weekly. Running `install` and `apply` toge
 
 # Run locally (k3s) - Recommended
 
-[k3s by rancher](https://k3s.io/) is the recommended means of installing Kubernetes, as it's more trimmed down and allows this project to use more modern versions of kubernetes projects, like istio.
+[k3s by rancher](https://k3s.io/) is the recommended means of installing Kubernetes, as it's more trimmed down and allows this project to use more modern versions of Kubernetes projects, like istio.
 
 Simply execute:
 
@@ -56,7 +56,7 @@ and choose "local" and then "k3s"
 
 ## Configuring networking
 
-In order to Access the Arcus UI and connect a hub, you will need to configure your network. You have some options when it comes to this. If you are operating in a home environment (e.g. you have NAT and you're behind a gateway), then you have Arcus run a "LoadBalancer" on your local network. For this configuration, you will need to exclude a region of your network from DHCP. For example, if you are using the 192.168.1.1/24 subnet, then you should configure DHCP to assign addresses between 192.168.1.2-192.168.150, and use 192.168.151-192.168.155 for Arcus.
+In order to access the Arcus UI and connect a hub, you will need to configure your network. You have some options when it comes to this. If you are operating in a home environment (e.g. you have NAT and you're behind a gateway), then you have Arcus run a "LoadBalancer" on your local network. For this configuration, you will need to exclude a region of your network from DHCP. For example, if you are using the 192.168.1.1/24 subnet, then you should configure DHCP to assign addresses between 192.168.1.2-192.168.150, and use 192.168.151-192.168.155 for Arcus.
 
 Once you have configured this, and Arcus is running you should check to see which IP addresses in that space are actually being used. You can either do this via kubectl, or with the `info` utility in arcuscmd.
 
@@ -113,7 +113,7 @@ sysctl -w net.ipv4.ip_forward=1
 
 Or configure something similar in your router.
 
-For cloud hosting, this is very similar, but you can use the 127.0.0.1/24 subnet instead, e.g. 172.0.0.5-127.0.10
+For cloud hosting, this is very similar, but you can use the 172.0.0.1/24 subnet instead, e.g. 172.0.0.5-172.0.0.10
 
 ## Using a production certificate
 
