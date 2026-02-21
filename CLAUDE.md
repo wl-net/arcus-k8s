@@ -48,7 +48,9 @@ Secrets are written to `secret/` and local overlay state to `overlays/<overlay>-
 ```bash
 # Setup
 ./arcuscmd.sh setup          # Full first-time cluster init (interactive)
-./arcuscmd.sh install        # Install/upgrade Kubernetes components
+./arcuscmd.sh k3s            # Install or upgrade k3s
+./arcuscmd.sh install        # Install/upgrade all infrastructure components
+./arcuscmd.sh install nginx  # Install/upgrade a single component (metallb, nginx, cert-manager, istio)
 ./arcuscmd.sh configure      # Interactive configuration wizard
 ./arcuscmd.sh shell-setup    # Add 'arcuscmd' shortcut to your shell
 
