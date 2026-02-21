@@ -76,6 +76,7 @@ Secrets are written to `secret/` and local overlay state to `overlays/<overlay>-
 ./arcuscmd.sh logs <app>     # Get logs for a service (targets running pods only)
 ./arcuscmd.sh shell <app>    # Get an interactive shell on a pod
 ./arcuscmd.sh dbshell        # Open Cassandra CQL shell
+./arcuscmd.sh modelmanager   # Run model manager jobs (provision database schemas)
 ./arcuscmd.sh deletepod <app>  # Delete pods matching an application
 ./arcuscmd.sh help           # List all commands
 ```
@@ -92,6 +93,7 @@ Secrets are written to `secret/` and local overlay state to `overlays/<overlay>-
 
 ### Secrets
 - Secrets are generated once by `configure` and stored in `secret/`. Re-running configure will not overwrite existing secrets.
+- Secrets are pushed to the cluster by `apply` (not `configure`).
 - Never commit the `secret/` directory.
 - Run `./arcuscmd.sh verifyconfig` to check all required secrets are present.
 
@@ -152,8 +154,9 @@ Arcus requires accounts with:
 ### Database
 Cassandra is the only stateful component that needs backup:
 ```bash
-./backup-cassandra-snapshot.sh        # Snapshot-based backup (preferred)
-./restore-cassandra-snapshot.sh       # Restore from snapshot backup
+./arcuscmd.sh backupdb               # Snapshot-based backup
+./arcuscmd.sh restoredb <file>       # Restore from snapshot backup
+./arcuscmd.sh restoredb-full <file>  # Full restore (destructive, replaces data dir)
 ```
 
 ## CI

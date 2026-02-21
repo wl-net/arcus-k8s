@@ -15,7 +15,7 @@ Kubernetes deployment infrastructure for [Arcus Smart Home](https://github.com/a
 ./arcuscmd.sh install            # Install infrastructure (nginx-ingress, cert-manager, istio)
 ./arcuscmd.sh configure          # Configure domain, secrets, and external services
 ./arcuscmd.sh apply              # Deploy Arcus to the cluster
-./arcuscmd.sh provision          # Initialize Cassandra and Kafka (first time only)
+./arcuscmd.sh modelmanager       # Provision database schemas (first time only)
 
 # Day-to-day
 ./arcuscmd.sh update             # Pull latest changes and see what changed

@@ -106,14 +106,14 @@ setup)
     install
     configure
     apply
-    provision
+    runmodelmanager
     info
   else
     echo "For cloud deployments, ensure kubectl is configured to point at your cluster, then run:"
     echo "  ./arcuscmd.sh install"
     echo "  ./arcuscmd.sh configure"
     echo "  ./arcuscmd.sh apply"
-    echo "  ./arcuscmd.sh provision"
+    echo "  ./arcuscmd.sh modelmanager"
   fi
   ;;
 setupmetrics)
@@ -121,9 +121,6 @@ setupmetrics)
   ;;
 apply)
   apply
-  ;;
-provision)
-  provision
   ;;
 k3s)
   setup_k3s
