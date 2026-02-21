@@ -71,7 +71,9 @@ Status:
   verifyconfig        Verify that all configuration and secrets are present
 
 Operations:
-  backupdb            Backup Cassandra database
+  backupdb            Snapshot and backup Cassandra database
+  restoredb <file>    Restore Cassandra from a snapshot backup
+  restoredb-full <file>  Full Cassandra restore (destructive, replaces data dir)
   backupconfig        Backup local configuration to a tarball
   setupmetrics        Setup Grafana metrics
   deletepod           Delete pods matching an application
@@ -184,6 +186,12 @@ deletepod)
   ;;
 backupdb)
   backup_cassandra
+  ;;
+restoredb)
+  restore_cassandra_snapshot "${@:2}"
+  ;;
+restoredb-full)
+  restore_cassandra_full "${@:2}"
   ;;
 backupconfig)
   backup_config
