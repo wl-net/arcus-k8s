@@ -27,7 +27,7 @@ spec:
               name: cluster-config
         env:
         - name: JAVA_OPTS
-          value: "-Xms64m -Xmx1024m -Dlogback.configurationFile=/config/logback.xml"
+          value: "-Xms384m -Xmx1024m -Dlogback.configurationFile=/config/logback.xml"
         - name: DRIVER_POOL_SIZE
           value: "10"
         - name: BILLING_URL
