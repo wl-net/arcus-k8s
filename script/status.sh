@@ -40,7 +40,7 @@ function arcus_status() {
 
   # Show pods that are not fully healthy
   local unhealthy
-  unhealthy=$($KUBECTL get pods --field-selector=status.phase!=Succeeded -o wide --no-headers 2>/dev/null | awk '
+  unhealthy=$($KUBECTL get pods -l '!job-name' -o wide --no-headers 2>/dev/null | awk '
     # Not Running (CrashLoopBackOff, Pending, Error, Init:*, etc.)
     $3 != "Running" { print; next }
     # Running but not all containers ready (e.g. 0/1)
@@ -57,7 +57,7 @@ function arcus_status() {
 
   # Show pods with high restart counts
   local restarting
-  restarting=$($KUBECTL get pods --no-headers 2>/dev/null | awk '$4+0 >= 3 { print }')
+  restarting=$($KUBECTL get pods -l '!job-name' --no-headers 2>/dev/null | awk '$4+0 >= 3 { print }')
   if [[ -n "$restarting" ]]; then
     echo ""
     echo "Pods with restarts:"
