@@ -38,9 +38,6 @@ resources:
 - clusterrole.yaml
 - cronjob/hub-keystore-renewal.yaml
 - stateful/prometheus.yaml
-- stateful/grafana-datasources.yaml
-- stateful/grafana-alerting.yaml
-- stateful/grafana-dashboards-provider.yaml
 - stateful/loki.yaml
 - logging/alloy.yaml
 - service/grafana.yaml
@@ -51,6 +48,15 @@ configMapGenerator:
   files:
   - dashboards/arcus-overview.json
   - dashboards/arcus-platform.json
+- name: grafana-datasources
+  files:
+  - grafana/datasources.yaml
+- name: grafana-alerting
+  files:
+  - grafana/alerting.yaml
+- name: grafana-dashboards-provider
+  files:
+  - grafana/dashboards.yaml
 - name: prometheus-config
   files:
   - extrafiles/prometheus.yaml
