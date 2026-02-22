@@ -59,7 +59,8 @@ data:
         labels:
           severity: critical
         annotations:
-          summary: '{{ $labels.job }} is down (instance {{ $labels.instance }})'
+          summary: '{{ $labels.job }} is down'
+          description: '{{ $labels.job }} ({{ $labels.instance }}) has been down for more than 5 minutes.'
       - uid: pod-crash-looping
         title: Pod Crash Looping
         condition: C
@@ -107,7 +108,8 @@ data:
         labels:
           severity: critical
         annotations:
-          summary: '{{ $labels.job }} is crash looping (instance {{ $labels.instance }})'
+          summary: '{{ $labels.job }} is crash looping'
+          description: '{{ $labels.job }} ({{ $labels.instance }}) has restarted multiple times in the last 15 minutes.'
       - uid: cert-expiring-soon
         title: Certificate Expiring Soon
         condition: C
@@ -155,4 +157,5 @@ data:
         labels:
           severity: critical
         annotations:
-          summary: '{{ $labels.name }} in {{ $labels.namespace }} expires in {{ $value }} days'
+          summary: 'Certificate {{ $labels.name }} expiring soon'
+          description: '{{ $labels.name }} in namespace {{ $labels.namespace }} expires in {{ $value }} days.'

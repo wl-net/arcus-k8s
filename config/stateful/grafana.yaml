@@ -48,6 +48,8 @@ spec:
               name: shared
         - name: GF_SMTP_ENABLED
           value: "true"
+        - name: GF_UNIFIED_ALERTING_SCREENSHOTS_CAPTURE
+          value: "true"
           #ports:
           #- containerPort: 3000
           #name: tcp-3000
