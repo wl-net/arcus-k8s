@@ -127,17 +127,17 @@
       "id": 2,
       "targets": [
         {
-          "expr": "bridge_sessions_active",
+          "expr": "max(bridge_sessions_active) by (job)",
           "legendFormat": "Active",
           "refId": "A"
         },
         {
-          "expr": "bridge_sessions_hub_total",
+          "expr": "max(bridge_sessions_hub_total) by (job)",
           "legendFormat": "Hub Total",
           "refId": "B"
         },
         {
-          "expr": "bridge_sessions_hub_authorized",
+          "expr": "max(bridge_sessions_hub_authorized) by (job)",
           "legendFormat": "Hub Authorized",
           "refId": "C"
         }
@@ -169,22 +169,22 @@
       "id": 3,
       "targets": [
         {
-          "expr": "bridge_sessions_hub_cellbackup",
+          "expr": "max(bridge_sessions_hub_cellbackup) by (job)",
           "legendFormat": "Cell Backup",
           "refId": "A"
         },
         {
-          "expr": "bridge_sessions_hub_unauth_handshaking",
+          "expr": "max(bridge_sessions_hub_unauth_handshaking) by (job)",
           "legendFormat": "Handshaking",
           "refId": "B"
         },
         {
-          "expr": "bridge_sessions_hub_unauth_registering",
+          "expr": "max(bridge_sessions_hub_unauth_registering) by (job)",
           "legendFormat": "Registering",
           "refId": "C"
         },
         {
-          "expr": "bridge_sessions_hub_unauth_orphaned",
+          "expr": "max(bridge_sessions_hub_unauth_orphaned) by (job)",
           "legendFormat": "Orphaned",
           "refId": "D"
         }
@@ -217,22 +217,22 @@
       "id": 4,
       "targets": [
         {
-          "expr": "rate(bridge_hub_bytes_received[5m])",
+          "expr": "sum(rate(bridge_hub_bytes_received[5m])) by (job)",
           "legendFormat": "Hub RX",
           "refId": "A"
         },
         {
-          "expr": "rate(bridge_hub_bytes_sent[5m])",
+          "expr": "sum(rate(bridge_hub_bytes_sent[5m])) by (job)",
           "legendFormat": "Hub TX",
           "refId": "B"
         },
         {
-          "expr": "rate(bridge_client_bytes_received[5m])",
+          "expr": "sum(rate(bridge_client_bytes_received[5m])) by (job)",
           "legendFormat": "Client RX",
           "refId": "C"
         },
         {
-          "expr": "rate(bridge_client_bytes_sent[5m])",
+          "expr": "sum(rate(bridge_client_bytes_sent[5m])) by (job)",
           "legendFormat": "Client TX",
           "refId": "D"
         }
@@ -265,12 +265,12 @@
       "id": 5,
       "targets": [
         {
-          "expr": "rate(bridge_ssl_handshake_successes[5m])",
+          "expr": "sum(rate(bridge_ssl_handshake_successes[5m])) by (job)",
           "legendFormat": "Successes",
           "refId": "A"
         },
         {
-          "expr": "rate(bridge_ssl_handshake_failures[5m])",
+          "expr": "sum(rate(bridge_ssl_handshake_failures[5m])) by (job)",
           "legendFormat": "Failures",
           "refId": "B"
         }
@@ -302,22 +302,22 @@
       "id": 6,
       "targets": [
         {
-          "expr": "rate(bridge_authz_authorized[5m])",
+          "expr": "sum(rate(bridge_authz_authorized[5m])) by (job)",
           "legendFormat": "Authorized",
           "refId": "A"
         },
         {
-          "expr": "rate(bridge_authz_unauthorized_noplace[5m])",
+          "expr": "sum(rate(bridge_authz_unauthorized_noplace[5m])) by (job)",
           "legendFormat": "Unauth: No Place",
           "refId": "B"
         },
         {
-          "expr": "rate(bridge_authz_unauthorized_wrongperson[5m])",
+          "expr": "sum(rate(bridge_authz_unauthorized_wrongperson[5m])) by (job)",
           "legendFormat": "Unauth: Wrong Person",
           "refId": "C"
         },
         {
-          "expr": "rate(bridge_authz_unauthorized_wrongplace[5m])",
+          "expr": "sum(rate(bridge_authz_unauthorized_wrongplace[5m])) by (job)",
           "legendFormat": "Unauth: Wrong Place",
           "refId": "D"
         }
@@ -350,7 +350,7 @@
       "id": 7,
       "targets": [
         {
-          "expr": "rate(bridge_hub_heartbeat[5m])",
+          "expr": "sum(rate(bridge_hub_heartbeat[5m])) by (job)",
           "legendFormat": "Heartbeats",
           "refId": "A"
         }
@@ -395,12 +395,12 @@
       "id": 10,
       "targets": [
         {
-          "expr": "jvm_memory_heap_used",
+          "expr": "max(jvm_memory_heap_used) by (job)",
           "legendFormat": "{{job}} used",
           "refId": "A"
         },
         {
-          "expr": "jvm_memory_heap_max",
+          "expr": "max(jvm_memory_heap_max) by (job)",
           "legendFormat": "{{job}} max",
           "refId": "B"
         }
@@ -433,12 +433,12 @@
       "id": 11,
       "targets": [
         {
-          "expr": "jvm_memory_non_heap_used",
+          "expr": "max(jvm_memory_non_heap_used) by (job)",
           "legendFormat": "{{job}} used",
           "refId": "A"
         },
         {
-          "expr": "jvm_memory_non_heap_committed",
+          "expr": "max(jvm_memory_non_heap_committed) by (job)",
           "legendFormat": "{{job}} committed",
           "refId": "B"
         }
@@ -471,12 +471,12 @@
       "id": 12,
       "targets": [
         {
-          "expr": "rate(jvm_gc_Copy_count[5m])",
+          "expr": "sum(rate(jvm_gc_Copy_count[5m])) by (job)",
           "legendFormat": "{{job}} Young GC",
           "refId": "A"
         },
         {
-          "expr": "rate(jvm_gc_MarkSweepCompact_count[5m])",
+          "expr": "sum(rate(jvm_gc_MarkSweepCompact_count[5m])) by (job)",
           "legendFormat": "{{job}} Full GC",
           "refId": "B"
         }
@@ -509,12 +509,12 @@
       "id": 13,
       "targets": [
         {
-          "expr": "rate(jvm_gc_Copy_time[5m])",
+          "expr": "sum(rate(jvm_gc_Copy_time[5m])) by (job)",
           "legendFormat": "{{job}} Young GC",
           "refId": "A"
         },
         {
-          "expr": "rate(jvm_gc_MarkSweepCompact_time[5m])",
+          "expr": "sum(rate(jvm_gc_MarkSweepCompact_time[5m])) by (job)",
           "legendFormat": "{{job}} Full GC",
           "refId": "B"
         }
@@ -546,17 +546,17 @@
       "id": 14,
       "targets": [
         {
-          "expr": "jvm_threads_count",
+          "expr": "max(jvm_threads_count) by (job)",
           "legendFormat": "{{job}} total",
           "refId": "A"
         },
         {
-          "expr": "jvm_threads_blocked_count",
+          "expr": "max(jvm_threads_blocked_count) by (job)",
           "legendFormat": "{{job}} blocked",
           "refId": "B"
         },
         {
-          "expr": "jvm_threads_deadlock_count",
+          "expr": "max(jvm_threads_deadlock_count) by (job)",
           "legendFormat": "{{job}} deadlock",
           "refId": "C"
         }
@@ -589,7 +589,7 @@
       "id": 15,
       "targets": [
         {
-          "expr": "jvm_attribute_uptime / 1000",
+          "expr": "max(jvm_attribute_uptime) by (job) / 1000",
           "legendFormat": "{{job}}",
           "refId": "A"
         }
@@ -634,22 +634,22 @@
       "id": 20,
       "targets": [
         {
-          "expr": "rate(dao_read_time[5m]) / rate(dao_read_time_count[5m])",
+          "expr": "sum(rate(dao_read_time[5m])) by (job) / sum(rate(dao_read_time_count[5m])) by (job)",
           "legendFormat": "{{job}} read",
           "refId": "A"
         },
         {
-          "expr": "rate(dao_insert_time[5m]) / rate(dao_insert_time_count[5m])",
+          "expr": "sum(rate(dao_insert_time[5m])) by (job) / sum(rate(dao_insert_time_count[5m])) by (job)",
           "legendFormat": "{{job}} insert",
           "refId": "B"
         },
         {
-          "expr": "rate(dao_update_time[5m]) / rate(dao_update_time_count[5m])",
+          "expr": "sum(rate(dao_update_time[5m])) by (job) / sum(rate(dao_update_time_count[5m])) by (job)",
           "legendFormat": "{{job}} update",
           "refId": "C"
         },
         {
-          "expr": "rate(dao_delete_time[5m]) / rate(dao_delete_time_count[5m])",
+          "expr": "sum(rate(dao_delete_time[5m])) by (job) / sum(rate(dao_delete_time_count[5m])) by (job)",
           "legendFormat": "{{job}} delete",
           "refId": "D"
         }
@@ -682,22 +682,22 @@
       "id": 21,
       "targets": [
         {
-          "expr": "rate(dao_read_time_count[5m])",
+          "expr": "sum(rate(dao_read_time_count[5m])) by (job)",
           "legendFormat": "{{job}} reads",
           "refId": "A"
         },
         {
-          "expr": "rate(dao_insert_time_count[5m])",
+          "expr": "sum(rate(dao_insert_time_count[5m])) by (job)",
           "legendFormat": "{{job}} inserts",
           "refId": "B"
         },
         {
-          "expr": "rate(dao_update_time_count[5m])",
+          "expr": "sum(rate(dao_update_time_count[5m])) by (job)",
           "legendFormat": "{{job}} updates",
           "refId": "C"
         },
         {
-          "expr": "rate(dao_delete_time_count[5m])",
+          "expr": "sum(rate(dao_delete_time_count[5m])) by (job)",
           "legendFormat": "{{job}} deletes",
           "refId": "D"
         }
@@ -741,27 +741,27 @@
       "id": 30,
       "targets": [
         {
-          "expr": "rate(scheduler_command_scheduled[5m])",
+          "expr": "sum(rate(scheduler_command_scheduled[5m])) by (job)",
           "legendFormat": "Scheduled",
           "refId": "A"
         },
         {
-          "expr": "rate(scheduler_command_sent[5m])",
+          "expr": "sum(rate(scheduler_command_sent[5m])) by (job)",
           "legendFormat": "Sent",
           "refId": "B"
         },
         {
-          "expr": "rate(scheduler_command_error[5m])",
+          "expr": "sum(rate(scheduler_command_error[5m])) by (job)",
           "legendFormat": "Error",
           "refId": "C"
         },
         {
-          "expr": "rate(scheduler_command_expired[5m])",
+          "expr": "sum(rate(scheduler_command_expired[5m])) by (job)",
           "legendFormat": "Expired",
           "refId": "D"
         },
         {
-          "expr": "rate(scheduler_command_rescheduled[5m])",
+          "expr": "sum(rate(scheduler_command_rescheduled[5m])) by (job)",
           "legendFormat": "Rescheduled",
           "refId": "E"
         }
@@ -793,22 +793,22 @@
       "id": 31,
       "targets": [
         {
-          "expr": "scheduler_partition_count",
+          "expr": "max(scheduler_partition_count) by (job)",
           "legendFormat": "Total",
           "refId": "A"
         },
         {
-          "expr": "scheduler_partition_pending",
+          "expr": "max(scheduler_partition_pending) by (job)",
           "legendFormat": "Pending",
           "refId": "B"
         },
         {
-          "expr": "rate(scheduler_partition_completed[5m])",
+          "expr": "sum(rate(scheduler_partition_completed[5m])) by (job)",
           "legendFormat": "Completed /s",
           "refId": "C"
         },
         {
-          "expr": "rate(scheduler_partition_errors[5m])",
+          "expr": "sum(rate(scheduler_partition_errors[5m])) by (job)",
           "legendFormat": "Errors /s",
           "refId": "D"
         }
@@ -852,17 +852,17 @@
       "id": 40,
       "targets": [
         {
-          "expr": "service_platform_hubregistry_online",
+          "expr": "max(service_platform_hubregistry_online) by (job)",
           "legendFormat": "Online",
           "refId": "A"
         },
         {
-          "expr": "service_platform_hubregistry_disconnected",
+          "expr": "max(service_platform_hubregistry_disconnected) by (job)",
           "legendFormat": "Disconnected",
           "refId": "B"
         },
         {
-          "expr": "service_platform_hubregistry_timedout",
+          "expr": "max(service_platform_hubregistry_timedout) by (job)",
           "legendFormat": "Timed Out",
           "refId": "C"
         }
@@ -894,12 +894,12 @@
       "id": 41,
       "targets": [
         {
-          "expr": "drivers_connected",
+          "expr": "max(drivers_connected) by (job)",
           "legendFormat": "Connected",
           "refId": "A"
         },
         {
-          "expr": "drivers_disconnected",
+          "expr": "max(drivers_disconnected) by (job)",
           "legendFormat": "Disconnected",
           "refId": "B"
         }
@@ -932,12 +932,12 @@
       "id": 42,
       "targets": [
         {
-          "expr": "rate(notifications_sent[5m])",
+          "expr": "sum(rate(notifications_sent[5m])) by (job)",
           "legendFormat": "Sent",
           "refId": "A"
         },
         {
-          "expr": "rate(notifications_failed[5m])",
+          "expr": "sum(rate(notifications_failed[5m])) by (job)",
           "legendFormat": "Failed",
           "refId": "B"
         }
@@ -981,7 +981,7 @@
       "id": 50,
       "targets": [
         {
-          "expr": "{__name__=~\".+_pool_tasks_running\"}",
+          "expr": "max({__name__=~\".+_pool_tasks_running\"}) by (job, __name__)",
           "legendFormat": "{{job}} {{__name__}}",
           "refId": "A"
         }
@@ -1013,7 +1013,7 @@
       "id": 51,
       "targets": [
         {
-          "expr": "{__name__=~\".+_pool_tasks_queued\"}",
+          "expr": "max({__name__=~\".+_pool_tasks_queued\"}) by (job, __name__)",
           "legendFormat": "{{job}} {{__name__}}",
           "refId": "A"
         }
