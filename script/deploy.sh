@@ -98,6 +98,9 @@ function apply() {
   $KUBECTL apply -f config/stateful/prometheus.yaml
   $KUBECTL apply -f config/stateful/grafana-datasources.yaml
   $KUBECTL apply -f config/stateful/grafana-alerting.yaml
+  $KUBECTL apply -f config/stateful/grafana-dashboards-provider.yaml
+  $KUBECTL delete configmap grafana-dashboards --ignore-not-found > /dev/null
+  $KUBECTL create configmap grafana-dashboards --from-file config/dashboards > /dev/null
   $KUBECTL apply -f config/stateful/loki.yaml
   $KUBECTL apply -f config/logging/alloy.yaml
 

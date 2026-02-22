@@ -70,6 +70,10 @@ spec:
           name: datasources
         - mountPath: /etc/grafana/provisioning/alerting
           name: alerting
+        - mountPath: /etc/grafana/provisioning/dashboards
+          name: dashboards-provider
+        - mountPath: /etc/grafana/provisioning/dashboards/json
+          name: dashboards
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
@@ -82,6 +86,12 @@ spec:
       - name: alerting
         configMap:
           name: grafana-alerting
+      - name: dashboards-provider
+        configMap:
+          name: grafana-dashboards-provider
+      - name: dashboards
+        configMap:
+          name: grafana-dashboards
   volumeClaimTemplates:
   - metadata:
       name: grafana-storage
