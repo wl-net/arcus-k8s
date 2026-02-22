@@ -91,6 +91,7 @@ function apply() {
     $KUBECTL apply -f "overlays/${ARCUS_OVERLAY_NAME}-local/grafana.yaml"
   fi
 
+  $KUBECTL apply -f config/stateful/prometheus.yaml
   $KUBECTL apply -f config/stateful/grafana-datasources.yaml
   $KUBECTL apply -f config/stateful/grafana-alerting.yaml
   $KUBECTL apply -f config/stateful/loki.yaml
