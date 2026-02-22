@@ -72,7 +72,8 @@ function arcus_status() {
   if [[ -n "$inotify_watches" && "$inotify_watches" -lt 524288 ]]; then
     echo ""
     echo "Warning: fs.inotify.max_user_watches is $inotify_watches (recommended: 524288)"
-    echo "  Fix: sudo sysctl fs.inotify.max_user_watches=524288"
+    echo "  Fix now:    sudo sysctl -w fs.inotify.max_user_watches=524288"
+    echo "  Persist:    echo 'fs.inotify.max_user_watches=524288' | sudo tee /etc/sysctl.d/99-inotify.conf"
   fi
 }
 
