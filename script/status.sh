@@ -3,11 +3,66 @@
 
 function arcus_status() {
   load
+
+  # Node health
+  echo "Node:"
+  local warnings=0
+  local mem_avail mem_total mem_pct
+  mem_avail=$(awk '/MemAvailable/ {print $2}' /proc/meminfo)
+  mem_total=$(awk '/MemTotal/ {print $2}' /proc/meminfo)
+  mem_pct=$(( (mem_total - mem_avail) * 100 / mem_total ))
+  local disk_pct
+  disk_pct=$(df --output=pcent / | tail -1 | tr -d ' %')
+  local load_avg
+  load_avg=$(cut -d' ' -f1-3 /proc/loadavg)
+  printf "  %-16s memory %s%%  disk %s%%  load %s\n" "$(hostname)" "${mem_pct}" "${disk_pct}" "$load_avg"
+  if [[ -f /var/run/reboot-required ]]; then
+    echo "  Warning: reboot required"
+    warnings=1
+  fi
+  local inotify_watches
+  inotify_watches=$(cat /proc/sys/fs/inotify/max_user_watches 2>/dev/null) || true
+  if [[ -n "$inotify_watches" && "$inotify_watches" -lt 524288 ]]; then
+    echo "  Warning: fs.inotify.max_user_watches is $inotify_watches (recommended: 524288)"
+    warnings=1
+  fi
+  if [[ $warnings -eq 0 ]]; then
+    echo "  No warnings"
+  fi
+
+  # Application services — show pods, not just deployments
+  echo ""
   echo "Application Services:"
   set +e
   # shellcheck disable=SC2086
   $KUBECTL get deployments $APPS --ignore-not-found
   set -e
+
+  # Show pods that are not fully healthy
+  local unhealthy
+  unhealthy=$($KUBECTL get pods -o wide --no-headers 2>/dev/null | awk '
+    # Not Running
+    $3 != "Running" && $3 != "Completed" { print; next }
+    # Running but not all containers ready (e.g. 0/1)
+    {
+      split($2, a, "/")
+      if (a[1] != a[2]) print
+    }
+  ')
+  if [[ -n "$unhealthy" ]]; then
+    echo ""
+    echo "Unhealthy Pods:"
+    echo "$unhealthy"
+  fi
+
+  # Show pods with high restart counts
+  local restarting
+  restarting=$($KUBECTL get pods --no-headers 2>/dev/null | awk '$4+0 >= 3 { print }')
+  if [[ -n "$restarting" ]]; then
+    echo ""
+    echo "Pods with restarts:"
+    echo "$restarting"
+  fi
 
   local found_stateful=()
   for svc in cassandra kafka zookeeper; do
@@ -66,15 +121,6 @@ function arcus_status() {
 
   echo ""
   infra_versions
-
-  local inotify_watches
-  inotify_watches=$(cat /proc/sys/fs/inotify/max_user_watches 2>/dev/null) || true
-  if [[ -n "$inotify_watches" && "$inotify_watches" -lt 524288 ]]; then
-    echo ""
-    echo "Warning: fs.inotify.max_user_watches is $inotify_watches (recommended: 524288)"
-    echo "  Fix now:    sudo sysctl -w fs.inotify.max_user_watches=524288"
-    echo "  Persist:    echo 'fs.inotify.max_user_watches=524288' | sudo tee /etc/sysctl.d/99-inotify.conf"
-  fi
 }
 
 function infra_versions() {
