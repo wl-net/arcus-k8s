@@ -159,3 +159,101 @@ data:
         annotations:
           summary: 'Certificate {{ $labels.name }} expiring soon'
           description: '{{ $labels.name }} in namespace {{ $labels.namespace }} expires in {{ $value }} days.'
+      - uid: unexpected-hubs
+        title: Unexpected Hub Connections
+        condition: C
+        data:
+        - refId: A
+          relativeTimeRange:
+            from: 300
+            to: 0
+          datasourceUid: prometheus
+          model:
+            expr: bridge_sessions_hub_total
+            instant: true
+            refId: A
+        - refId: B
+          relativeTimeRange:
+            from: 0
+            to: 0
+          datasourceUid: "-100"
+          model:
+            type: reduce
+            expression: A
+            reducer: last
+            refId: B
+        - refId: C
+          relativeTimeRange:
+            from: 0
+            to: 0
+          datasourceUid: "-100"
+          model:
+            type: threshold
+            expression: B
+            conditions:
+            - evaluator:
+                type: gt
+                params:
+                - 4
+              operator:
+                type: and
+              reducer:
+                type: last
+            refId: C
+        for: 5m
+        noDataState: OK
+        execErrState: Alerting
+        labels:
+          severity: critical
+        annotations:
+          summary: 'Unexpected hub connections detected'
+          description: '{{ $value }} hubs connected (expected 4 or fewer). Possible unauthorized hub connection.'
+      - uid: password-changed
+        title: Password Changed
+        condition: C
+        data:
+        - refId: A
+          relativeTimeRange:
+            from: 300
+            to: 0
+          datasourceUid: prometheus
+          model:
+            expr: increase(messages_platform_recv_type_person_passwordchanged[5m])
+            instant: true
+            refId: A
+        - refId: B
+          relativeTimeRange:
+            from: 0
+            to: 0
+          datasourceUid: "-100"
+          model:
+            type: reduce
+            expression: A
+            reducer: last
+            refId: B
+        - refId: C
+          relativeTimeRange:
+            from: 0
+            to: 0
+          datasourceUid: "-100"
+          model:
+            type: threshold
+            expression: B
+            conditions:
+            - evaluator:
+                type: gt
+                params:
+                - 0
+              operator:
+                type: and
+              reducer:
+                type: last
+            refId: C
+        for: 0s
+        noDataState: OK
+        execErrState: Alerting
+        labels:
+          severity: critical
+        annotations:
+          summary: 'Password changed'
+          description: 'A password change was detected on the platform.'
