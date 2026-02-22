@@ -73,6 +73,14 @@ function configure() {
 
   echo "$ARCUS_CERT_TYPE" > "$ARCUS_CONFIGDIR/cert-issuer"
 
+  if [[ -z "${ARCUS_DISCORD_WEBHOOK:-}" ]]; then
+    local discord_url
+    prompt discord_url "Discord webhook URL for notifications (leave empty to skip):"
+    if [[ -n "$discord_url" ]]; then
+      echo "$discord_url" > "$ARCUS_CONFIGDIR/discord-webhook"
+    fi
+  fi
+
   if [[ -z "${ARCUS_CERT_SOLVER:-}" ]]; then
     local cert_solver
     prompt cert_solver "Certificate solver type — http (default) or dns (Route 53 DNS-01): "

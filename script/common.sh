@@ -57,6 +57,7 @@ function load() {
     _load_config ARCUS_ROUTE53_ZONE_ID route53-hosted-zone-id
     _load_config ARCUS_ROUTE53_REGION  route53-region
     _load_config ARCUS_ROUTE53_SET_ID  route53-set-identifier
+    _load_config ARCUS_DISCORD_WEBHOOK discord-webhook
 
     if [[ -z "${ARCUS_METALLB:-}" && -f "$ARCUS_CONFIGDIR/subnet" ]]; then
       # Upgrade path: existing installs that have a subnet configured were

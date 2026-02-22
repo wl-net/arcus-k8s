@@ -158,6 +158,10 @@ function deploy_platform() {
     targets="$APPS"
   fi
 
+  local mode="Rolling restart"
+  [[ $pull -eq 1 ]] && mode="Pull and restart"
+  _notify_start "$mode: $targets"
+
   if [[ $pull -eq 1 ]]; then
     for app in $targets; do
       local image
@@ -181,6 +185,7 @@ function deploy_platform() {
     $KUBECTL rollout status deployment/"$app" --timeout=120s
     echo "${app} ready."
   done
+  _notify_success "$mode complete: $targets"
 }
 
 function killallpods() {

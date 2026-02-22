@@ -94,6 +94,8 @@ ENDOFDOC
 
 }
 
+trap _notify_on_exit EXIT
+
 subcmd=${1:-help}
 
 case "$subcmd" in
@@ -126,6 +128,7 @@ setupmetrics)
   setup_metrics
   ;;
 apply)
+  _notify_start "Applying configuration"
   apply
   ;;
 k3s)
@@ -141,18 +144,22 @@ deploy)
   deploy_platform "${@:2}"
   ;;
 killall)
+  _notify_start "Killing all pods" "$_NOTIFY_COLOR_ORANGE"
   killallpods
   ;;
 updatehubkeystore)
+  _notify_start "Updating hub keystore"
   updatehubkeystore
   ;;
 modelmanager)
+  _notify_start "Running model manager"
   runmodelmanager
   ;;
 shell-setup)
   setup_shell
   ;;
 useprodcert)
+  _notify_start "Switching to production certificate"
   useprodcert
   ;;
 info)
@@ -162,9 +169,11 @@ check)
   connectivity_check
   ;;
 update)
+  _notify_start "Pulling latest changes"
   update "${@:2}"
   ;;
 rollback)
+  _notify_start "Rolling back to previous version" "$_NOTIFY_COLOR_ORANGE"
   rollback
   ;;
 history)
@@ -183,36 +192,46 @@ dbshell)
   shell_exec cassandra /opt/cassandra/bin/cqlsh localhost
   ;;
 deletepod)
+  _notify_start "Deleting pods: ${*:2}"
   delete "${@:2}"
   ;;
 backupdb)
+  _notify_start "Backing up Cassandra"
   backup_cassandra
   ;;
 restoredb)
+  _notify_start "Restoring Cassandra from snapshot" "$_NOTIFY_COLOR_ORANGE"
   restore_cassandra_snapshot "${@:2}"
   ;;
 restoredb-full)
+  _notify_start "Full Cassandra restore" "$_NOTIFY_COLOR_ORANGE"
   restore_cassandra_full "${@:2}"
   ;;
 backupconfig)
   backup_config
   ;;
 silence)
+  _notify_start "Silencing alerts for ${2:-2h}"
   silence_alerts "${2:-2h}"
   ;;
 unsilence)
+  _notify_start "Removing alert silences"
   unsilence_alerts
   ;;
 upgrade-node)
+  _notify_start "Upgrading node packages"
   upgrade_node
   ;;
 reboot-node)
+  _notify_start "Rebooting node" "$_NOTIFY_COLOR_ORANGE"
   reboot_node
   ;;
 drain)
+  _notify_start "Draining traffic" "$_NOTIFY_COLOR_ORANGE"
   route53_drain
   ;;
 resume)
+  _notify_start "Resuming traffic"
   route53_resume
   ;;
 validate)
