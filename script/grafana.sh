@@ -1,20 +1,21 @@
 # shellcheck shell=bash
 # Grafana alert silence management
 
-GRAFANA_TOKEN_FILE="$ARCUS_CONFIGDIR/grafana-api-token"
 GRAFANA_URL="http://grafana-service.default.svc.cluster.local:3000"
 
 _grafana_api() {
+  local token_file="$ARCUS_CONFIGDIR/grafana-api-token"
   local method=$1 path=$2
   shift 2
   kubectl exec deploy/grafana -- curl -sf -X "$method" \
-    -H "Authorization: Bearer $(cat "$GRAFANA_TOKEN_FILE")" \
+    -H "Authorization: Bearer $(cat "$token_file")" \
     -H "Content-Type: application/json" \
     "${GRAFANA_URL}${path}" "$@"
 }
 
 _ensure_grafana_token() {
-  if [[ -f "$GRAFANA_TOKEN_FILE" ]]; then
+  local token_file="$ARCUS_CONFIGDIR/grafana-api-token"
+  if [[ -f "$token_file" ]]; then
     return 0
   fi
 
@@ -54,8 +55,8 @@ _ensure_grafana_token() {
   token=$(echo "$token_response" | python3 -c "import sys,json; print(json.load(sys.stdin)['key'])")
 
   mkdir -p "$ARCUS_CONFIGDIR"
-  echo "$token" > "$GRAFANA_TOKEN_FILE"
-  echo "Grafana API token saved to ${GRAFANA_TOKEN_FILE}"
+  echo "$token" > "$token_file"
+  echo "Grafana API token saved to ${token_file}"
 }
 
 silence_alerts() {
