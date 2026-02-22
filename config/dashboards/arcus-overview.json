@@ -99,6 +99,88 @@
         "x": 0,
         "y": 5
       },
+      "id": 107,
+      "title": "Logs",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 80,
+            "lineWidth": 0,
+            "showPoints": "never",
+            "stacking": {
+              "mode": "normal"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 6
+      },
+      "id": 60,
+      "targets": [
+        {
+          "expr": "sum(count_over_time({app=~\".+\"}[1m])) by (app)",
+          "legendFormat": "{{app}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Log Volume by Service",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 80,
+            "lineWidth": 0,
+            "showPoints": "never",
+            "stacking": {
+              "mode": "normal"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 6
+      },
+      "id": 61,
+      "targets": [
+        {
+          "expr": "sum(count_over_time({app=~\".+\"} |~ \"ERROR|Exception\" [1m])) by (app)",
+          "legendFormat": "{{app}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Error Log Rate",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 14
+      },
       "id": 101,
       "title": "Hub & Client Bridge",
       "type": "row"
@@ -122,7 +204,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 6
+        "y": 15
       },
       "id": 2,
       "targets": [
@@ -164,7 +246,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 6
+        "y": 15
       },
       "id": 3,
       "targets": [
@@ -212,7 +294,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 6
+        "y": 15
       },
       "id": 4,
       "targets": [
@@ -260,7 +342,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 14
+        "y": 23
       },
       "id": 5,
       "targets": [
@@ -297,7 +379,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 14
+        "y": 23
       },
       "id": 6,
       "targets": [
@@ -345,7 +427,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 14
+        "y": 23
       },
       "id": 7,
       "targets": [
@@ -364,246 +446,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 22
-      },
-      "id": 102,
-      "title": "JVM Memory",
-      "type": "row"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "custom": {
-            "fillOpacity": 10,
-            "lineWidth": 2,
-            "showPoints": "never"
-          },
-          "unit": "bytes"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 23
-      },
-      "id": 10,
-      "targets": [
-        {
-          "expr": "max(jvm_memory_heap_used) by (job)",
-          "legendFormat": "{{job}} used",
-          "refId": "A"
-        },
-        {
-          "expr": "max(jvm_memory_heap_max) by (job)",
-          "legendFormat": "{{job}} max",
-          "refId": "B"
-        }
-      ],
-      "title": "Heap Usage",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "custom": {
-            "fillOpacity": 10,
-            "lineWidth": 2,
-            "showPoints": "never"
-          },
-          "unit": "bytes"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 23
-      },
-      "id": 11,
-      "targets": [
-        {
-          "expr": "max(jvm_memory_non_heap_used) by (job)",
-          "legendFormat": "{{job}} used",
-          "refId": "A"
-        },
-        {
-          "expr": "max(jvm_memory_non_heap_committed) by (job)",
-          "legendFormat": "{{job}} committed",
-          "refId": "B"
-        }
-      ],
-      "title": "Non-Heap (Metaspace) Usage",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "custom": {
-            "fillOpacity": 10,
-            "lineWidth": 2,
-            "showPoints": "never"
-          },
-          "unit": "ops"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
         "y": 31
-      },
-      "id": 12,
-      "targets": [
-        {
-          "expr": "sum(rate(jvm_gc_Copy_count[5m])) by (job)",
-          "legendFormat": "{{job}} Young GC",
-          "refId": "A"
-        },
-        {
-          "expr": "sum(rate(jvm_gc_MarkSweepCompact_count[5m])) by (job)",
-          "legendFormat": "{{job}} Full GC",
-          "refId": "B"
-        }
-      ],
-      "title": "GC Rate (/s)",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "custom": {
-            "fillOpacity": 10,
-            "lineWidth": 2,
-            "showPoints": "never"
-          },
-          "unit": "ms"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 31
-      },
-      "id": 13,
-      "targets": [
-        {
-          "expr": "sum(rate(jvm_gc_Copy_time[5m])) by (job)",
-          "legendFormat": "{{job}} Young GC",
-          "refId": "A"
-        },
-        {
-          "expr": "sum(rate(jvm_gc_MarkSweepCompact_time[5m])) by (job)",
-          "legendFormat": "{{job}} Full GC",
-          "refId": "B"
-        }
-      ],
-      "title": "GC Time (ms/s)",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "custom": {
-            "fillOpacity": 10,
-            "lineWidth": 2,
-            "showPoints": "never"
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 39
-      },
-      "id": 14,
-      "targets": [
-        {
-          "expr": "max(jvm_threads_count) by (job)",
-          "legendFormat": "{{job}} total",
-          "refId": "A"
-        },
-        {
-          "expr": "max(jvm_threads_blocked_count) by (job)",
-          "legendFormat": "{{job}} blocked",
-          "refId": "B"
-        },
-        {
-          "expr": "max(jvm_threads_deadlock_count) by (job)",
-          "legendFormat": "{{job}} deadlock",
-          "refId": "C"
-        }
-      ],
-      "title": "Thread Count",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "custom": {
-            "fillOpacity": 10,
-            "lineWidth": 2,
-            "showPoints": "never"
-          },
-          "unit": "s"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 39
-      },
-      "id": 15,
-      "targets": [
-        {
-          "expr": "max(jvm_attribute_uptime) by (job) / 1000",
-          "legendFormat": "{{job}}",
-          "refId": "A"
-        }
-      ],
-      "title": "Service Uptime",
-      "type": "timeseries"
-    },
-    {
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 47
       },
       "id": 103,
       "title": "Cassandra DAO",
@@ -629,7 +472,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 48
+        "y": 32
       },
       "id": 20,
       "targets": [
@@ -677,7 +520,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 48
+        "y": 32
       },
       "id": 21,
       "targets": [
@@ -711,7 +554,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 56
+        "y": 40
       },
       "id": 104,
       "title": "Scheduler",
@@ -736,7 +579,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 57
+        "y": 41
       },
       "id": 30,
       "targets": [
@@ -788,7 +631,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 57
+        "y": 41
       },
       "id": 31,
       "targets": [
@@ -822,7 +665,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 65
+        "y": 49
       },
       "id": 105,
       "title": "Platform & Drivers",
@@ -847,7 +690,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 66
+        "y": 50
       },
       "id": 40,
       "targets": [
@@ -889,7 +732,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 66
+        "y": 50
       },
       "id": 41,
       "targets": [
@@ -927,7 +770,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 66
+        "y": 50
       },
       "id": 42,
       "targets": [
@@ -951,7 +794,246 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 74
+        "y": 58
+      },
+      "id": 102,
+      "title": "JVM Memory",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 10,
+            "lineWidth": 2,
+            "showPoints": "never"
+          },
+          "unit": "bytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 59
+      },
+      "id": 10,
+      "targets": [
+        {
+          "expr": "max(jvm_memory_heap_used) by (job)",
+          "legendFormat": "{{job}} used",
+          "refId": "A"
+        },
+        {
+          "expr": "max(jvm_memory_heap_max) by (job)",
+          "legendFormat": "{{job}} max",
+          "refId": "B"
+        }
+      ],
+      "title": "Heap Usage",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 10,
+            "lineWidth": 2,
+            "showPoints": "never"
+          },
+          "unit": "bytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 59
+      },
+      "id": 11,
+      "targets": [
+        {
+          "expr": "max(jvm_memory_non_heap_used) by (job)",
+          "legendFormat": "{{job}} used",
+          "refId": "A"
+        },
+        {
+          "expr": "max(jvm_memory_non_heap_committed) by (job)",
+          "legendFormat": "{{job}} committed",
+          "refId": "B"
+        }
+      ],
+      "title": "Non-Heap (Metaspace) Usage",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 10,
+            "lineWidth": 2,
+            "showPoints": "never"
+          },
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 67
+      },
+      "id": 12,
+      "targets": [
+        {
+          "expr": "sum(rate(jvm_gc_Copy_count[5m])) by (job)",
+          "legendFormat": "{{job}} Young GC",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(rate(jvm_gc_MarkSweepCompact_count[5m])) by (job)",
+          "legendFormat": "{{job}} Full GC",
+          "refId": "B"
+        }
+      ],
+      "title": "GC Rate (/s)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 10,
+            "lineWidth": 2,
+            "showPoints": "never"
+          },
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 67
+      },
+      "id": 13,
+      "targets": [
+        {
+          "expr": "sum(rate(jvm_gc_Copy_time[5m])) by (job)",
+          "legendFormat": "{{job}} Young GC",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(rate(jvm_gc_MarkSweepCompact_time[5m])) by (job)",
+          "legendFormat": "{{job}} Full GC",
+          "refId": "B"
+        }
+      ],
+      "title": "GC Time (ms/s)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 10,
+            "lineWidth": 2,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 75
+      },
+      "id": 14,
+      "targets": [
+        {
+          "expr": "max(jvm_threads_count) by (job)",
+          "legendFormat": "{{job}} total",
+          "refId": "A"
+        },
+        {
+          "expr": "max(jvm_threads_blocked_count) by (job)",
+          "legendFormat": "{{job}} blocked",
+          "refId": "B"
+        },
+        {
+          "expr": "max(jvm_threads_deadlock_count) by (job)",
+          "legendFormat": "{{job}} deadlock",
+          "refId": "C"
+        }
+      ],
+      "title": "Thread Count",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 10,
+            "lineWidth": 2,
+            "showPoints": "never"
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 75
+      },
+      "id": 15,
+      "targets": [
+        {
+          "expr": "max(jvm_attribute_uptime) by (job) / 1000",
+          "legendFormat": "{{job}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Service Uptime",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 83
       },
       "id": 106,
       "title": "Thread Pools",
@@ -976,7 +1058,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 75
+        "y": 84
       },
       "id": 50,
       "targets": [
@@ -1008,7 +1090,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 75
+        "y": 84
       },
       "id": 51,
       "targets": [
@@ -1019,88 +1101,6 @@
         }
       ],
       "title": "Pool Tasks Queued",
-      "type": "timeseries"
-    },
-    {
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 83
-      },
-      "id": 107,
-      "title": "Logs",
-      "type": "row"
-    },
-    {
-      "datasource": {
-        "type": "loki",
-        "uid": "loki"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "custom": {
-            "fillOpacity": 80,
-            "lineWidth": 0,
-            "showPoints": "never",
-            "stacking": {
-              "mode": "normal"
-            }
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 84
-      },
-      "id": 60,
-      "targets": [
-        {
-          "expr": "sum(count_over_time({app=~\".+\"}[1m])) by (app)",
-          "legendFormat": "{{app}}",
-          "refId": "A"
-        }
-      ],
-      "title": "Log Volume by Service",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "loki",
-        "uid": "loki"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "custom": {
-            "fillOpacity": 80,
-            "lineWidth": 0,
-            "showPoints": "never",
-            "stacking": {
-              "mode": "normal"
-            }
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 84
-      },
-      "id": 61,
-      "targets": [
-        {
-          "expr": "sum(count_over_time({app=~\".+\"} |~ \"ERROR|Exception\" [1m])) by (app)",
-          "legendFormat": "{{app}}",
-          "refId": "A"
-        }
-      ],
-      "title": "Error Log Rate",
       "type": "timeseries"
     }
   ],
