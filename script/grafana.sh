@@ -143,11 +143,32 @@ reboot_node() {
     return 0
   fi
 
+  local _reboot_drained=false
+  local _reboot_silenced=false
+
+  # shellcheck disable=SC2317 # invoked indirectly via trap
+  _reboot_cleanup() {
+    echo ""
+    echo "Interrupted. Rolling back..."
+    if [[ "$_reboot_silenced" == true ]]; then
+      echo "Removing alert silence..."
+      unsilence_alerts
+    fi
+    if [[ "$_reboot_drained" == true ]]; then
+      echo "Resuming traffic..."
+      route53_resume
+    fi
+    trap - INT
+    echo "Reboot aborted."
+  }
+  trap _reboot_cleanup INT
+
   # Drain traffic if Route 53 is configured
   if [[ "${ARCUS_CERT_SOLVER:-}" == "dns" && -n "${ARCUS_ROUTE53_SET_ID:-}" ]]; then
     echo ""
     echo "Draining traffic..."
     route53_drain
+    _reboot_drained=true
     echo "Waiting 30s for traffic to drain..."
     sleep 30
   else
@@ -159,7 +180,9 @@ reboot_node() {
   echo ""
   echo "Silencing alerts for 10 minutes..."
   silence_alerts 10m
+  _reboot_silenced=true
 
+  trap - INT
   echo ""
   echo "Rebooting..."
   sudo reboot
