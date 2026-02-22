@@ -803,13 +803,13 @@
           "refId": "B"
         },
         {
-          "expr": "scheduler_partition_completed",
-          "legendFormat": "Completed",
+          "expr": "rate(scheduler_partition_completed[5m])",
+          "legendFormat": "Completed /s",
           "refId": "C"
         },
         {
-          "expr": "scheduler_partition_errors",
-          "legendFormat": "Errors",
+          "expr": "rate(scheduler_partition_errors[5m])",
+          "legendFormat": "Errors /s",
           "refId": "D"
         }
       ],
