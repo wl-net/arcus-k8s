@@ -8,7 +8,8 @@
 # shellcheck source=script/backup.sh
 # shellcheck source=script/route53.sh
 # shellcheck source=script/validate.sh
-for _f in install config deploy status update backup route53 validate; do
+# shellcheck source=script/grafana.sh
+for _f in install config deploy status update backup route53 validate grafana; do
   . "${BASH_SOURCE[0]%/*}/${_f}.sh"
 done
 unset _f

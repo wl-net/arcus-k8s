@@ -76,6 +76,8 @@ Operations:
   backupconfig        Backup local configuration to a tarball
   modelmanager        Run model manager jobs (provision database schemas)
   setupmetrics        Setup Grafana metrics
+  silence [duration]  Silence Grafana alerts (default: 2h, e.g. 30m, 4h)
+  unsilence           Remove active Grafana alert silences
   drain               Set Route 53 weighted record to 0 (remove traffic from this cluster)
   resume              Restore Route 53 weighted record to its previous value
   deletepod           Delete pods matching an application
@@ -192,6 +194,12 @@ restoredb-full)
   ;;
 backupconfig)
   backup_config
+  ;;
+silence)
+  silence_alerts "${2:-2h}"
+  ;;
+unsilence)
+  unsilence_alerts
   ;;
 drain)
   route53_drain
