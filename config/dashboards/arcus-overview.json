@@ -441,12 +441,49 @@
       "type": "timeseries"
     },
     {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 10,
+            "lineWidth": 2,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 31
+      },
+      "id": 8,
+      "targets": [
+        {
+          "expr": "sum(rate(messages_platform_recv_type_hub_hubconnected[5m])) by (job)",
+          "legendFormat": "Connected",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(rate(messages_platform_recv_type_hub_hubdisconnected[5m])) by (job)",
+          "legendFormat": "Disconnected",
+          "refId": "B"
+        }
+      ],
+      "title": "Hub Connect/Disconnect Events (/s)",
+      "type": "timeseries"
+    },
+    {
       "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 31
+        "y": 39
       },
       "id": 103,
       "title": "Cassandra DAO",
@@ -472,7 +509,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 32
+        "y": 40
       },
       "id": 20,
       "targets": [
@@ -520,7 +557,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 32
+        "y": 40
       },
       "id": 21,
       "targets": [
@@ -554,7 +591,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 40
+        "y": 48
       },
       "id": 104,
       "title": "Scheduler",
@@ -579,7 +616,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 41
+        "y": 49
       },
       "id": 30,
       "targets": [
@@ -631,7 +668,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 41
+        "y": 49
       },
       "id": 31,
       "targets": [
@@ -665,7 +702,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 49
+        "y": 57
       },
       "id": 105,
       "title": "Platform & Drivers",
@@ -690,7 +727,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 50
+        "y": 58
       },
       "id": 40,
       "targets": [
@@ -732,7 +769,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 50
+        "y": 58
       },
       "id": 41,
       "targets": [
@@ -770,7 +807,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 50
+        "y": 58
       },
       "id": 42,
       "targets": [
@@ -794,7 +831,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 58
+        "y": 66
       },
       "id": 102,
       "title": "JVM Memory",
@@ -820,7 +857,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 59
+        "y": 67
       },
       "id": 10,
       "targets": [
@@ -858,7 +895,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 59
+        "y": 67
       },
       "id": 11,
       "targets": [
@@ -896,7 +933,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 67
+        "y": 75
       },
       "id": 12,
       "targets": [
@@ -934,7 +971,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 67
+        "y": 75
       },
       "id": 13,
       "targets": [
@@ -971,7 +1008,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 75
+        "y": 83
       },
       "id": 14,
       "targets": [
@@ -1014,7 +1051,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 75
+        "y": 83
       },
       "id": 15,
       "targets": [
@@ -1033,7 +1070,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 83
+        "y": 91
       },
       "id": 106,
       "title": "Thread Pools",
@@ -1058,7 +1095,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 84
+        "y": 92
       },
       "id": 50,
       "targets": [
@@ -1090,7 +1127,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 84
+        "y": 92
       },
       "id": 51,
       "targets": [
