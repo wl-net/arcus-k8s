@@ -2,20 +2,25 @@
 # Grafana alert silence management
 
 GRAFANA_URL="http://grafana-service.default.svc.cluster.local:3000"
+GRAFANA_SECRET_NAME="grafana-api-token"
+
+_grafana_get_token() {
+  kubectl get secret "$GRAFANA_SECRET_NAME" -o jsonpath='{.data.token}' 2>/dev/null | base64 -d
+}
 
 _grafana_api() {
-  local token_file="$ARCUS_CONFIGDIR/grafana-api-token"
+  local token
+  token=$(_grafana_get_token)
   local method=$1 path=$2
   shift 2
   kubectl exec deploy/grafana -- curl -sf -X "$method" \
-    -H "Authorization: Bearer $(cat "$token_file")" \
+    -H "Authorization: Bearer ${token}" \
     -H "Content-Type: application/json" \
     "${GRAFANA_URL}${path}" "$@"
 }
 
 _ensure_grafana_token() {
-  local token_file="$ARCUS_CONFIGDIR/grafana-api-token"
-  if [[ -f "$token_file" ]]; then
+  if kubectl get secret "$GRAFANA_SECRET_NAME" &>/dev/null; then
     return 0
   fi
 
@@ -54,9 +59,8 @@ _ensure_grafana_token() {
   local token
   token=$(echo "$token_response" | python3 -c "import sys,json; print(json.load(sys.stdin)['key'])")
 
-  mkdir -p "$ARCUS_CONFIGDIR"
-  echo "$token" > "$token_file"
-  echo "Grafana API token saved to ${token_file}"
+  kubectl create secret generic "$GRAFANA_SECRET_NAME" --from-literal="token=${token}"
+  echo "Grafana API token saved to secret/${GRAFANA_SECRET_NAME}"
 }
 
 silence_alerts() {
