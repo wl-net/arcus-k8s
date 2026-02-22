@@ -21,7 +21,10 @@
       "type": "row"
     },
     {
-      "datasource": "000000001",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -101,7 +104,10 @@
       "type": "row"
     },
     {
-      "datasource": "000000001",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "custom": {
@@ -140,7 +146,10 @@
       "type": "timeseries"
     },
     {
-      "datasource": "000000001",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "custom": {
@@ -184,7 +193,10 @@
       "type": "timeseries"
     },
     {
-      "datasource": "000000001",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "custom": {
@@ -229,7 +241,10 @@
       "type": "timeseries"
     },
     {
-      "datasource": "000000001",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "custom": {
@@ -264,7 +279,10 @@
       "type": "timeseries"
     },
     {
-      "datasource": "000000001",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "custom": {
@@ -308,7 +326,10 @@
       "type": "timeseries"
     },
     {
-      "datasource": "000000001",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "custom": {
@@ -350,7 +371,10 @@
       "type": "row"
     },
     {
-      "datasource": "000000001",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "custom": {
@@ -385,7 +409,10 @@
       "type": "timeseries"
     },
     {
-      "datasource": "000000001",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "custom": {
@@ -420,7 +447,10 @@
       "type": "timeseries"
     },
     {
-      "datasource": "000000001",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "custom": {
@@ -455,7 +485,10 @@
       "type": "timeseries"
     },
     {
-      "datasource": "000000001",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "custom": {
@@ -490,7 +523,10 @@
       "type": "timeseries"
     },
     {
-      "datasource": "000000001",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "custom": {
@@ -529,7 +565,10 @@
       "type": "timeseries"
     },
     {
-      "datasource": "000000001",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "custom": {
@@ -571,7 +610,10 @@
       "type": "row"
     },
     {
-      "datasource": "000000001",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "custom": {
@@ -616,7 +658,10 @@
       "type": "timeseries"
     },
     {
-      "datasource": "000000001",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "custom": {
@@ -673,7 +718,10 @@
       "type": "row"
     },
     {
-      "datasource": "000000001",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "custom": {
@@ -722,7 +770,10 @@
       "type": "timeseries"
     },
     {
-      "datasource": "000000001",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "custom": {
@@ -778,7 +829,10 @@
       "type": "row"
     },
     {
-      "datasource": "000000001",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "custom": {
@@ -817,7 +871,10 @@
       "type": "timeseries"
     },
     {
-      "datasource": "000000001",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "custom": {
@@ -851,7 +908,10 @@
       "type": "timeseries"
     },
     {
-      "datasource": "000000001",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "custom": {
@@ -898,7 +958,10 @@
       "type": "row"
     },
     {
-      "datasource": "000000001",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "custom": {
@@ -927,7 +990,10 @@
       "type": "timeseries"
     },
     {
-      "datasource": "000000001",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
           "custom": {
