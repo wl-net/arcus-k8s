@@ -37,6 +37,7 @@ _notify_discord() {
   color="${2:-$_NOTIFY_COLOR_BLUE}"
   fields_json="${3:-}"
   [[ -z "${ARCUS_DISCORD_WEBHOOK:-}" ]] && return 0
+  [[ -n "${ARCUS_NOTIFY_SILENT:-}" || -f "${ARCUS_CONFIGDIR:-}/discord-silent" ]] && return 0
 
   local title rev user footer payload
   title=$(_json_escape "${ARCUS_DOMAIN_NAME:-arcuscmd}")

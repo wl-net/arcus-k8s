@@ -88,6 +88,10 @@ Operations:
   shell               Get an interactive shell on a pod
   dbshell             Open a Cassandra CQL shell
 
+Notifications:
+  notify-off          Silence Discord notifications
+  notify-on           Re-enable Discord notifications
+
 Dangerous:
   killall             Delete all Arcus pods, triggering a full reschedule
 ENDOFDOC
@@ -245,6 +249,14 @@ status)
   ;;
 versions)
   infra_versions
+  ;;
+notify-off)
+  touch "$ARCUS_CONFIGDIR/discord-silent"
+  echo "Discord notifications silenced."
+  ;;
+notify-on)
+  rm -f "$ARCUS_CONFIGDIR/discord-silent"
+  echo "Discord notifications enabled."
   ;;
 help)
   print_available
