@@ -13,7 +13,7 @@ _grafana_api() {
   token=$(_grafana_get_token)
   local method=$1 path=$2
   shift 2
-  kubectl exec deploy/grafana -- curl -sf -X "$method" \
+  kubectl exec statefulset/grafana -- curl -sf -X "$method" \
     -H "Authorization: Bearer ${token}" \
     -H "Content-Type: application/json" \
     "${GRAFANA_URL}${path}" "$@"
@@ -33,7 +33,7 @@ _ensure_grafana_token() {
 
   # Create service account
   local sa_response
-  sa_response=$(kubectl exec deploy/grafana -- curl -sf -X POST \
+  sa_response=$(kubectl exec statefulset/grafana -- curl -sf -X POST \
     -u "admin:${password}" \
     -H "Content-Type: application/json" \
     "${GRAFANA_URL}/api/serviceaccounts" \
@@ -47,7 +47,7 @@ _ensure_grafana_token() {
 
   # Create token for the service account
   local token_response
-  token_response=$(kubectl exec deploy/grafana -- curl -sf -X POST \
+  token_response=$(kubectl exec statefulset/grafana -- curl -sf -X POST \
     -u "admin:${password}" \
     -H "Content-Type: application/json" \
     "${GRAFANA_URL}/api/serviceaccounts/${sa_id}/tokens" \
