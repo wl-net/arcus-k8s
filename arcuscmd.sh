@@ -78,6 +78,7 @@ Operations:
   setupmetrics        Setup Grafana metrics
   silence [duration]  Silence Grafana alerts (default: 2h, e.g. 30m, 4h)
   unsilence           Remove active Grafana alert silences
+  reboot-node         Drain traffic, silence alerts, and reboot this host
   drain               Set Route 53 weighted record to 0 (remove traffic from this cluster)
   resume              Restore Route 53 weighted record to its previous value
   deletepod           Delete pods matching an application
@@ -200,6 +201,9 @@ silence)
   ;;
 unsilence)
   unsilence_alerts
+  ;;
+reboot-node)
+  reboot_node
   ;;
 drain)
   route53_drain

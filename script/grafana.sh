@@ -128,3 +128,39 @@ for s in json.load(sys.stdin):
 
   echo "Removed ${count} silence(s). Alerts are active again."
 }
+
+reboot_node() {
+  echo "This will:"
+  echo "  1. Drain Route 53 traffic (if configured)"
+  echo "  2. Silence Grafana alerts for 10 minutes"
+  echo "  3. Reboot this host"
+  echo ""
+
+  local confirm
+  prompt confirm "Are you sure? [yes/no]:"
+  if [[ "$confirm" != "yes" ]]; then
+    echo "Aborted."
+    return 0
+  fi
+
+  # Drain traffic if Route 53 is configured
+  if [[ "${ARCUS_CERT_SOLVER:-}" == "dns" && -n "${ARCUS_ROUTE53_SET_ID:-}" ]]; then
+    echo ""
+    echo "Draining traffic..."
+    route53_drain
+    echo "Waiting 30s for traffic to drain..."
+    sleep 30
+  else
+    echo ""
+    echo "Skipping drain (Route 53 not configured)."
+  fi
+
+  # Silence alerts
+  echo ""
+  echo "Silencing alerts for 10 minutes..."
+  silence_alerts 10m
+
+  echo ""
+  echo "Rebooting..."
+  sudo reboot
+}
