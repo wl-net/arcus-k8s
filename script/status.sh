@@ -40,9 +40,9 @@ function arcus_status() {
 
   # Show pods that are not fully healthy
   local unhealthy
-  unhealthy=$($KUBECTL get pods -o wide --no-headers 2>/dev/null | awk '
-    # Not Running
-    $3 != "Running" && $3 != "Completed" { print; next }
+  unhealthy=$($KUBECTL get pods --field-selector=status.phase!=Succeeded -o wide --no-headers 2>/dev/null | awk '
+    # Not Running (CrashLoopBackOff, Pending, Error, Init:*, etc.)
+    $3 != "Running" { print; next }
     # Running but not all containers ready (e.g. 0/1)
     {
       split($2, a, "/")
