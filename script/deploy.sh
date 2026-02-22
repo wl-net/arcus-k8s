@@ -16,14 +16,27 @@ function apply() {
   local arcus_tunable="overlays/${ARCUS_OVERLAY_NAME}-local/arcus-config-tunable.yaml"
   local cluster_tunable="overlays/${ARCUS_OVERLAY_NAME}-local/cluster-config-tunable.yaml"
   local saved_arcus_tunable="" saved_cluster_tunable=""
-  [[ -f "$arcus_tunable" ]] && saved_arcus_tunable=$(cat "$arcus_tunable")
-  [[ -f "$cluster_tunable" ]] && saved_cluster_tunable=$(cat "$cluster_tunable")
+  # Check .yaml first, fall back to .yml for nodes that haven't been migrated yet
+  if [[ -f "$arcus_tunable" ]]; then
+    saved_arcus_tunable=$(cat "$arcus_tunable")
+  elif [[ -f "${arcus_tunable%.yaml}.yml" ]]; then
+    saved_arcus_tunable=$(cat "${arcus_tunable%.yaml}.yml")
+  fi
+  if [[ -f "$cluster_tunable" ]]; then
+    saved_cluster_tunable=$(cat "$cluster_tunable")
+  elif [[ -f "${cluster_tunable%.yaml}.yml" ]]; then
+    saved_cluster_tunable=$(cat "${cluster_tunable%.yaml}.yml")
+  fi
 
   cp -r "overlays/${ARCUS_OVERLAY_NAME}/"* "overlays/${ARCUS_OVERLAY_NAME}-local/"
 
   # Restore tunable files if user had customized them
   [[ -n "$saved_arcus_tunable" ]] && echo "$saved_arcus_tunable" > "$arcus_tunable"
   [[ -n "$saved_cluster_tunable" ]] && echo "$saved_cluster_tunable" > "$cluster_tunable"
+
+  # Clean up old .yml tunables after migration
+  rm -f "overlays/${ARCUS_OVERLAY_NAME}-local/arcus-config-tunable.yml" \
+        "overlays/${ARCUS_OVERLAY_NAME}-local/cluster-config-tunable.yml"
 
   if [[ "${ARCUS_CERT_SOLVER:-http}" == "dns" ]]; then
     cp config/templates/cert-provider-dns.yaml "overlays/${ARCUS_OVERLAY_NAME}-local/cert-provider.yaml"
@@ -188,6 +201,10 @@ function useprodcert() {
   load
   echo 'production' > "$ARCUS_CONFIGDIR/cert-issuer"
   local ingress="overlays/${ARCUS_OVERLAY_NAME}-local/ui-service-ingress.yaml"
+  # Fall back to .yml for nodes that haven't re-run apply since the rename
+  if [[ ! -f "$ingress" && -f "${ingress%.yaml}.yml" ]]; then
+    ingress="${ingress%.yaml}.yml"
+  fi
   if [[ ! -f "$ingress" ]]; then
     echo "Error: $ingress not found. Run './arcuscmd.sh apply' first."
     exit 1
