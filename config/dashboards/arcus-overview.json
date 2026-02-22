@@ -83,7 +83,7 @@
       },
       "targets": [
         {
-          "expr": "last_over_time(up[5m])",
+          "expr": "min(last_over_time(up[5m])) by (job)",
           "legendFormat": "{{job}}",
           "refId": "A"
         }
