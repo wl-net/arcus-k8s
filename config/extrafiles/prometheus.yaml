@@ -78,3 +78,8 @@ scrape_configs:
     target_label: endpoint
     replacement: metrics
     action: replace
+
+- job_name: 'cert-manager'
+  scrape_interval: 60s
+  static_configs:
+  - targets: ['cert-manager.cert-manager.svc.cluster.local:9402']

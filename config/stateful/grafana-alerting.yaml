@@ -1,0 +1,158 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-alerting
+  namespace: default
+data:
+  alerting.yaml: |
+    apiVersion: 1
+    groups:
+    - orgId: 1
+      name: Service Health
+      folder: Provisioned
+      interval: 1m
+      rules:
+      - uid: service-down
+        title: Service Down
+        condition: C
+        data:
+        - refId: A
+          relativeTimeRange:
+            from: 300
+            to: 0
+          datasourceUid: prometheus
+          model:
+            expr: up
+            instant: true
+            refId: A
+        - refId: B
+          relativeTimeRange:
+            from: 0
+            to: 0
+          datasourceUid: "-100"
+          model:
+            type: reduce
+            expression: A
+            reducer: last
+            refId: B
+        - refId: C
+          relativeTimeRange:
+            from: 0
+            to: 0
+          datasourceUid: "-100"
+          model:
+            type: threshold
+            expression: B
+            conditions:
+            - evaluator:
+                type: lt
+                params:
+                - 1
+              operator:
+                type: and
+              reducer:
+                type: last
+            refId: C
+        for: 5m
+        noDataState: Alerting
+        execErrState: Alerting
+        labels:
+          severity: critical
+        annotations:
+          summary: '{{ $labels.job }} is down (instance {{ $labels.instance }})'
+      - uid: pod-crash-looping
+        title: Pod Crash Looping
+        condition: C
+        data:
+        - refId: A
+          relativeTimeRange:
+            from: 900
+            to: 0
+          datasourceUid: prometheus
+          model:
+            expr: changes(up[15m]) > 2
+            instant: true
+            refId: A
+        - refId: B
+          relativeTimeRange:
+            from: 0
+            to: 0
+          datasourceUid: "-100"
+          model:
+            type: reduce
+            expression: A
+            reducer: last
+            refId: B
+        - refId: C
+          relativeTimeRange:
+            from: 0
+            to: 0
+          datasourceUid: "-100"
+          model:
+            type: threshold
+            expression: B
+            conditions:
+            - evaluator:
+                type: gt
+                params:
+                - 0
+              operator:
+                type: and
+              reducer:
+                type: last
+            refId: C
+        for: 5m
+        noDataState: OK
+        execErrState: Alerting
+        labels:
+          severity: critical
+        annotations:
+          summary: '{{ $labels.job }} is crash looping (instance {{ $labels.instance }})'
+      - uid: cert-expiring-soon
+        title: Certificate Expiring Soon
+        condition: C
+        data:
+        - refId: A
+          relativeTimeRange:
+            from: 300
+            to: 0
+          datasourceUid: prometheus
+          model:
+            expr: (certmanager_certificate_expiration_timestamp_seconds - time()) / 86400
+            instant: true
+            refId: A
+        - refId: B
+          relativeTimeRange:
+            from: 0
+            to: 0
+          datasourceUid: "-100"
+          model:
+            type: reduce
+            expression: A
+            reducer: last
+            refId: B
+        - refId: C
+          relativeTimeRange:
+            from: 0
+            to: 0
+          datasourceUid: "-100"
+          model:
+            type: threshold
+            expression: B
+            conditions:
+            - evaluator:
+                type: lt
+                params:
+                - 7
+              operator:
+                type: and
+              reducer:
+                type: last
+            refId: C
+        for: 1h
+        noDataState: OK
+        execErrState: Alerting
+        labels:
+          severity: critical
+        annotations:
+          summary: '{{ $labels.name }} in {{ $labels.namespace }} expires in {{ $value }} days'

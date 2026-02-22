@@ -66,6 +66,8 @@ spec:
           name: grafana-storage
         - mountPath: /etc/grafana/provisioning/datasources
           name: datasources
+        - mountPath: /etc/grafana/provisioning/alerting
+          name: alerting
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
@@ -75,6 +77,9 @@ spec:
       - name: datasources
         configMap:
           name: grafana-datasources
+      - name: alerting
+        configMap:
+          name: grafana-alerting
   volumeClaimTemplates:
   - metadata:
       name: grafana-storage

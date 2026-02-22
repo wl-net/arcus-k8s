@@ -7,15 +7,21 @@ data:
   datasources.yaml: |
     apiVersion: 1
     deleteDatasources:
+    - name: Prometheus
+      orgId: 1
+    - name: Loki
+      orgId: 1
     - name: loki
       orgId: 1
     datasources:
     - name: Prometheus
+      uid: prometheus
       type: prometheus
       access: proxy
       url: http://prometheus-service.default.svc.cluster.local:9080
       isDefault: true
     - name: Loki
+      uid: loki
       type: loki
       access: proxy
       url: http://loki-service.default.svc.cluster.local:3100

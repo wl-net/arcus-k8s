@@ -78,9 +78,13 @@ function apply() {
   fi
 
   if [[ -n "${ARCUS_ADMIN_DOMAIN-}" ]]; then
-    cp config/service/dc-admin-ingress.yaml "overlays/${ARCUS_OVERLAY_NAME}-local/dc-admin-ingress.yaml"
-    sed -i "s!PLACEHOLDER_ADMIN_DOMAIN!${ARCUS_ADMIN_DOMAIN}!" "overlays/${ARCUS_OVERLAY_NAME}-local/dc-admin-ingress.yaml"
-    $KUBECTL apply -f "overlays/${ARCUS_OVERLAY_NAME}-local/dc-admin-ingress.yaml"
+    # Only create a separate admin ingress when the admin domain is NOT already
+    # covered by ui-service-ingress (which includes admin.$ARCUS_DOMAIN_NAME).
+    if [[ "${ARCUS_ADMIN_DOMAIN}" != "admin.${ARCUS_DOMAIN_NAME}" ]]; then
+      cp config/service/dc-admin-ingress.yaml "overlays/${ARCUS_OVERLAY_NAME}-local/dc-admin-ingress.yaml"
+      sed -i "s!PLACEHOLDER_ADMIN_DOMAIN!${ARCUS_ADMIN_DOMAIN}!" "overlays/${ARCUS_OVERLAY_NAME}-local/dc-admin-ingress.yaml"
+      $KUBECTL apply -f "overlays/${ARCUS_OVERLAY_NAME}-local/dc-admin-ingress.yaml"
+    fi
 
     cp config/stateful/grafana.yaml "overlays/${ARCUS_OVERLAY_NAME}-local/grafana.yaml"
     sed -i "s!PLACEHOLDER_ADMIN_DOMAIN!${ARCUS_ADMIN_DOMAIN}!" "overlays/${ARCUS_OVERLAY_NAME}-local/grafana.yaml"
@@ -88,6 +92,7 @@ function apply() {
   fi
 
   $KUBECTL apply -f config/stateful/grafana-datasources.yaml
+  $KUBECTL apply -f config/stateful/grafana-alerting.yaml
   $KUBECTL apply -f config/stateful/loki.yaml
   $KUBECTL apply -f config/logging/alloy.yaml
 
