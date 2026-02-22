@@ -74,6 +74,10 @@ function apply() {
     $KUBECTL apply -f "overlays/${ARCUS_OVERLAY_NAME}-local/grafana.yaml"
   fi
 
+  $KUBECTL apply -f config/stateful/grafana-datasources.yaml
+  $KUBECTL apply -f config/stateful/loki.yaml
+  $KUBECTL apply -f config/logging/alloy.yml
+
   if [[ "${ARCUS_CERT_TYPE:-}" == 'production' ]]; then
     sed -i 's/letsencrypt-staging/letsencrypt-production/g' "overlays/${ARCUS_OVERLAY_NAME}-local/ui-service-ingress.yml"
     sed -i 's/nginx-staging-tls/nginx-production-tls/g' "overlays/${ARCUS_OVERLAY_NAME}-local/ui-service-ingress.yml"

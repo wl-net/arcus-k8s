@@ -64,11 +64,17 @@ spec:
         volumeMounts:
         - mountPath: "/var/lib/grafana"
           name: grafana-storage
+        - mountPath: /etc/grafana/provisioning/datasources
+          name: datasources
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
       securityContext: {}
       terminationGracePeriodSeconds: 30
+      volumes:
+      - name: datasources
+        configMap:
+          name: grafana-datasources
   volumeClaimTemplates:
   - metadata:
       name: grafana-storage
