@@ -137,6 +137,7 @@ Each node stores its local configuration in `.config/` (git-ignored). These file
 | `route53-region` | If DNS solver | AWS region for Route 53 (e.g. `us-east-1`) |
 | `route53-set-identifier` | Optional | Route 53 set identifier for weighted record (used by `drain`/`resume`) |
 | `discord-webhook` | Optional | Discord webhook URL for notifications on state-changing commands |
+| `discord-silent` | Optional | If present, suppresses Discord notifications (`notify-off`/`notify-on`) |
 
 Run `./arcuscmd.sh configure` to set these interactively, or write the files directly.
 
