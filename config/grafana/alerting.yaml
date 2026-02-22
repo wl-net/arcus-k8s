@@ -493,7 +493,7 @@ groups:
             type: last
         refId: C
     for: 5m
-    noDataState: Alerting
+    noDataState: OK
     execErrState: Alerting
     labels:
       severity: critical
