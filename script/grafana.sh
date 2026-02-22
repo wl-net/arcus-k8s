@@ -71,9 +71,9 @@ silence_alerts() {
   # Parse duration into seconds
   local seconds=0
   if [[ "$duration" =~ ^([0-9]+)h$ ]]; then
-    seconds=$(( ${BASH_REMATCH[1]} * 3600 ))
+    seconds=$(( BASH_REMATCH[1] * 3600 ))
   elif [[ "$duration" =~ ^([0-9]+)m$ ]]; then
-    seconds=$(( ${BASH_REMATCH[1]} * 60 ))
+    seconds=$(( BASH_REMATCH[1] * 60 ))
   else
     echo "Invalid duration '${duration}'. Use format like 2h or 30m."
     return 1
