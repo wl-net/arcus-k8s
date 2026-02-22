@@ -109,9 +109,9 @@
         "overrides": []
       },
       "targets": [
-        { "expr": "bridge_sessions_active", "legendFormat": "Active", "refId": "A" },
-        { "expr": "bridge_sessions_hub_total", "legendFormat": "Hub Total", "refId": "B" },
-        { "expr": "bridge_sessions_hub_authorized", "legendFormat": "Hub Authorized", "refId": "C" }
+        { "expr": "sum(bridge_sessions_active)", "legendFormat": "Active", "refId": "A" },
+        { "expr": "sum(bridge_sessions_hub_total)", "legendFormat": "Hub Total", "refId": "B" },
+        { "expr": "sum(bridge_sessions_hub_authorized)", "legendFormat": "Hub Authorized", "refId": "C" }
       ]
     },
     {
@@ -127,10 +127,10 @@
         "overrides": []
       },
       "targets": [
-        { "expr": "bridge_sessions_hub_cellbackup", "legendFormat": "Cell Backup", "refId": "A" },
-        { "expr": "bridge_sessions_hub_unauth_handshaking", "legendFormat": "Handshaking", "refId": "B" },
-        { "expr": "bridge_sessions_hub_unauth_registering", "legendFormat": "Registering", "refId": "C" },
-        { "expr": "bridge_sessions_hub_unauth_orphaned", "legendFormat": "Orphaned", "refId": "D" }
+        { "expr": "sum(bridge_sessions_hub_cellbackup)", "legendFormat": "Cell Backup", "refId": "A" },
+        { "expr": "sum(bridge_sessions_hub_unauth_handshaking)", "legendFormat": "Handshaking", "refId": "B" },
+        { "expr": "sum(bridge_sessions_hub_unauth_registering)", "legendFormat": "Registering", "refId": "C" },
+        { "expr": "sum(bridge_sessions_hub_unauth_orphaned)", "legendFormat": "Orphaned", "refId": "D" }
       ]
     },
     {
@@ -147,10 +147,10 @@
         "overrides": []
       },
       "targets": [
-        { "expr": "rate(bridge_hub_bytes_received[5m])", "legendFormat": "Hub RX", "refId": "A" },
-        { "expr": "rate(bridge_hub_bytes_sent[5m])", "legendFormat": "Hub TX", "refId": "B" },
-        { "expr": "rate(bridge_client_bytes_received[5m])", "legendFormat": "Client RX", "refId": "C" },
-        { "expr": "rate(bridge_client_bytes_sent[5m])", "legendFormat": "Client TX", "refId": "D" }
+        { "expr": "sum(rate(bridge_hub_bytes_received[5m]))", "legendFormat": "Hub RX", "refId": "A" },
+        { "expr": "sum(rate(bridge_hub_bytes_sent[5m]))", "legendFormat": "Hub TX", "refId": "B" },
+        { "expr": "sum(rate(bridge_client_bytes_received[5m]))", "legendFormat": "Client RX", "refId": "C" },
+        { "expr": "sum(rate(bridge_client_bytes_sent[5m]))", "legendFormat": "Client TX", "refId": "D" }
       ]
     },
     {
@@ -167,8 +167,8 @@
         "overrides": []
       },
       "targets": [
-        { "expr": "rate(bridge_ssl_handshake_successes[5m])", "legendFormat": "Successes", "refId": "A" },
-        { "expr": "rate(bridge_ssl_handshake_failures[5m])", "legendFormat": "Failures", "refId": "B" }
+        { "expr": "sum(rate(bridge_ssl_handshake_successes[5m]))", "legendFormat": "Successes", "refId": "A" },
+        { "expr": "sum(rate(bridge_ssl_handshake_failures[5m]))", "legendFormat": "Failures", "refId": "B" }
       ]
     },
     {
@@ -184,10 +184,10 @@
         "overrides": []
       },
       "targets": [
-        { "expr": "rate(bridge_authz_authorized[5m])", "legendFormat": "Authorized", "refId": "A" },
-        { "expr": "rate(bridge_authz_unauthorized_noplace[5m])", "legendFormat": "Unauth: No Place", "refId": "B" },
-        { "expr": "rate(bridge_authz_unauthorized_wrongperson[5m])", "legendFormat": "Unauth: Wrong Person", "refId": "C" },
-        { "expr": "rate(bridge_authz_unauthorized_wrongplace[5m])", "legendFormat": "Unauth: Wrong Place", "refId": "D" }
+        { "expr": "sum(rate(bridge_authz_authorized[5m]))", "legendFormat": "Authorized", "refId": "A" },
+        { "expr": "sum(rate(bridge_authz_unauthorized_noplace[5m]))", "legendFormat": "Unauth: No Place", "refId": "B" },
+        { "expr": "sum(rate(bridge_authz_unauthorized_wrongperson[5m]))", "legendFormat": "Unauth: Wrong Person", "refId": "C" },
+        { "expr": "sum(rate(bridge_authz_unauthorized_wrongplace[5m]))", "legendFormat": "Unauth: Wrong Place", "refId": "D" }
       ]
     },
     {
@@ -204,7 +204,7 @@
         "overrides": []
       },
       "targets": [
-        { "expr": "rate(bridge_hub_heartbeat[5m])", "legendFormat": "Heartbeats", "refId": "A" }
+        { "expr": "sum(rate(bridge_hub_heartbeat[5m]))", "legendFormat": "Heartbeats", "refId": "A" }
       ]
     },
     {
@@ -228,8 +228,8 @@
         "overrides": []
       },
       "targets": [
-        { "expr": "jvm_memory_heap_used", "legendFormat": "{{job}} used", "refId": "A" },
-        { "expr": "jvm_memory_heap_max", "legendFormat": "{{job}} max", "refId": "B" }
+        { "expr": "max by (job) (jvm_memory_heap_used)", "legendFormat": "{{job}} used", "refId": "A" },
+        { "expr": "max by (job) (jvm_memory_heap_max)", "legendFormat": "{{job}} max", "refId": "B" }
       ]
     },
     {
@@ -246,8 +246,8 @@
         "overrides": []
       },
       "targets": [
-        { "expr": "jvm_memory_non_heap_used", "legendFormat": "{{job}} used", "refId": "A" },
-        { "expr": "jvm_memory_non_heap_committed", "legendFormat": "{{job}} committed", "refId": "B" }
+        { "expr": "max by (job) (jvm_memory_non_heap_used)", "legendFormat": "{{job}} used", "refId": "A" },
+        { "expr": "max by (job) (jvm_memory_non_heap_committed)", "legendFormat": "{{job}} committed", "refId": "B" }
       ]
     },
     {
@@ -264,8 +264,8 @@
         "overrides": []
       },
       "targets": [
-        { "expr": "rate(jvm_gc_Copy_count[5m])", "legendFormat": "{{job}} Young GC", "refId": "A" },
-        { "expr": "rate(jvm_gc_MarkSweepCompact_count[5m])", "legendFormat": "{{job}} Full GC", "refId": "B" }
+        { "expr": "sum by (job) (rate(jvm_gc_Copy_count[5m]))", "legendFormat": "{{job}} Young GC", "refId": "A" },
+        { "expr": "sum by (job) (rate(jvm_gc_MarkSweepCompact_count[5m]))", "legendFormat": "{{job}} Full GC", "refId": "B" }
       ]
     },
     {
@@ -282,8 +282,8 @@
         "overrides": []
       },
       "targets": [
-        { "expr": "rate(jvm_gc_Copy_time[5m])", "legendFormat": "{{job}} Young GC", "refId": "A" },
-        { "expr": "rate(jvm_gc_MarkSweepCompact_time[5m])", "legendFormat": "{{job}} Full GC", "refId": "B" }
+        { "expr": "sum by (job) (rate(jvm_gc_Copy_time[5m]))", "legendFormat": "{{job}} Young GC", "refId": "A" },
+        { "expr": "sum by (job) (rate(jvm_gc_MarkSweepCompact_time[5m]))", "legendFormat": "{{job}} Full GC", "refId": "B" }
       ]
     },
     {
@@ -299,9 +299,9 @@
         "overrides": []
       },
       "targets": [
-        { "expr": "jvm_threads_count", "legendFormat": "{{job}} total", "refId": "A" },
-        { "expr": "jvm_threads_blocked_count", "legendFormat": "{{job}} blocked", "refId": "B" },
-        { "expr": "jvm_threads_deadlock_count", "legendFormat": "{{job}} deadlock", "refId": "C" }
+        { "expr": "max by (job) (jvm_threads_count)", "legendFormat": "{{job}} total", "refId": "A" },
+        { "expr": "max by (job) (jvm_threads_blocked_count)", "legendFormat": "{{job}} blocked", "refId": "B" },
+        { "expr": "max by (job) (jvm_threads_deadlock_count)", "legendFormat": "{{job}} deadlock", "refId": "C" }
       ]
     },
     {
@@ -318,7 +318,7 @@
         "overrides": []
       },
       "targets": [
-        { "expr": "jvm_attribute_uptime / 1000", "legendFormat": "{{job}}", "refId": "A" }
+        { "expr": "max by (job) (jvm_attribute_uptime) / 1000", "legendFormat": "{{job}}", "refId": "A" }
       ]
     },
     {
@@ -342,10 +342,10 @@
         "overrides": []
       },
       "targets": [
-        { "expr": "rate(dao_read_time[5m]) / rate(dao_read_time_count[5m])", "legendFormat": "{{job}} read", "refId": "A" },
-        { "expr": "rate(dao_insert_time[5m]) / rate(dao_insert_time_count[5m])", "legendFormat": "{{job}} insert", "refId": "B" },
-        { "expr": "rate(dao_update_time[5m]) / rate(dao_update_time_count[5m])", "legendFormat": "{{job}} update", "refId": "C" },
-        { "expr": "rate(dao_delete_time[5m]) / rate(dao_delete_time_count[5m])", "legendFormat": "{{job}} delete", "refId": "D" }
+        { "expr": "sum by (job) (rate(dao_read_time[5m])) / sum by (job) (rate(dao_read_time_count[5m]))", "legendFormat": "{{job}} read", "refId": "A" },
+        { "expr": "sum by (job) (rate(dao_insert_time[5m])) / sum by (job) (rate(dao_insert_time_count[5m]))", "legendFormat": "{{job}} insert", "refId": "B" },
+        { "expr": "sum by (job) (rate(dao_update_time[5m])) / sum by (job) (rate(dao_update_time_count[5m]))", "legendFormat": "{{job}} update", "refId": "C" },
+        { "expr": "sum by (job) (rate(dao_delete_time[5m])) / sum by (job) (rate(dao_delete_time_count[5m]))", "legendFormat": "{{job}} delete", "refId": "D" }
       ]
     },
     {
@@ -362,10 +362,10 @@
         "overrides": []
       },
       "targets": [
-        { "expr": "rate(dao_read_time_count[5m])", "legendFormat": "{{job}} reads", "refId": "A" },
-        { "expr": "rate(dao_insert_time_count[5m])", "legendFormat": "{{job}} inserts", "refId": "B" },
-        { "expr": "rate(dao_update_time_count[5m])", "legendFormat": "{{job}} updates", "refId": "C" },
-        { "expr": "rate(dao_delete_time_count[5m])", "legendFormat": "{{job}} deletes", "refId": "D" }
+        { "expr": "sum by (job) (rate(dao_read_time_count[5m]))", "legendFormat": "{{job}} reads", "refId": "A" },
+        { "expr": "sum by (job) (rate(dao_insert_time_count[5m]))", "legendFormat": "{{job}} inserts", "refId": "B" },
+        { "expr": "sum by (job) (rate(dao_update_time_count[5m]))", "legendFormat": "{{job}} updates", "refId": "C" },
+        { "expr": "sum by (job) (rate(dao_delete_time_count[5m]))", "legendFormat": "{{job}} deletes", "refId": "D" }
       ]
     },
     {
@@ -388,11 +388,11 @@
         "overrides": []
       },
       "targets": [
-        { "expr": "rate(scheduler_command_scheduled[5m])", "legendFormat": "Scheduled", "refId": "A" },
-        { "expr": "rate(scheduler_command_sent[5m])", "legendFormat": "Sent", "refId": "B" },
-        { "expr": "rate(scheduler_command_error[5m])", "legendFormat": "Error", "refId": "C" },
-        { "expr": "rate(scheduler_command_expired[5m])", "legendFormat": "Expired", "refId": "D" },
-        { "expr": "rate(scheduler_command_rescheduled[5m])", "legendFormat": "Rescheduled", "refId": "E" }
+        { "expr": "sum(rate(scheduler_command_scheduled[5m]))", "legendFormat": "Scheduled", "refId": "A" },
+        { "expr": "sum(rate(scheduler_command_sent[5m]))", "legendFormat": "Sent", "refId": "B" },
+        { "expr": "sum(rate(scheduler_command_error[5m]))", "legendFormat": "Error", "refId": "C" },
+        { "expr": "sum(rate(scheduler_command_expired[5m]))", "legendFormat": "Expired", "refId": "D" },
+        { "expr": "sum(rate(scheduler_command_rescheduled[5m]))", "legendFormat": "Rescheduled", "refId": "E" }
       ]
     },
     {
@@ -408,10 +408,10 @@
         "overrides": []
       },
       "targets": [
-        { "expr": "scheduler_partition_count", "legendFormat": "Total", "refId": "A" },
-        { "expr": "scheduler_partition_pending", "legendFormat": "Pending", "refId": "B" },
-        { "expr": "scheduler_partition_completed", "legendFormat": "Completed", "refId": "C" },
-        { "expr": "scheduler_partition_errors", "legendFormat": "Errors", "refId": "D" }
+        { "expr": "sum(scheduler_partition_count)", "legendFormat": "Total", "refId": "A" },
+        { "expr": "sum(scheduler_partition_pending)", "legendFormat": "Pending", "refId": "B" },
+        { "expr": "sum(scheduler_partition_completed)", "legendFormat": "Completed", "refId": "C" },
+        { "expr": "sum(scheduler_partition_errors)", "legendFormat": "Errors", "refId": "D" }
       ]
     },
     {
@@ -434,9 +434,9 @@
         "overrides": []
       },
       "targets": [
-        { "expr": "service_platform_hubregistry_online", "legendFormat": "Online", "refId": "A" },
-        { "expr": "service_platform_hubregistry_disconnected", "legendFormat": "Disconnected", "refId": "B" },
-        { "expr": "service_platform_hubregistry_timedout", "legendFormat": "Timed Out", "refId": "C" }
+        { "expr": "sum(service_platform_hubregistry_online)", "legendFormat": "Online", "refId": "A" },
+        { "expr": "sum(service_platform_hubregistry_disconnected)", "legendFormat": "Disconnected", "refId": "B" },
+        { "expr": "sum(service_platform_hubregistry_timedout)", "legendFormat": "Timed Out", "refId": "C" }
       ]
     },
     {
@@ -452,8 +452,8 @@
         "overrides": []
       },
       "targets": [
-        { "expr": "drivers_connected", "legendFormat": "Connected", "refId": "A" },
-        { "expr": "drivers_disconnected", "legendFormat": "Disconnected", "refId": "B" }
+        { "expr": "sum(drivers_connected)", "legendFormat": "Connected", "refId": "A" },
+        { "expr": "sum(drivers_disconnected)", "legendFormat": "Disconnected", "refId": "B" }
       ]
     },
     {
@@ -470,8 +470,8 @@
         "overrides": []
       },
       "targets": [
-        { "expr": "rate(notifications_sent[5m])", "legendFormat": "Sent", "refId": "A" },
-        { "expr": "rate(notifications_failed[5m])", "legendFormat": "Failed", "refId": "B" }
+        { "expr": "sum(rate(notifications_sent[5m]))", "legendFormat": "Sent", "refId": "A" },
+        { "expr": "sum(rate(notifications_failed[5m]))", "legendFormat": "Failed", "refId": "B" }
       ]
     },
     {
@@ -494,7 +494,7 @@
         "overrides": []
       },
       "targets": [
-        { "expr": "{__name__=~\".+_pool_tasks_running\"}", "legendFormat": "{{job}} {{__name__}}", "refId": "A" }
+        { "expr": "sum by (job, __name__) ({__name__=~\".+_pool_tasks_running\"})", "legendFormat": "{{job}} {{__name__}}", "refId": "A" }
       ]
     },
     {
@@ -510,7 +510,7 @@
         "overrides": []
       },
       "targets": [
-        { "expr": "{__name__=~\".+_pool_tasks_queued\"}", "legendFormat": "{{job}} {{__name__}}", "refId": "A" }
+        { "expr": "sum by (job, __name__) ({__name__=~\".+_pool_tasks_queued\"})", "legendFormat": "{{job}} {{__name__}}", "refId": "A" }
       ]
     }
   ],
