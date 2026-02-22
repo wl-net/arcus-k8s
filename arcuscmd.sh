@@ -78,6 +78,7 @@ Operations:
   setupmetrics        Setup Grafana metrics
   silence [duration]  Silence Grafana alerts (default: 2h, e.g. 30m, 4h)
   unsilence           Remove active Grafana alert silences
+  upgrade-node        Update and upgrade system packages (apt)
   reboot-node         Drain traffic, silence alerts, and reboot this host
   drain               Set Route 53 weighted record to 0 (remove traffic from this cluster)
   resume              Restore Route 53 weighted record to its previous value
@@ -201,6 +202,9 @@ silence)
   ;;
 unsilence)
   unsilence_alerts
+  ;;
+upgrade-node)
+  upgrade_node
   ;;
 reboot-node)
   reboot_node
