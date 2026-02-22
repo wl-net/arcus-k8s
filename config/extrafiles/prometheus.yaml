@@ -35,7 +35,7 @@ scrape_configs:
   relabel_configs:
   - source_labels: [__meta_kubernetes_service_label_app]
     separator: ;
-    regex: (alarm-service|client-bridge|driver-services|hub-bridge|history-service|notification-services|platform-services|rule-service|scheduler-service|subsystem-service|tag-service)
+    regex: (alarm-service|client-bridge|driver-services|hub-bridge|ivr-callback-server|history-service|notification-services|platform-services|rule-service|scheduler-service|subsystem-service|tag-service)
     replacement: $1
     action: keep
   - source_labels: [__meta_kubernetes_endpoint_port_name]
@@ -67,9 +67,14 @@ scrape_configs:
     target_label: job
     replacement: ${1}
     action: replace
+  - source_labels: [__meta_kubernetes_endpoint_ready]
+    separator: ;
+    regex: (.*)
+    target_label: svcup
+    replacement: $1
+    action: replace
   - separator: ;
     regex: (.*)
     target_label: endpoint
     replacement: metrics
     action: replace
-

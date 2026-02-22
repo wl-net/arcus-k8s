@@ -3,7 +3,7 @@ resources:
 patches:
 - path: cert-provider.yaml
 - path: shared-config.yaml
-- path: ui-service-ingress.yml
-- path: cluster-config.yml
-- path: arcus-config-tunable.yml
-- path: cluster-config-tunable.yml
+- path: ui-service-ingress.yaml
+- path: cluster-config.yaml
+- path: arcus-config-tunable.yaml
+- path: cluster-config-tunable.yaml

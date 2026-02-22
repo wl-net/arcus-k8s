@@ -19,6 +19,17 @@ function check_prerequisites() {
 function setup_k3s() {
   curl -sfL https://get.k3s.io | sudo INSTALL_K3S_EXEC='--disable=servicelb --disable=traefik --write-kubeconfig-mode 644' sh -
 
+  local inotify_watches
+  inotify_watches=$(cat /proc/sys/fs/inotify/max_user_watches 2>/dev/null) || true
+  if [[ -n "$inotify_watches" && "$inotify_watches" -lt 524288 ]]; then
+    echo ""
+    echo "fs.inotify.max_user_watches is $inotify_watches (recommended: 524288)"
+    echo "Kubernetes requires a higher value to avoid 'too many open files' errors."
+    sudo sysctl -w fs.inotify.max_user_watches=524288
+    echo 'fs.inotify.max_user_watches=524288' | sudo tee -a /etc/sysctl.d/99-inotify.conf > /dev/null
+    echo "inotify watches increased and persisted."
+  fi
+
   # Make kubectl work without KUBECONFIG being set
   mkdir -p "$HOME/.kube"
   cp /etc/rancher/k3s/k3s.yaml "$HOME/.kube/config"

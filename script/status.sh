@@ -66,6 +66,14 @@ function arcus_status() {
 
   echo ""
   infra_versions
+
+  local inotify_watches
+  inotify_watches=$(cat /proc/sys/fs/inotify/max_user_watches 2>/dev/null) || true
+  if [[ -n "$inotify_watches" && "$inotify_watches" -lt 524288 ]]; then
+    echo ""
+    echo "Warning: fs.inotify.max_user_watches is $inotify_watches (recommended: 524288)"
+    echo "  Fix: sudo sysctl fs.inotify.max_user_watches=524288"
+  fi
 }
 
 function infra_versions() {
@@ -174,6 +182,29 @@ function connectivity_check() {
       failed=1
     fi
   done
+
+  echo ""
+  echo "Hub TLS Certificate:"
+  local hub_host="hub.${ARCUS_DOMAIN_NAME}"
+  local hub_enddate hub_status
+  hub_enddate=$(echo | openssl s_client -connect "${hub_host}:443" -servername "$hub_host" 2>/dev/null \
+    | openssl x509 -noout -enddate 2>/dev/null | cut -d= -f2) || true
+  if [[ -n "$hub_enddate" ]]; then
+    local hub_epoch now_epoch days_left
+    hub_epoch=$(date -d "$hub_enddate" +%s 2>/dev/null) || hub_epoch=0
+    now_epoch=$(date +%s)
+    days_left=$(( (hub_epoch - now_epoch) / 86400 ))
+    if [[ $days_left -lt 7 ]]; then
+      hub_status="[WARN] expires in ${days_left} days"
+    else
+      hub_status="[OK] expires in ${days_left} days"
+    fi
+    printf "  %-50s %s (%s)\n" "$hub_host" "$hub_status" "$hub_enddate"
+  else
+    printf "  %-50s [FAIL] could not retrieve certificate\n" "$hub_host"
+    failed=1
+  fi
+
   return $failed
 }
 

@@ -44,7 +44,7 @@ function update() {
 
   local config_changes
   config_changes=$(git -C "$ROOT" --no-pager diff --name-only "${before}..${after}" -- \
-    'config/' 'overlays/' '*.yml' '*.yaml' ':!.github/')
+    'config/' 'overlays/' '*.yaml' ':!.github/')
 
   if [[ -n "$config_changes" ]]; then
     echo ""
@@ -55,7 +55,7 @@ function update() {
     prompt show_diff "Show full diff of manifest changes? [yes/no]:"
     if [[ "$show_diff" == "yes" ]]; then
       git -C "$ROOT" --no-pager diff "${before}..${after}" -- \
-        'config/' 'overlays/' '*.yml' '*.yaml' ':!.github/'
+        'config/' 'overlays/' '*.yaml' ':!.github/'
     fi
   fi
 

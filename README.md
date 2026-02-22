@@ -117,7 +117,7 @@ For cloud hosting, this is very similar, but you can use the 172.0.0.1/24 subnet
 
 ## Using a production certificate
 
-Once your network is setup, and you are able to access Arcus (and get a certificate warning from the untrusted LetsEncrypt Staging CA), then it's time to setup a production certificate. Currently, this is done by making changes to config/service/ui-service-ingress.yml, although you shouldn't edit this file directly:
+Once your network is setup, and you are able to access Arcus (and get a certificate warning from the untrusted LetsEncrypt Staging CA), then it's time to setup a production certificate. Currently, this is done by making changes to config/service/ui-service-ingress.yaml, although you shouldn't edit this file directly:
 
 Run `./arcuscmd.sh useprodcert`
 

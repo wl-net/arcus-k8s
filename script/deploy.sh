@@ -13,8 +13,8 @@ function apply() {
   mkdir -p "overlays/${ARCUS_OVERLAY_NAME}-local"
 
   # Preserve user-customized tunable files before overwriting the overlay
-  local arcus_tunable="overlays/${ARCUS_OVERLAY_NAME}-local/arcus-config-tunable.yml"
-  local cluster_tunable="overlays/${ARCUS_OVERLAY_NAME}-local/cluster-config-tunable.yml"
+  local arcus_tunable="overlays/${ARCUS_OVERLAY_NAME}-local/arcus-config-tunable.yaml"
+  local cluster_tunable="overlays/${ARCUS_OVERLAY_NAME}-local/cluster-config-tunable.yaml"
   local saved_arcus_tunable="" saved_cluster_tunable=""
   [[ -f "$arcus_tunable" ]] && saved_arcus_tunable=$(cat "$arcus_tunable")
   [[ -f "$cluster_tunable" ]] && saved_cluster_tunable=$(cat "$cluster_tunable")
@@ -34,40 +34,40 @@ function apply() {
     sed -i "s/me@example.com/$ARCUS_ADMIN_EMAIL/" "overlays/${ARCUS_OVERLAY_NAME}-local/cert-provider.yaml"
   fi
 
-  cp config/configmaps/arcus-config.yml "overlays/${ARCUS_OVERLAY_NAME}-local/shared-config.yaml"
+  cp config/configmaps/arcus-config.yaml "overlays/${ARCUS_OVERLAY_NAME}-local/shared-config.yaml"
   sed -i "s/arcussmarthome.com/$ARCUS_DOMAIN_NAME/g" "overlays/${ARCUS_OVERLAY_NAME}-local/shared-config.yaml"
 
-  cp config/configmaps/cluster-config.yml "overlays/${ARCUS_OVERLAY_NAME}-local/cluster-config.yml"
+  cp config/configmaps/cluster-config.yaml "overlays/${ARCUS_OVERLAY_NAME}-local/cluster-config.yaml"
 
   if [[ -n "${ARCUS_CASSANDRA_HOST-}" ]]; then
-    sed -i "s!cassandra.default.svc.cluster.local!${ARCUS_CASSANDRA_HOST}!g" "overlays/${ARCUS_OVERLAY_NAME}-local/cluster-config.yml"
+    sed -i "s!cassandra.default.svc.cluster.local!${ARCUS_CASSANDRA_HOST}!g" "overlays/${ARCUS_OVERLAY_NAME}-local/cluster-config.yaml"
   fi
   if [[ -n "${ARCUS_ZOOKEEPER_HOST-}" ]]; then
-    sed -i "s!zookeeper-service.default.svc.cluster.local:2181!${ARCUS_ZOOKEEPER_HOST}!g" "overlays/${ARCUS_OVERLAY_NAME}-local/cluster-config.yml"
+    sed -i "s!zookeeper-service.default.svc.cluster.local:2181!${ARCUS_ZOOKEEPER_HOST}!g" "overlays/${ARCUS_OVERLAY_NAME}-local/cluster-config.yaml"
   fi
   if [[ -n "${ARCUS_KAFKA_HOST-}" ]]; then
-    sed -i "s!kafka-service.default.svc.cluster.local:9092!${ARCUS_KAFKA_HOST}!g" "overlays/${ARCUS_OVERLAY_NAME}-local/cluster-config.yml"
+    sed -i "s!kafka-service.default.svc.cluster.local:9092!${ARCUS_KAFKA_HOST}!g" "overlays/${ARCUS_OVERLAY_NAME}-local/cluster-config.yaml"
   fi
 
-  cp config/service/ui-service-ingress.yml "overlays/${ARCUS_OVERLAY_NAME}-local/"ui-service-ingress.yml
-  sed -i "s/arcussmarthome.com/$ARCUS_DOMAIN_NAME/" "overlays/${ARCUS_OVERLAY_NAME}-local/ui-service-ingress.yml"
+  cp config/service/ui-service-ingress.yaml "overlays/${ARCUS_OVERLAY_NAME}-local/"ui-service-ingress.yaml
+  sed -i "s/arcussmarthome.com/$ARCUS_DOMAIN_NAME/" "overlays/${ARCUS_OVERLAY_NAME}-local/ui-service-ingress.yaml"
 
   if [[ "${ARCUS_METALLB:-}" == "yes" ]]; then
-    cp config/templates/metallb.yml "overlays/${ARCUS_OVERLAY_NAME}-local/metallb.yml"
-    sed -i "s!PLACEHOLDER_1!$ARCUS_SUBNET!" "overlays/${ARCUS_OVERLAY_NAME}-local/metallb.yml"
-    $KUBECTL apply -f "overlays/${ARCUS_OVERLAY_NAME}-local/metallb.yml"
+    cp config/templates/metallb.yaml "overlays/${ARCUS_OVERLAY_NAME}-local/metallb.yaml"
+    sed -i "s!PLACEHOLDER_1!$ARCUS_SUBNET!" "overlays/${ARCUS_OVERLAY_NAME}-local/metallb.yaml"
+    $KUBECTL apply -f "overlays/${ARCUS_OVERLAY_NAME}-local/metallb.yaml"
   fi
 
   if [[ -n "${ARCUS_PROXY_REAL_IP-}" ]]; then
-    cp config/nginx-proxy.yml "overlays/${ARCUS_OVERLAY_NAME}-local/nginx-proxy.yml"
-    sed -i "s!PLACEHOLDER_PROXY_IP!${ARCUS_PROXY_REAL_IP}!" "overlays/${ARCUS_OVERLAY_NAME}-local/nginx-proxy.yml"
-    $KUBECTL apply -f "overlays/${ARCUS_OVERLAY_NAME}-local/nginx-proxy.yml"
+    cp config/nginx-proxy.yaml "overlays/${ARCUS_OVERLAY_NAME}-local/nginx-proxy.yaml"
+    sed -i "s!PLACEHOLDER_PROXY_IP!${ARCUS_PROXY_REAL_IP}!" "overlays/${ARCUS_OVERLAY_NAME}-local/nginx-proxy.yaml"
+    $KUBECTL apply -f "overlays/${ARCUS_OVERLAY_NAME}-local/nginx-proxy.yaml"
   fi
 
   if [[ -n "${ARCUS_ADMIN_DOMAIN-}" ]]; then
-    cp config/service/dc-admin-ingress.yml "overlays/${ARCUS_OVERLAY_NAME}-local/dc-admin-ingress.yml"
-    sed -i "s!PLACEHOLDER_ADMIN_DOMAIN!${ARCUS_ADMIN_DOMAIN}!" "overlays/${ARCUS_OVERLAY_NAME}-local/dc-admin-ingress.yml"
-    $KUBECTL apply -f "overlays/${ARCUS_OVERLAY_NAME}-local/dc-admin-ingress.yml"
+    cp config/service/dc-admin-ingress.yaml "overlays/${ARCUS_OVERLAY_NAME}-local/dc-admin-ingress.yaml"
+    sed -i "s!PLACEHOLDER_ADMIN_DOMAIN!${ARCUS_ADMIN_DOMAIN}!" "overlays/${ARCUS_OVERLAY_NAME}-local/dc-admin-ingress.yaml"
+    $KUBECTL apply -f "overlays/${ARCUS_OVERLAY_NAME}-local/dc-admin-ingress.yaml"
 
     cp config/stateful/grafana.yaml "overlays/${ARCUS_OVERLAY_NAME}-local/grafana.yaml"
     sed -i "s!PLACEHOLDER_ADMIN_DOMAIN!${ARCUS_ADMIN_DOMAIN}!" "overlays/${ARCUS_OVERLAY_NAME}-local/grafana.yaml"
@@ -76,11 +76,11 @@ function apply() {
 
   $KUBECTL apply -f config/stateful/grafana-datasources.yaml
   $KUBECTL apply -f config/stateful/loki.yaml
-  $KUBECTL apply -f config/logging/alloy.yml
+  $KUBECTL apply -f config/logging/alloy.yaml
 
   if [[ "${ARCUS_CERT_TYPE:-}" == 'production' ]]; then
-    sed -i 's/letsencrypt-staging/letsencrypt-production/g' "overlays/${ARCUS_OVERLAY_NAME}-local/ui-service-ingress.yml"
-    sed -i 's/nginx-staging-tls/nginx-production-tls/g' "overlays/${ARCUS_OVERLAY_NAME}-local/ui-service-ingress.yml"
+    sed -i 's/letsencrypt-staging/letsencrypt-production/g' "overlays/${ARCUS_OVERLAY_NAME}-local/ui-service-ingress.yaml"
+    sed -i 's/nginx-staging-tls/nginx-production-tls/g' "overlays/${ARCUS_OVERLAY_NAME}-local/ui-service-ingress.yaml"
   fi
 
   if [[ "${ARCUS_CERT_SOLVER:-http}" == "dns" ]]; then
@@ -187,7 +187,7 @@ function killallpods() {
 function useprodcert() {
   load
   echo 'production' > "$ARCUS_CONFIGDIR/cert-issuer"
-  local ingress="overlays/${ARCUS_OVERLAY_NAME}-local/ui-service-ingress.yml"
+  local ingress="overlays/${ARCUS_OVERLAY_NAME}-local/ui-service-ingress.yaml"
   if [[ ! -f "$ingress" ]]; then
     echo "Error: $ingress not found. Run './arcuscmd.sh apply' first."
     exit 1

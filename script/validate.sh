@@ -14,7 +14,7 @@ function validate_manifests() {
       while IFS= read -r line; do echo "        $line"; done <<< "$err"
       ((errors++))
     fi
-  done < <(find config/ overlays/ -name '*.yml' -o -name '*.yaml' | sort)
+  done < <(find config/ overlays/ -name '*.yaml' | sort)
 
   echo ""
   echo "=== Kustomize Build ==="

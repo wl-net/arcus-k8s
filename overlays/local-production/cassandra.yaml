@@ -42,7 +42,7 @@ spec:
             configMapKeyRef:
               key: CASSANDRA_HOST
               name: arcus-config
-        - name: CASSANDRA_SINGLE_NODE
+        - name: CASSANDRA_SINGLE_NODE1
           valueFrom:
             configMapKeyRef:
               key: CASSANDRA_SINGLE_NODE
