@@ -2,6 +2,12 @@
 # Update, history, and rollback functions
 
 function update() {
+  local do_apply=false
+  if [[ "${1:-}" == "--apply" ]]; then
+    do_apply=true
+    shift
+  fi
+
   local branch before after
 
   branch=$(git -C "$ROOT" rev-parse --abbrev-ref HEAD)
@@ -59,8 +65,15 @@ function update() {
     fi
   fi
 
-  echo ""
-  echo "Run './arcuscmd.sh apply' to deploy the new configuration."
+  if [[ "$do_apply" == true ]]; then
+    echo ""
+    echo "Applying configuration..."
+    apply
+  else
+    echo ""
+    echo "Run './arcuscmd.sh apply' to deploy the new configuration."
+    echo "Run './arcuscmd.sh update --apply' to pull and apply in one step."
+  fi
   echo "Run './arcuscmd.sh rollback' to revert to the previous version."
 }
 

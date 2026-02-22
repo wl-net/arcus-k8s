@@ -55,7 +55,7 @@ Deploy:
   apply               Apply the current configuration to the cluster
   deploy [svc...]       Rolling restart of services (all if none specified)
                           --pull  Force re-pull images before restarting
-  update              Pull latest changes and show what changed
+  update [--apply]    Pull latest changes and show what changed
   rollback            Revert to a previous version
   history             Show recent update history
   useprodcert         Switch from Let's Encrypt staging to production certificate
@@ -158,7 +158,7 @@ check)
   connectivity_check
   ;;
 update)
-  update
+  update "${@:2}"
   ;;
 rollback)
   rollback
