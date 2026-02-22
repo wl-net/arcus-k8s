@@ -1,5 +1,6 @@
 resources:
 - ../../config
+- grafana.yaml
 patches:
 - path: cert-provider.yaml
 - path: shared-config.yaml

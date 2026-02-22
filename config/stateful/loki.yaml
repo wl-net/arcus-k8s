@@ -46,7 +46,7 @@ spec:
       volumes:
       - name: config
         configMap:
-          name: extrafiles
+          name: loki-config
           items:
           - key: loki.yaml
             path: loki.yaml

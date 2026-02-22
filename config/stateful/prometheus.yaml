@@ -43,7 +43,7 @@ spec:
       volumes:
       - name: config
         configMap:
-          name: extrafiles
+          name: prometheus-config
           items:
           - key: prometheus.yaml
             path: prometheus.yaml

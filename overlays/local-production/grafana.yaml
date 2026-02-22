@@ -1,0 +1,155 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app: grafana
+  name: grafana
+  namespace: default
+spec:
+  serviceName: grafana
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      containers:
+      - env:
+        - name: CASSANDRA_HOST
+          valueFrom:
+            configMapKeyRef:
+              key: CASSANDRA_CONTACTPOINTS
+              name: arcus-config
+        - name: CASSANDRA_KEYSPACE
+          valueFrom:
+            configMapKeyRef:
+              key: CASSANDRA_KEYSPACE
+              name: arcus-config
+        - name: GF_SERVER_ROOT_URL
+          value: https://PLACEHOLDER_ADMIN_DOMAIN
+        - name: GF_INSTALL_PLUGINS
+          value: grafana-kairosdb-datasource
+        - name: GF_RENDERING_SERVER_URL
+          value: http://grafana-renderer.default.svc.cluster.local:8081/render
+        - name: GF_RENDERING_CALLBACK_URL
+          value: http://grafana-service.default.svc.cluster.local:3000
+        - name: GF_SMTP_HOST
+          value: smtp.sendgrid.net:587
+        - name: GF_SMTP_USER
+          value: apikey
+        - name: GF_SMTP_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: email.provider.apikey
+              name: shared
+        - name: GF_SMTP_ENABLED
+          value: "true"
+        - name: GF_UNIFIED_ALERTING_SCREENSHOTS_CAPTURE
+          value: "true"
+          #ports:
+          #- containerPort: 3000
+          #name: tcp-3000
+        image: grafana/grafana
+        imagePullPolicy: IfNotPresent
+        name: grafana
+        resources:
+          limits:
+            cpu: "1"
+          requests:
+            cpu: "0.05"
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: "/var/lib/grafana"
+          name: grafana-storage
+        - mountPath: /etc/grafana/provisioning/datasources
+          name: datasources
+        - mountPath: /etc/grafana/provisioning/alerting
+          name: alerting
+        - mountPath: /etc/grafana/provisioning/dashboards
+          name: dashboards-provider
+        - mountPath: /etc/grafana/provisioning/dashboards/json
+          name: dashboards
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: datasources
+        configMap:
+          name: grafana-datasources
+      - name: alerting
+        configMap:
+          name: grafana-alerting
+      - name: dashboards-provider
+        configMap:
+          name: grafana-dashboards-provider
+      - name: dashboards
+        configMap:
+          name: grafana-dashboards
+  volumeClaimTemplates:
+  - metadata:
+      name: grafana-storage
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 2Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: grafana-renderer
+  name: grafana-renderer
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: grafana-renderer
+  template:
+    metadata:
+      labels:
+        app: grafana-renderer
+    spec:
+      containers:
+      - image: grafana/grafana-image-renderer:latest
+        imagePullPolicy: IfNotPresent
+        name: grafana-renderer
+        resources:
+          limits:
+            cpu: "1"
+          requests:
+            cpu: "10m"
+        env:
+        ports:
+        - containerPort: 8081
+          name: tcp-8081
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: grafana-renderer
+  name: grafana-renderer
+spec:
+  externalTrafficPolicy: Cluster
+  ports:
+  - port: 8081
+    protocol: TCP
+    targetPort: 8081
+  selector:
+    app: grafana-renderer
+  sessionAffinity: None
+  type: NodePort
+

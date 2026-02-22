@@ -93,16 +93,6 @@ function apply() {
   else
     sed -i "s!PLACEHOLDER_ADMIN_DOMAIN!localhost!" "overlays/${ARCUS_OVERLAY_NAME}-local/grafana.yaml"
   fi
-  $KUBECTL apply -f "overlays/${ARCUS_OVERLAY_NAME}-local/grafana.yaml"
-
-  $KUBECTL apply -f config/stateful/prometheus.yaml
-  $KUBECTL apply -f config/stateful/grafana-datasources.yaml
-  $KUBECTL apply -f config/stateful/grafana-alerting.yaml
-  $KUBECTL apply -f config/stateful/grafana-dashboards-provider.yaml
-  $KUBECTL delete configmap grafana-dashboards --ignore-not-found > /dev/null
-  $KUBECTL create configmap grafana-dashboards --from-file config/dashboards > /dev/null
-  $KUBECTL apply -f config/stateful/loki.yaml
-  $KUBECTL apply -f config/logging/alloy.yaml
 
   if [[ "${ARCUS_CERT_TYPE:-}" == 'production' ]]; then
     sed -i 's/letsencrypt-staging/letsencrypt-production/g' "overlays/${ARCUS_OVERLAY_NAME}-local/ui-service-ingress.yaml"
@@ -118,7 +108,9 @@ function apply() {
   fi
 
   $KUBECTL delete configmap extrafiles --ignore-not-found > /dev/null
-  $KUBECTL create configmap extrafiles --from-file config/extrafiles > /dev/null
+  $KUBECTL create configmap extrafiles \
+    --from-file=firmware.xml=config/extrafiles/firmware.xml \
+    --from-file=logback.xml=config/extrafiles/logback.xml > /dev/null
 
   $KUBECTL create secret generic shared --from-file secret/ --dry-run=client -o yaml | $KUBECTL apply -f - > /dev/null
 

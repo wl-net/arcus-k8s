@@ -37,6 +37,26 @@ resources:
 - configmaps/cluster-config.yaml
 - clusterrole.yaml
 - cronjob/hub-keystore-renewal.yaml
+- stateful/prometheus.yaml
+- stateful/grafana-datasources.yaml
+- stateful/grafana-alerting.yaml
+- stateful/grafana-dashboards-provider.yaml
+- stateful/loki.yaml
+- logging/alloy.yaml
+- service/grafana.yaml
+- service/prometheus.yaml
+
+configMapGenerator:
+- name: grafana-dashboards
+  files:
+  - dashboards/arcus-overview.json
+  - dashboards/arcus-platform.json
+- name: prometheus-config
+  files:
+  - extrafiles/prometheus.yaml
+- name: loki-config
+  files:
+  - extrafiles/loki.yaml
 
 images:
 - name: us-west1-docker.pkg.dev/arcus-238802/arcus-prod/arcus/client-bridge
