@@ -138,6 +138,12 @@ function deploy_platform() {
     return 1
   }
 
+  if [[ ! -d "overlays/${ARCUS_OVERLAY_NAME}-local" ]]; then
+    echo "Error: overlay 'overlays/${ARCUS_OVERLAY_NAME}-local' not found."
+    echo "Run './arcuscmd.sh apply' before deploying."
+    return 1
+  fi
+
   local pull=0
   if [[ "${1:-}" == "--pull" ]]; then
     pull=1
