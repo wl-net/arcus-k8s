@@ -57,7 +57,7 @@ spec:
         ports:
         - containerPort: 9100
           name: tcp-9100
-        image: us-west1-docker.pkg.dev/arcus-238802/arcus-prod/arcus/alarm-service:2019.10.0
+        image: ghcr.io/wl-net/arcusplatform/arcus-alarm-service:2019.10.0
         imagePullPolicy: IfNotPresent
         name: alarm-service
         volumeMounts:

@@ -83,7 +83,7 @@ spec:
             configMapKeyRef:
               key: DEFAULT_SERVICE_LEVEL
               name: arcus-config
-        image: us-west1-docker.pkg.dev/arcus-238802/arcus-prod/arcus/platform-services:2019.10.0
+        image: ghcr.io/wl-net/arcusplatform/arcus-platform-services:2019.10.0
         imagePullPolicy: IfNotPresent
         name: platform-services
         readinessProbe:
