@@ -66,29 +66,29 @@ configMapGenerator:
 
 images:
 - name: us-west1-docker.pkg.dev/arcus-238802/arcus-prod/arcus/client-bridge
-  newTag: 2019.10.0
+  newTag: 2026.2.0
 - name: us-west1-docker.pkg.dev/arcus-238802/arcus-prod/arcus/driver-services
-  newTag: 2019.10.0
+  newTag: 2026.2.0
 - name: us-west1-docker.pkg.dev/arcus-238802/arcus-prod/arcus/subsystem-service
-  newTag: 2019.10.0
+  newTag: 2026.2.0
 - name: us-west1-docker.pkg.dev/arcus-238802/arcus-prod/arcus/hub-bridge
-  newTag: 2019.10.0
+  newTag: 2026.2.0
 - name: us-west1-docker.pkg.dev/arcus-238802/arcus-prod/arcus/history-service
-  newTag: 2019.10.0
+  newTag: 2026.2.0
 - name: us-west1-docker.pkg.dev/arcus-238802/arcus-prod/arcus/scheduler-service
-  newTag: 2019.10.0
+  newTag: 2026.2.0
 - name: us-west1-docker.pkg.dev/arcus-238802/arcus-prod/arcus/platform-services
-  newTag: 2019.10.0
+  newTag: 2026.2.0
 
 - name: us-west1-docker.pkg.dev/arcus-238802/arcus-prod/arcus/zookeeper
   newTag: latest
 
 - name: us-west1-docker.pkg.dev/arcus-238802/arcus-prod/arcus/rule-service
-  newTag: 2019.10.0
+  newTag: 2026.2.0
 - name: us-west1-docker.pkg.dev/arcus-238802/arcus-prod/arcus/ivr-callback-server
-  newTag: 2019.10.0
+  newTag: 2026.2.0
 - name: us-west1-docker.pkg.dev/arcus-238802/arcus-prod/arcus/alarm-service
-  newTag: 2019.10.0
+  newTag: 2026.2.0
 - name: us-west1-docker.pkg.dev/arcus-238802/arcus-prod/arcus/notification-services
-  newTag: 2019.10.0
+  newTag: 2026.2.0
 
