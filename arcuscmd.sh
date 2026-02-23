@@ -53,13 +53,14 @@ Setup:
 
 Deploy:
   apply               Apply the current configuration to the cluster
-  deploy [svc...]       Rolling restart of services (all if none specified)
-                          --pull  Force re-pull images before restarting
+  deploy [svc...]     Rolling restart of services (all if none specified)
+                        --pull  Force re-pull images before restarting
   update [--apply]    Pull latest changes and show what changed
   rollback            Revert to a previous version
   history             Show recent update history
   useprodcert         Switch from Let's Encrypt staging to production certificate
   updatehubkeystore   Convert production TLS key to PKCS#8 for hub-bridge
+  modelmanager        Run model manager jobs (provision database schemas)
 
 Status:
   status              Show services, certificates, and infrastructure versions
@@ -69,30 +70,32 @@ Status:
   validate            Validate YAML syntax, kustomize build, and Kubernetes schemas
   verifyconfig        Verify that all configuration and secrets are present
 
-Operations:
+Backup & Restore:
   backupdb            Snapshot and backup Cassandra database
   restoredb <file>    Restore Cassandra from a snapshot backup
-  restoredb-full <file>  Full Cassandra restore (destructive, replaces data dir)
+  restoredb-full <f>  Full Cassandra restore (destructive, replaces data dir)
   backupconfig        Backup local configuration to a tarball
-  modelmanager        Run model manager jobs (provision database schemas)
-  setupmetrics        Setup Grafana metrics
+
+Monitoring:
   silence [duration]  Silence Grafana alerts (default: 2h, e.g. 30m, 4h)
   unsilence           Remove active Grafana alert silences
-  upgrade-node        Update and upgrade system packages (apt)
-  reboot-node         Drain traffic, silence alerts, and reboot this host
-  drain               Set Route 53 weighted record to 0 (remove traffic from this cluster)
-  resume              Restore Route 53 weighted record to its previous value
-  deletepod           Delete pods matching an application
-  logs                Get logs for an application
-  certlogs            Get logs for cert-manager (optionally: webhook, cainjector)
-  shell               Get an interactive shell on a pod
-  dbshell             Open a Cassandra CQL shell
-
-Notifications:
   notify-off          Silence Discord notifications
   notify-on           Re-enable Discord notifications
 
-Dangerous:
+Traffic:
+  drain               Set Route 53 weighted record to 0 (drain traffic)
+  resume              Restore Route 53 weighted record to its previous value
+
+Node:
+  upgrade-node        Update and upgrade system packages (apt)
+  reboot-node         Drain traffic, silence alerts, and reboot this host
+
+Troubleshooting:
+  logs <app>          Get logs for a service
+  certlogs [part]     Get logs for cert-manager (optionally: webhook, cainjector)
+  shell <app>         Get an interactive shell on a pod
+  dbshell             Open a Cassandra CQL shell
+  deletepod <app>     Delete pods matching an application
   killall             Delete all Arcus pods, triggering a full reschedule
 ENDOFDOC
 
@@ -127,9 +130,6 @@ setup)
     echo "  ./arcuscmd.sh apply"
     echo "  ./arcuscmd.sh modelmanager"
   fi
-  ;;
-setupmetrics)
-  setup_metrics
   ;;
 apply)
   _notify_start "Applying configuration"

@@ -303,7 +303,3 @@ function shell_exec() {
   fi
   $KUBECTL exec --stdin --tty "$pod" -- "${cmd[@]}"
 }
-
-function setup_metrics() {
-  $KUBECTL apply -f config/stateful/grafana.yaml
-}
