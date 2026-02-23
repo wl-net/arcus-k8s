@@ -63,6 +63,9 @@ spec:
           requests:
             cpu: "10m"
             memory: "128Mi"
+        volumeMounts:
+          - mountPath: /config
+            name: config
         readinessProbe:
           tcpSocket:
             port: 9100
@@ -80,6 +83,13 @@ spec:
       schedulerName: default-scheduler
       securityContext: {}
       terminationGracePeriodSeconds: 30
+      volumes:
+        - name: config
+          configMap:
+            name: extrafiles
+            items:
+              - key: logback.xml
+                path: logback.xml
 ---
 apiVersion: v1
 kind: Service
