@@ -173,7 +173,6 @@ check)
   connectivity_check
   ;;
 update)
-  _notify_start "Pulling latest changes"
   update "${@:2}"
   ;;
 rollback)
