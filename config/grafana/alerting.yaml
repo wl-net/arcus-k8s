@@ -52,6 +52,8 @@ groups:
     labels:
       severity: critical
     annotations:
+      __dashboardUid__: arcus-overview
+      __panelId__: "1"
       summary: '{{ $labels.job }} is down'
       description: '{{ $labels.job }} ({{ $labels.instance }}) has been down for more than 5 minutes.'
   - uid: pod-crash-looping
@@ -101,6 +103,8 @@ groups:
     labels:
       severity: critical
     annotations:
+      __dashboardUid__: arcus-overview
+      __panelId__: "1"
       summary: '{{ $labels.job }} is crash looping'
       description: '{{ $labels.job }} ({{ $labels.instance }}) has restarted multiple times in the last 15 minutes.'
   - uid: cert-expiring-soon
@@ -199,6 +203,8 @@ groups:
     labels:
       severity: critical
     annotations:
+      __dashboardUid__: arcus-overview
+      __panelId__: "2"
       summary: 'Unexpected hub connections detected'
       description: '{{ $value }} hubs connected (expected 4 or fewer). Possible unauthorized hub connection.'
   - uid: password-changed
@@ -302,6 +308,8 @@ groups:
     labels:
       severity: critical
     annotations:
+      __dashboardUid__: arcus-overview
+      __panelId__: "6"
       summary: 'Unauthorized access attempt detected'
       description: 'Bridge received unauthorized access attempts in the last 5 minutes.'
   - uid: notification-email-errors
@@ -351,6 +359,8 @@ groups:
     labels:
       severity: critical
     annotations:
+      __dashboardUid__: arcus-overview
+      __panelId__: "42"
       summary: 'Email notification errors'
       description: 'Email notifications are failing to send.'
   - uid: scheduler-errors
@@ -400,6 +410,8 @@ groups:
     labels:
       severity: critical
     annotations:
+      __dashboardUid__: arcus-overview
+      __panelId__: "30"
       summary: 'Scheduler command errors'
       description: 'Scheduler service is experiencing command errors.'
   - uid: alloy-inotify-errors
@@ -449,6 +461,8 @@ groups:
     labels:
       severity: critical
     annotations:
+      __dashboardUid__: arcus-overview
+      __panelId__: "60"
       summary: 'Alloy hitting inotify watch limit'
       description: 'Alloy is logging "too many open files" errors — logs are not being collected.'
   - uid: log-ingestion-stopped
@@ -498,5 +512,7 @@ groups:
     labels:
       severity: critical
     annotations:
+      __dashboardUid__: arcus-overview
+      __panelId__: "60"
       summary: 'No logs being ingested into Loki'
       description: 'Loki has received no log entries for at least 15 minutes. Alloy may be down or unable to collect logs.'
