@@ -30,6 +30,22 @@ function arcus_status() {
     echo "  No warnings"
   fi
 
+  # Drain state
+  if [[ -f .cache/route53-saved-weight ]]; then
+    local drain_duration="unknown"
+    if [[ -f .cache/route53-drain-time ]]; then
+      local drain_time now elapsed
+      drain_time=$(cat .cache/route53-drain-time)
+      now=$(date +%s)
+      elapsed=$(( now - drain_time ))
+      drain_duration=$(_format_drain_duration "$elapsed")
+    fi
+    echo ""
+    echo "Traffic:"
+    echo "  WARNING: cluster is DRAINED (Route 53 weight 0) — drained ${drain_duration} ago"
+    echo "  Run './arcuscmd.sh resume' to restore traffic."
+  fi
+
   # Application services — show pods, not just deployments
   echo ""
   echo "Application Services:"

@@ -78,6 +78,7 @@ function route53_drain() {
 
   mkdir -p .cache
   echo "$current_weight" > .cache/route53-saved-weight
+  date +%s > .cache/route53-drain-time
 
   _route53_change_weight "$record_name" "$record_value" "$record_type" "$record_ttl" 0
   echo "Drained: ${record_name} (set: ${ARCUS_ROUTE53_SET_ID}) weight ${current_weight} -> 0"
@@ -140,6 +141,55 @@ function route53_resume() {
   record_value=$(echo "$record" | python3 -c "import sys,json; print(json.load(sys.stdin)[0]['ResourceRecords'][0]['Value'])")
 
   _route53_change_weight "$record_name" "$record_value" "$record_type" "$record_ttl" "$saved_weight"
-  rm .cache/route53-saved-weight
+  rm -f .cache/route53-saved-weight .cache/route53-drain-time
   echo "Resumed: ${record_name} (set: ${ARCUS_ROUTE53_SET_ID}) weight 0 -> ${saved_weight}"
+}
+
+function _format_drain_duration() {
+  local elapsed=$1
+  local hours=$(( elapsed / 3600 ))
+  local minutes=$(( (elapsed % 3600) / 60 ))
+  if [[ $hours -gt 0 ]]; then
+    echo "${hours}h ${minutes}m"
+  else
+    echo "${minutes}m"
+  fi
+}
+
+function auto_resume() {
+  [[ -f .cache/route53-drain-time ]] || return 0
+
+  local drain_time now elapsed threshold=14400
+  drain_time=$(cat .cache/route53-drain-time)
+  now=$(date +%s)
+  elapsed=$(( now - drain_time ))
+  [[ $elapsed -ge $threshold ]] || return 0
+
+  local duration
+  duration=$(_format_drain_duration "$elapsed")
+  echo "Auto-resuming: cluster has been drained for ${duration}."
+  route53_resume
+  _notify_discord "Auto-resumed traffic after ${duration} drained" "$_NOTIFY_COLOR_ORANGE"
+}
+
+function _check_drain_timeout() {
+  [[ -f .cache/route53-drain-time ]] || return 0
+  [[ -t 0 ]] || return 0  # skip if not interactive
+
+  local drain_time now elapsed threshold=14400
+  drain_time=$(cat .cache/route53-drain-time)
+  now=$(date +%s)
+  elapsed=$(( now - drain_time ))
+  [[ $elapsed -ge $threshold ]] || return 0
+
+  local duration
+  duration=$(_format_drain_duration "$elapsed")
+  echo ""
+  echo "WARNING: Cluster has been drained for ${duration}."
+  local answer=''
+  prompt answer "Resume traffic now? [y/N]:"
+  if [[ "$answer" =~ ^[Yy]$ ]]; then
+    route53_resume
+  fi
+  echo ""
 }

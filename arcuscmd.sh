@@ -28,14 +28,14 @@ mkdir -p "$ARCUS_CONFIGDIR"
 
 KUBECTL=${KUBECTL:-kubectl}
 
-if [[ ${1:-help} != 'help' && ${1:-help} != 'setup' && ${1:-help} != 'configure' && ${1:-help} != 'verifyconfig' && ${1:-help} != 'shell-setup' && ${1:-help} != 'validate' && ${1:-help} != 'drain' && ${1:-help} != 'resume' ]]; then
+if [[ ${1:-help} != 'help' && ${1:-help} != 'setup' && ${1:-help} != 'configure' && ${1:-help} != 'verifyconfig' && ${1:-help} != 'shell-setup' && ${1:-help} != 'validate' && ${1:-help} != 'drain' && ${1:-help} != 'resume' && ${1:-help} != 'auto-resume' ]]; then
   if ! command -v "$KUBECTL" &>/dev/null; then
     echo "Error: kubectl not found. Is it installed and in your PATH?"
     exit 1
   fi
 fi
 
-if [[ ${1:-help} != 'help' && ${1:-help} != 'setup' && ${1:-help} != 'configure' && ${1:-help} != 'verifyconfig' && ${1:-help} != 'shell-setup' && ${1:-help} != 'validate' && ${1:-help} != 'k3s' && ${1:-help} != 'install' && ${1:-help} != 'drain' && ${1:-help} != 'resume' ]]; then
+if [[ ${1:-help} != 'help' && ${1:-help} != 'setup' && ${1:-help} != 'configure' && ${1:-help} != 'verifyconfig' && ${1:-help} != 'shell-setup' && ${1:-help} != 'validate' && ${1:-help} != 'k3s' && ${1:-help} != 'install' && ${1:-help} != 'drain' && ${1:-help} != 'resume' && ${1:-help} != 'auto-resume' ]]; then
   require_config
 fi
 
@@ -85,6 +85,7 @@ Monitoring:
 Traffic:
   drain               Set Route 53 weighted record to 0 (drain traffic)
   resume              Restore Route 53 weighted record to its previous value
+  auto-resume         Resume traffic if drained for over 4 hours (for cron)
 
 Node:
   upgrade-node        Update and upgrade system packages (apt)
@@ -104,6 +105,10 @@ ENDOFDOC
 trap _notify_on_exit EXIT
 
 subcmd=${1:-help}
+
+if [[ "$subcmd" != 'help' && "$subcmd" != 'validate' && "$subcmd" != 'shell-setup' && "$subcmd" != 'drain' && "$subcmd" != 'resume' && "$subcmd" != 'auto-resume' ]]; then
+  _check_drain_timeout
+fi
 
 case "$subcmd" in
 setup)
@@ -236,6 +241,9 @@ drain)
 resume)
   _notify_start "Resuming traffic"
   route53_resume
+  ;;
+auto-resume)
+  auto_resume
   ;;
 validate)
   validate_manifests
