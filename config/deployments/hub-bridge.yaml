@@ -169,9 +169,17 @@ spec:
           readOnly: true
         - name: config
           mountPath: /config
+        - name: tmp
+          mountPath: /tmp
         image: ghcr.io/wl-net/arcusplatform/arcus-hub-bridge:2019.10.0
         imagePullPolicy: IfNotPresent
         name: hub-bridge
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+              - ALL
         resources:
           limits:
             cpu: "1"
@@ -191,10 +199,17 @@ spec:
             port: 9082
           initialDelaySeconds: 30
           periodSeconds: 60
+      automountServiceAccountToken: false
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
-      securityContext: {}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       terminationGracePeriodSeconds: 30
       volumes:
       - name: data-secrets
@@ -219,6 +234,10 @@ spec:
             path: logback.xml
           - key: firmware.xml
             path: firmware.xml
+      - name: tmp
+        emptyDir:
+          medium: Memory
+          sizeLimit: 64Mi
 ---
 apiVersion: v1
 kind: Service

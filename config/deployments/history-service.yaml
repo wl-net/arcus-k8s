@@ -56,6 +56,12 @@ spec:
         image: ghcr.io/wl-net/arcusplatform/arcus-history-service:2019.10.0
         imagePullPolicy: IfNotPresent
         name: history-service
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+              - ALL
         resources:
           limits:
             cpu: "1"
@@ -67,6 +73,8 @@ spec:
         volumeMounts:
           - mountPath: /config
             name: config
+          - mountPath: /tmp
+            name: tmp
         readinessProbe:
           tcpSocket:
             port: 9001
@@ -77,10 +85,17 @@ spec:
             port: 9001
           initialDelaySeconds: 30
           periodSeconds: 60
+      automountServiceAccountToken: false
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
-      securityContext: {}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       terminationGracePeriodSeconds: 30
       volumes:
         - name: config
@@ -89,6 +104,10 @@ spec:
             items:
               - key: logback.xml
                 path: logback.xml
+        - name: tmp
+          emptyDir:
+            medium: Memory
+            sizeLimit: 64Mi
 ---
 apiVersion: v1
 kind: Service

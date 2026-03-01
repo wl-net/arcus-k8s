@@ -56,6 +56,12 @@ spec:
         image: ghcr.io/wl-net/arcusplatform/arcus-rule-service:2019.10.0
         imagePullPolicy: IfNotPresent
         name: rule-service
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+              - ALL
         resources:
           limits:
             cpu: "1"
@@ -78,10 +84,19 @@ spec:
         volumeMounts:
          - mountPath: /config
            name: config
+         - mountPath: /tmp
+           name: tmp
+      automountServiceAccountToken: false
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
-      securityContext: {}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       terminationGracePeriodSeconds: 30
       volumes:
       - name: config
@@ -90,6 +105,10 @@ spec:
           items:
           - key: logback.xml
             path: logback.xml
+      - name: tmp
+        emptyDir:
+          medium: Memory
+          sizeLimit: 64Mi
 ---
 apiVersion: v1
 kind: Service

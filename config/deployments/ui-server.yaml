@@ -24,6 +24,12 @@ spec:
       - image: us-west1-docker.pkg.dev/arcus-238802/arcus-prod/arcus/ui-server:latest
         imagePullPolicy: IfNotPresent
         name: ui-server
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+              - ALL
         resources: {}
         readinessProbe:
           tcpSocket:
@@ -35,6 +41,9 @@ spec:
             port: 8096
           initialDelaySeconds: 10
           periodSeconds: 60
+        volumeMounts:
+          - mountPath: /tmp
+            name: tmp
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
         env:
@@ -58,8 +67,20 @@ spec:
             configMapKeyRef:
               key: ARCUS_ENABLE_BATTERY_PERCENTAGE
               name: arcus-config
+      automountServiceAccountToken: false
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
-      securityContext: {}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       terminationGracePeriodSeconds: 30
+      volumes:
+      - name: tmp
+        emptyDir:
+          medium: Memory
+          sizeLimit: 64Mi

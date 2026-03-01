@@ -24,6 +24,12 @@ spec:
       - image: us-west1-docker.pkg.dev/arcus-238802/arcus-prod/arcus/static-server:latest
         imagePullPolicy: IfNotPresent
         name: static-server
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+              - ALL
         resources: {}
         readinessProbe:
           tcpSocket:
@@ -35,10 +41,25 @@ spec:
             port: 8097
           initialDelaySeconds: 10
           periodSeconds: 60
+        volumeMounts:
+          - mountPath: /tmp
+            name: tmp
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
+      automountServiceAccountToken: false
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
-      securityContext: {}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       terminationGracePeriodSeconds: 30
+      volumes:
+      - name: tmp
+        emptyDir:
+          medium: Memory
+          sizeLimit: 64Mi
