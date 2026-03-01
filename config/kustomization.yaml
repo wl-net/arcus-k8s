@@ -66,29 +66,29 @@ configMapGenerator:
 
 images:
 - name: ghcr.io/wl-net/arcusplatform/arcus-client-bridge
-  newTag: 2026.2.0
+  newTag: 2026.2.1
 - name: ghcr.io/wl-net/arcusplatform/arcus-driver-services
-  newTag: 2026.2.0
+  newTag: 2026.2.1
 - name: ghcr.io/wl-net/arcusplatform/arcus-subsystem-service
-  newTag: 2026.2.0
+  newTag: 2026.2.1
 - name: ghcr.io/wl-net/arcusplatform/arcus-hub-bridge
-  newTag: 2026.2.0
+  newTag: 2026.2.1
 - name: ghcr.io/wl-net/arcusplatform/arcus-history-service
-  newTag: 2026.2.0
+  newTag: 2026.2.1
 - name: ghcr.io/wl-net/arcusplatform/arcus-scheduler-service
-  newTag: 2026.2.0
+  newTag: 2026.2.1
 - name: ghcr.io/wl-net/arcusplatform/arcus-platform-services
-  newTag: 2026.2.0
+  newTag: 2026.2.1
 
 - name: ghcr.io/wl-net/arcusplatform/arcus-zookeeper
   newTag: latest
 
 - name: ghcr.io/wl-net/arcusplatform/arcus-rule-service
-  newTag: 2026.2.0
+  newTag: 2026.2.1
 - name: ghcr.io/wl-net/arcusplatform/arcus-ivr-callback-server
-  newTag: 2026.2.0
+  newTag: 2026.2.1
 - name: ghcr.io/wl-net/arcusplatform/arcus-alarm-service
-  newTag: 2026.2.0
+  newTag: 2026.2.1
 - name: ghcr.io/wl-net/arcusplatform/arcus-notification-services
-  newTag: 2026.2.0
+  newTag: 2026.2.1
 
