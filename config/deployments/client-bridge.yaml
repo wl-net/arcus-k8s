@@ -159,13 +159,15 @@ spec:
             drop:
               - ALL
         readinessProbe:
-          tcpSocket:
-            port: 9100
+          httpGet:
+            path: /check
+            port: 9081
           initialDelaySeconds: 15
           periodSeconds: 10
         livenessProbe:
-          tcpSocket:
-            port: 9100
+          httpGet:
+            path: /check
+            port: 9081
           initialDelaySeconds: 30
           periodSeconds: 60
         resources:
