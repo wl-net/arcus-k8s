@@ -48,6 +48,8 @@ spec:
             name: nginx-cache
           - mountPath: /var/run
             name: nginx-run
+          - mountPath: /usr/share/nginx/html/build/dist/config
+            name: ui-config
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
         env:
@@ -94,3 +96,5 @@ spec:
         emptyDir:
           medium: Memory
           sizeLimit: 1Mi
+      - name: ui-config
+        emptyDir: {}
