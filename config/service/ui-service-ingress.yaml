@@ -53,6 +53,16 @@ spec:
             name: client-bridge-service
             port:
               number: 80
+  - host: api.arcussmarthome.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix  # `pathType` is required in Kubernetes v1 Ingress
+        backend:
+          service:
+            name: api-bridge-service
+            port:
+              number: 80
   - host: admin.arcussmarthome.com
     http:
       paths:
@@ -67,6 +77,7 @@ spec:
   - secretName: nginx-staging-tls
     hosts:
     - arcussmarthome.com
+    - api.arcussmarthome.com
     - client.arcussmarthome.com
     - hub.arcussmarthome.com
     - admin.arcussmarthome.com

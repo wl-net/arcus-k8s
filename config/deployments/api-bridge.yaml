@@ -1,0 +1,224 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: api-bridge
+  name: api-bridge
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-bridge
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: api-bridge
+    spec:
+      containers:
+      - envFrom:
+        - configMapRef:
+            name: cluster-config
+        env:
+        - name: JAVA_OPTS
+          value: "-Xms64m -Xmx192m -Dlogback.configurationFile=/config/logback.xml"
+        - name: PARTITION_MEMBERS
+          valueFrom:
+            configMapKeyRef:
+              key: BRIDGE_INSTANCES
+              name: arcus-config
+        - name: BILLING_URL
+          valueFrom:
+            configMapKeyRef:
+              key: BILLING_URL
+              name: arcus-config
+        - name: BILLING_CLIENT
+          value: 'noop'
+        - name: BILLING_API_KEY
+          valueFrom:
+            secretKeyRef:
+              key: billing.api.key
+              name: shared
+        - name: IRIS_AES_SECRET
+          valueFrom:
+            secretKeyRef:
+              key: iris.aes.secret
+              name: shared
+        - name: IRIS_AES_IV
+          valueFrom:
+            secretKeyRef:
+              key: iris.aes.iv
+              name: shared
+        - name: QUESTIONS_AES_SECRET
+          valueFrom:
+            secretKeyRef:
+              key: questions.aes.secret
+              name: shared
+        - name: SMARTY_AUTH_ID
+          valueFrom:
+            secretKeyRef:
+              key: smarty.auth.id
+              name: shared
+        - name: SMARTY_AUTH_TOKEN
+          valueFrom:
+            secretKeyRef:
+              key: smarty.auth.token
+              name: shared
+        - name: BILLING_PUBLIC_API_KEY
+          valueFrom:
+            secretKeyRef:
+              key: billing.public.api.key
+              name: shared
+        - name: BOUNCE_HELP_URL
+          valueFrom:
+            configMapKeyRef:
+              key: BOUNCE_HELP_URL
+              name: arcus-config
+        - name: BOUNCE_APPLE_URL
+          valueFrom:
+            configMapKeyRef:
+              key: BOUNCE_APPLE_URL
+              name: arcus-config
+        - name: BOUNCE_APP_URL
+          valueFrom:
+            configMapKeyRef:
+              key: BOUNCE_APP_URL
+              name: arcus-config
+        - name: BOUNCE_ANDROID_URL
+          valueFrom:
+            configMapKeyRef:
+              key: BOUNCE_ANDROID_URL
+              name: arcus-config
+        - name: BOUNCE_WEB_URL
+          valueFrom:
+            configMapKeyRef:
+              key: BOUNCE_WEB_URL
+              name: arcus-config
+        - name: BOUNCE_REDIRECT_URL
+          valueFrom:
+            configMapKeyRef:
+              key: BOUNCE_REDIRECT_URL
+              name: arcus-config
+        - name: REDIRECT_BASE_URL
+          valueFrom:
+            configMapKeyRef:
+              key: REDIRECT_BASE_URL
+              name: arcus-config
+        - name: IOS_APP_IDS
+          valueFrom:
+            configMapKeyRef:
+              key: BOUNCE_IOS_APP_IDS
+              name: arcus-config
+        - name: VIDEO_PREVIEW_UPLOAD_URL
+          valueFrom:
+            configMapKeyRef:
+              key: VIDEO_PREVIEW_UPLOAD_URL
+              name: arcus-config
+        - name: SECURE_STATIC_RESOURCE_BASE_URL
+          valueFrom:
+            configMapKeyRef:
+              key: SECURE_STATIC_RESOURCE_BASE_URL
+              name: arcus-config
+        - name: INVOICE_RESOURCE_BASE_URL
+          valueFrom:
+            configMapKeyRef:
+              key: INVOICE_RESOURCE_BASE_URL
+              name: arcus-config
+        - name: STATIC_RESOURCE_BASE_URL
+          valueFrom:
+            configMapKeyRef:
+              key: SECURE_STATIC_RESOURCE_BASE_URL # only secure, no http
+              name: arcus-config
+        - name: CAMERA_PREVIEW_BASEURL
+          valueFrom:
+            configMapKeyRef:
+              key: CAMERA_PREVIEW_BASEURL
+              name: arcus-config
+        - name: CORS_ORIGINS
+          valueFrom:
+            configMapKeyRef:
+              key: CORS_ORIGINS
+              name: arcus-config
+        - name: DEFAULT_SERVICE_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              key: DEFAULT_SERVICE_LEVEL
+              name: arcus-config
+        image: ghcr.io/wl-net/arcusplatform/arcus-api-bridge:2019.10.0
+        imagePullPolicy: IfNotPresent
+        name: api-bridge
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+              - ALL
+        readinessProbe:
+          httpGet:
+            path: /check
+            port: 9081
+          initialDelaySeconds: 15
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /check
+            port: 9081
+          initialDelaySeconds: 30
+          periodSeconds: 60
+        resources:
+          limits:
+            cpu: "1"
+            memory: "512Mi"
+          requests:
+            cpu: "50m"
+            memory: "256Mi"
+        volumeMounts:
+         - mountPath: /config
+           name: config
+         - mountPath: /tmp
+           name: tmp
+      automountServiceAccountToken: false
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: config
+        configMap:
+          name: extrafiles
+          items:
+          - key: logback.xml
+            path: logback.xml
+      - name: tmp
+        emptyDir:
+          medium: Memory
+          sizeLimit: 64Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: api-bridge
+  name: api-bridge
+spec:
+  clusterIP: None
+  ports:
+  - port: 9100
+    name: metrics
+    protocol: TCP
+    targetPort: 9100
+  selector:
+    app: api-bridge
+  sessionAffinity: None
