@@ -168,8 +168,12 @@ function deploy_platform() {
   [[ $pull -eq 1 ]] && mode="Pull and restart"
   _notify_start "$mode: $targets"
 
+  local _deploy_current_app=""
+  trap 'echo ""; [[ -n "$_deploy_current_app" ]] && echo "Interrupted during: ${_deploy_current_app}"; _notify_failure "$mode interrupted"; trap - INT; kill -INT $$' INT
+
   if [[ $pull -eq 1 ]]; then
     for app in $targets; do
+      _deploy_current_app="pulling $app"
       local image
       image=$($KUBECTL get deployment/"$app" -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null) || true
       if [[ -z "$image" ]]; then
@@ -186,11 +190,14 @@ function deploy_platform() {
   fi
 
   for app in $targets; do
+    _deploy_current_app="restarting $app"
     echo "Restarting ${app}..."
     $KUBECTL rollout restart deployment/"$app"
     $KUBECTL rollout status deployment/"$app" --timeout=120s
     echo "${app} ready."
   done
+
+  trap - INT
   _notify_success "$mode complete: $targets"
 }
 
