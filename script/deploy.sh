@@ -190,6 +190,10 @@ function deploy_platform() {
   fi
 
   for app in $targets; do
+    if ! $KUBECTL get deployment/"$app" &>/dev/null; then
+      echo "Skipping ${app} (not deployed)."
+      continue
+    fi
     _deploy_current_app="restarting $app"
     echo "Restarting ${app}..."
     $KUBECTL rollout restart deployment/"$app"
@@ -215,7 +219,7 @@ function killallpods() {
     fi
   fi
   echo "cassandra zookeeper kafka" | tr ' ' '\n' | xargs -P 2 -I{} "$KUBECTL" delete pod -l app={} --ignore-not-found 2>/dev/null
-  echo "hub-bridge client-bridge" | tr ' ' '\n' | xargs -P 2 -I{} "$KUBECTL" delete pod -l app={} --ignore-not-found 2>/dev/null
+  echo "hub-bridge api-bridge client-bridge" | tr ' ' '\n' | xargs -P 2 -I{} "$KUBECTL" delete pod -l app={} --ignore-not-found 2>/dev/null
   echo "driver-services rule-service scheduler-service" | tr ' ' '\n' | xargs -P 2 -I{} "$KUBECTL" delete pod -l app={} --ignore-not-found 2>/dev/null
   echo "alarm-service subsystem-service history-service ivr-callback-server notification-services platform-services ui-server" | tr ' ' '\n' | xargs -P 3 -I{} "$KUBECTL" delete pod -l app={} --ignore-not-found 2>/dev/null
 }

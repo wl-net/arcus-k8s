@@ -29,7 +29,7 @@ function prompt() {
 }
 
 # shellcheck disable=SC2034 # used in deploy.sh, status.sh
-APPS='alarm-service client-bridge driver-services subsystem-service history-service hub-bridge ivr-callback-server notification-services platform-services rule-service scheduler-service ui-server'
+APPS='alarm-service api-bridge client-bridge driver-services subsystem-service history-service hub-bridge ivr-callback-server notification-services platform-services rule-service scheduler-service ui-server'
 
 _load_config() {
   local var=$1 file=$2

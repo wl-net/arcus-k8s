@@ -5,6 +5,7 @@ resources:
 - certprovider/letsencrypt-staging.yaml
 - cloud-generic.yaml
 - deployments/alarm-service.yaml
+- deployments/api-bridge.yaml
 - deployments/client-bridge.yaml
 - deployments/driver-services.yaml
 - deployments/history-service.yaml
@@ -24,6 +25,7 @@ resources:
 - istio/smartystreets.yaml
 - istio/twilio.yaml
 - service/cassandra.yaml
+- service/api-bridge.yaml
 - service/client-bridge.yaml
 - service/hub-bridge.yaml
 - service/ivr-callback-server.yaml
@@ -65,6 +67,8 @@ configMapGenerator:
   - extrafiles/loki.yaml
 
 images:
+- name: ghcr.io/wl-net/arcusplatform/arcus-api-bridge
+  newTag: 2026.2.1
 - name: ghcr.io/wl-net/arcusplatform/arcus-client-bridge
   newTag: 2026.2.1
 - name: ghcr.io/wl-net/arcusplatform/arcus-driver-services
