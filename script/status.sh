@@ -296,6 +296,10 @@ function certlogs() {
   $KUBECTL logs --tail=1000 -n cert-manager -l app.kubernetes.io/name="$component" "$@"
 }
 
+function httplogs() {
+  $KUBECTL logs --tail=1000 -n ingress-nginx -l app.kubernetes.io/name=ingress-nginx "$@"
+}
+
 function delete() {
   $KUBECTL delete pod -l app="$1"
 }

@@ -94,6 +94,7 @@ Node:
 Troubleshooting:
   logs <app>          Get logs for a service
   certlogs [part]     Get logs for cert-manager (optionally: webhook, cainjector)
+  httplogs            Get logs for ingress-nginx
   shell <app>         Get an interactive shell on a pod
   dbshell             Open a Cassandra CQL shell
   deletepod <app>     Delete pods matching an application
@@ -192,6 +193,9 @@ logs)
   ;;
 certlogs)
   certlogs "${@:2}"
+  ;;
+httplogs)
+  httplogs "${@:2}"
   ;;
 shell)
   shell_exec "${@:2}"
