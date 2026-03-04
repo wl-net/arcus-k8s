@@ -9,7 +9,7 @@ spec:
   ports:
   - port: 80
     protocol: TCP
-    targetPort: 8081
+    targetPort: 8085
   selector:
     app: api-bridge
   sessionAffinity: None
