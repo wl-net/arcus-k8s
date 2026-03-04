@@ -17,6 +17,8 @@ patches:
 images:
 - name: ghcr.io/wl-net/arcusplatform/arcus-alarm-service
   newName: us-west1-docker.pkg.dev/arcus-238802/arcus-prod/arcus/alarm-service
+- name: ghcr.io/wl-net/arcusplatform/arcus-api-bridge
+  newName: us-west1-docker.pkg.dev/arcus-238802/arcus-prod/arcus/api-bridge
 - name: ghcr.io/wl-net/arcusplatform/arcus-client-bridge
   newName: us-west1-docker.pkg.dev/arcus-238802/arcus-prod/arcus/client-bridge
 - name: ghcr.io/wl-net/arcusplatform/arcus-driver-services
