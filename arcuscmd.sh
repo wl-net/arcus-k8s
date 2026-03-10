@@ -7,7 +7,7 @@ if [[ $EUID -eq 0 ]]; then
 fi
 
 METALLB_VERSION='v0.15.3'
-NGINX_VERSION='v1.14.3'
+NGINX_VERSION='v1.15.0'
 CERT_MANAGER_VERSION='v1.19.4'
 ISTIO_VERSION='1.26.0'
 
@@ -54,7 +54,8 @@ Setup:
 Deploy:
   apply               Apply the current configuration to the cluster
   deploy [svc...]     Rolling restart of services (all if none specified)
-                        --pull  Force re-pull images before restarting
+                        --pull        Force re-pull images before restarting
+                        -w, --workers N  Restart N services concurrently (default: 1)
   update [--apply]    Pull latest changes and show what changed
   rollback            Revert to a previous version
   history             Show recent update history

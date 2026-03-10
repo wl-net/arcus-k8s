@@ -37,7 +37,7 @@ Secrets are written to `secret/` and local overlay state to `overlays/<overlay>-
 | Kubernetes distro | k3s v1.32.4 (recommended) |
 | Config management | Kustomize |
 | Service mesh | Istio v1.26.0 (installed via Helm) |
-| Ingress | nginx-ingress v1.14.3 |
+| Ingress | nginx-ingress v1.15.0 |
 | Load balancer | MetalLB v0.15.3 (opt-in) |
 | Certificates | cert-manager v1.19.4 + Let's Encrypt |
 | Database | Apache Cassandra |
