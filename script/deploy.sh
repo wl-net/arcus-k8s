@@ -38,6 +38,17 @@ function apply() {
   rm -f "overlays/${ARCUS_OVERLAY_NAME}-local/arcus-config-tunable.yml" \
         "overlays/${ARCUS_OVERLAY_NAME}-local/cluster-config-tunable.yml"
 
+  # Apply Cassandra DC overrides from .config/ into the cluster tunable
+  if [[ -n "${ARCUS_CASSANDRA_DC-}" ]]; then
+    sed -i "s/CASSANDRA_LOADBALANCINGPOLICY: roundrobin$/CASSANDRA_LOADBALANCINGPOLICY: roundrobindc/" "$cluster_tunable"
+    sed -i "s/CASSANDRA_LOCAL_DATACENTER: .*/CASSANDRA_LOCAL_DATACENTER: '${ARCUS_CASSANDRA_DC}'/" "$cluster_tunable"
+    local history_dc="${ARCUS_CASSANDRA_HISTORY_DC:-$ARCUS_CASSANDRA_DC}"
+    sed -i "s/CASSANDRA_HISTORY_LOCAL_DATACENTER: .*/CASSANDRA_HISTORY_LOCAL_DATACENTER: '${history_dc}'/" "$cluster_tunable"
+  fi
+  if [[ -n "${ARCUS_KAFKA_CLIENT_RACK-}" ]]; then
+    sed -i "s/KAFKA_CLIENT_RACK: .*/KAFKA_CLIENT_RACK: '${ARCUS_KAFKA_CLIENT_RACK}'/" "$cluster_tunable"
+  fi
+
   if [[ "${ARCUS_CERT_SOLVER:-http}" == "dns" ]]; then
     cp config/templates/cert-provider-dns.yaml "overlays/${ARCUS_OVERLAY_NAME}-local/cert-provider.yaml"
     sed -i "s!PLACEHOLDER_EMAIL!${ARCUS_ADMIN_EMAIL}!" "overlays/${ARCUS_OVERLAY_NAME}-local/cert-provider.yaml"
@@ -145,10 +156,26 @@ function deploy_platform() {
   fi
 
   local pull=0
-  if [[ "${1:-}" == "--pull" ]]; then
-    pull=1
-    shift
-  fi
+  local workers=1
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --pull)
+        pull=1
+        shift
+        ;;
+      -w|--workers)
+        if [[ -z "${2:-}" ]] || ! [[ "$2" =~ ^[0-9]+$ ]] || [[ "$2" -lt 1 ]]; then
+          echo "Error: --workers requires a positive integer argument"
+          return 1
+        fi
+        workers="$2"
+        shift 2
+        ;;
+      *)
+        break
+        ;;
+    esac
+  done
 
   local targets
   if [[ $# -gt 0 ]]; then
@@ -189,17 +216,66 @@ function deploy_platform() {
     done
   fi
 
-  for app in $targets; do
-    if ! $KUBECTL get deployment/"$app" &>/dev/null; then
-      echo "Skipping ${app} (not deployed)."
-      continue
+  if [[ $workers -eq 1 ]]; then
+    for app in $targets; do
+      if ! $KUBECTL get deployment/"$app" &>/dev/null; then
+        echo "Skipping ${app} (not deployed)."
+        continue
+      fi
+      _deploy_current_app="restarting $app"
+      echo "Restarting ${app}..."
+      $KUBECTL rollout restart deployment/"$app"
+      $KUBECTL rollout status deployment/"$app" --timeout=120s
+      echo "${app} ready."
+    done
+  else
+    echo "Deploying with ${workers} workers..."
+    local pids=()
+    local running=0
+    local failed=0
+
+    for app in $targets; do
+      if ! $KUBECTL get deployment/"$app" &>/dev/null; then
+        echo "Skipping ${app} (not deployed)."
+        continue
+      fi
+
+      # Wait for a worker slot to free up
+      while [[ $running -ge $workers ]]; do
+        local new_pids=()
+        for pid in "${pids[@]}"; do
+          if kill -0 "$pid" 2>/dev/null; then
+            new_pids+=("$pid")
+          else
+            wait "$pid" || ((failed++))
+            ((running--))
+          fi
+        done
+        pids=("${new_pids[@]}")
+        [[ $running -ge $workers ]] && sleep 1
+      done
+
+      (
+        echo "Restarting ${app}..."
+        $KUBECTL rollout restart deployment/"$app"
+        $KUBECTL rollout status deployment/"$app" --timeout=120s
+        echo "${app} ready."
+      ) &
+      pids+=($!)
+      ((running++))
+    done
+
+    # Wait for remaining workers
+    for pid in "${pids[@]}"; do
+      wait "$pid" || ((failed++))
+    done
+
+    if [[ $failed -gt 0 ]]; then
+      trap - INT
+      _notify_failure "$mode failed: ${failed} service(s) had errors"
+      return 1
     fi
-    _deploy_current_app="restarting $app"
-    echo "Restarting ${app}..."
-    $KUBECTL rollout restart deployment/"$app"
-    $KUBECTL rollout status deployment/"$app" --timeout=120s
-    echo "${app} ready."
-  done
+  fi
 
   trap - INT
   _notify_success "$mode complete: $targets"

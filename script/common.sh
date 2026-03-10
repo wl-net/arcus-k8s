@@ -58,6 +58,9 @@ function load() {
     _load_config ARCUS_ROUTE53_REGION  route53-region
     _load_config ARCUS_ROUTE53_SET_ID  route53-set-identifier
     _load_config ARCUS_DISCORD_WEBHOOK discord-webhook
+    _load_config ARCUS_CASSANDRA_DC          cassandra-dc
+    _load_config ARCUS_CASSANDRA_HISTORY_DC  cassandra-history-dc
+    _load_config ARCUS_KAFKA_CLIENT_RACK     kafka-client-rack
 
     if [[ -z "${ARCUS_METALLB:-}" && -f "$ARCUS_CONFIGDIR/subnet" ]]; then
       # Upgrade path: existing installs that have a subnet configured were

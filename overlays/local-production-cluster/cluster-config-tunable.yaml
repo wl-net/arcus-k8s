@@ -1,5 +1,8 @@
 # Edit this file to customize Cassandra/Kafka configuration for this deployment.
 # Changes here are preserved across 'arcuscmd apply' runs.
+#
+# For multi-datacenter Cassandra, set CASSANDRA_LOADBALANCINGPOLICY to
+# 'roundrobindc' and configure the local datacenter names below.
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -7,5 +10,8 @@ metadata:
   namespace: default
 data:
   CASSANDRA_LOADBALANCINGPOLICY: roundrobin
+  CASSANDRA_LOCAL_DATACENTER: 'datacenter1'
+  CASSANDRA_HISTORY_LOCAL_DATACENTER: 'datacenter1'
   METRICS_TOPIC_ENABLED: 'true'
   KAFKA_COMPRESSION_TYPE: none
+  KAFKA_CLIENT_RACK: 'dc1'

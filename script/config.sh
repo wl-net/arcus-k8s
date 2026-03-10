@@ -38,6 +38,25 @@ function configure() {
     fi
   fi
 
+  if [[ -z "${ARCUS_CASSANDRA_DC:-}" ]]; then
+    local use_multidc
+    prompt use_multidc "Is this a multi-datacenter Cassandra deployment? [yes/no]:"
+    if [[ "$use_multidc" == "yes" ]]; then
+      prompt ARCUS_CASSANDRA_DC "Enter local Cassandra datacenter name (e.g. DC1): "
+      echo "$ARCUS_CASSANDRA_DC" > "$ARCUS_CONFIGDIR/cassandra-dc"
+
+      local history_dc
+      prompt history_dc "Enter history Cassandra datacenter name [${ARCUS_CASSANDRA_DC}]: "
+      history_dc="${history_dc:-$ARCUS_CASSANDRA_DC}"
+      echo "$history_dc" > "$ARCUS_CONFIGDIR/cassandra-history-dc"
+
+      local kafka_rack
+      prompt kafka_rack "Enter Kafka client rack (e.g. dc1) [${ARCUS_CASSANDRA_DC,,}]: "
+      kafka_rack="${kafka_rack:-${ARCUS_CASSANDRA_DC,,}}"
+      echo "$kafka_rack" > "$ARCUS_CONFIGDIR/kafka-client-rack"
+    fi
+  fi
+
   if [[ -z "${ARCUS_METALLB:-}" ]]; then
     # Auto-detect: if MetalLB is already running, default to yes and read its subnet
     if $KUBECTL get deployment -n metallb-system controller &>/dev/null; then
@@ -293,7 +312,7 @@ function verify_config() {
   fi
 
   # Optional config files
-  for file in proxy-real-ip cassandra-host zookeeper-host kafka-host admin-domain cert-solver; do
+  for file in proxy-real-ip cassandra-host zookeeper-host kafka-host admin-domain cert-solver cassandra-dc cassandra-history-dc kafka-client-rack; do
     if [[ -f "$ARCUS_CONFIGDIR/$file" ]]; then
       echo "  OK:      .config/$file = $(cat "$ARCUS_CONFIGDIR/$file")"
     fi
