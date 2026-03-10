@@ -39,7 +39,7 @@ Secrets are written to `secret/` and local overlay state to `overlays/<overlay>-
 | Service mesh | Istio v1.26.0 (installed via Helm) |
 | Ingress | nginx-ingress v1.14.3 |
 | Load balancer | MetalLB v0.15.3 (opt-in) |
-| Certificates | cert-manager v1.19.2 + Let's Encrypt |
+| Certificates | cert-manager v1.19.4 + Let's Encrypt |
 | Database | Apache Cassandra |
 | Messaging | Apache Kafka + Zookeeper |
 | Monitoring | Prometheus + Grafana (optional) |
