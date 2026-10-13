@@ -181,6 +181,665 @@
         "x": 0,
         "y": 14
       },
+      "id": 108,
+      "title": "Ingress (Traefik)",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 10,
+            "lineWidth": 2,
+            "showPoints": "never"
+          },
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 15
+      },
+      "id": 200,
+      "targets": [
+        {
+          "expr": "sum by (svc) (label_replace(label_replace(sum by (service) (rate(traefik_service_requests_total[5m])), \"svc\", \"$1\", \"service\", \"(.+)\"), \"svc\", \"$1\", \"service\", \"default-(.+?)(?:-service)?-[0-9]+@kubernetes\"))",
+          "legendFormat": "{{svc}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Requests by Service (/s)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 60,
+            "lineWidth": 1,
+            "showPoints": "never",
+            "stacking": {
+              "mode": "normal"
+            }
+          },
+          "unit": "reqps"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "2xx"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "3xx"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "4xx"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "5xx"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 15
+      },
+      "id": 201,
+      "targets": [
+        {
+          "expr": "sum by (class) (label_replace(rate(traefik_entrypoint_requests_total{entrypoint=~\"web|websecure\", code=~\"[1-5]..\"}[5m]), \"class\", \"${1}xx\", \"code\", \"([1-5])..\"))",
+          "legendFormat": "{{class}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Responses by Status Class (/s)",
+      "type": "timeseries",
+      "description": "All requests arriving at Traefik on ports 80/443, including ones that matched no route."
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 10,
+            "lineWidth": 2,
+            "showPoints": "never"
+          },
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 15
+      },
+      "id": 202,
+      "targets": [
+        {
+          "expr": "sum by (svc) (label_replace(label_replace(sum by (service) (rate(traefik_service_requests_total{code=~\"5..\"}[5m])) / sum by (service) (rate(traefik_service_requests_total[5m])), \"svc\", \"$1\", \"service\", \"(.+)\"), \"svc\", \"$1\", \"service\", \"default-(.+?)(?:-service)?-[0-9]+@kubernetes\"))",
+          "legendFormat": "{{svc}}",
+          "refId": "A"
+        }
+      ],
+      "title": "5xx Error Ratio by Service",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 10,
+            "lineWidth": 2,
+            "showPoints": "never"
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 23
+      },
+      "id": 203,
+      "targets": [
+        {
+          "expr": "sum by (svc) (label_replace(label_replace(sum by (service) (rate(traefik_service_request_duration_seconds_sum{protocol!=\"websocket\"}[5m])) / sum by (service) (rate(traefik_service_request_duration_seconds_count{protocol!=\"websocket\"}[5m])), \"svc\", \"$1\", \"service\", \"(.+)\"), \"svc\", \"$1\", \"service\", \"default-(.+?)(?:-service)?-[0-9]+@kubernetes\"))",
+          "legendFormat": "{{svc}} avg",
+          "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(traefik_service_request_duration_seconds_bucket{protocol!=\"websocket\"}[5m])))",
+          "legendFormat": "all services p95",
+          "refId": "B"
+        }
+      ],
+      "title": "Latency by Service (excl. WebSocket)",
+      "type": "timeseries",
+      "description": "Average per service, plus p95 across all services. Traefik's default histogram buckets are coarse (0.1s, 0.3s, 1.2s, 5s), so the p95 is approximate."
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 10,
+            "lineWidth": 2,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 23
+      },
+      "id": 204,
+      "targets": [
+        {
+          "expr": "sum by (entrypoint) (traefik_open_connections{entrypoint=~\"web|websecure\"})",
+          "legendFormat": "{{entrypoint}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Open Connections",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "Days until the TLS certificate served by Traefik expires. cert-manager renews 30 days before expiry, so less than 28 days means a renewal has been missed.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 0,
+          "unit": "suffix: days",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 14
+              },
+              {
+                "color": "green",
+                "value": 28
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 23
+      },
+      "id": 205,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "expr": "min by (cn) ((traefik_tls_certs_not_after - time()) / 86400)",
+          "legendFormat": "{{cn}}",
+          "refId": "A"
+        }
+      ],
+      "title": "TLS Certificate Expiry",
+      "type": "stat"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 31
+      },
+      "id": 109,
+      "title": "Client & API Bridge",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 10,
+            "lineWidth": 2,
+            "showPoints": "never"
+          },
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 32
+      },
+      "id": 210,
+      "targets": [
+        {
+          "expr": "sum by (job) (rate({__name__=~\"com_iris_bridge_metrics_bridge_metrics_bridge_(client|api)_http_received\"}[5m]))",
+          "legendFormat": "{{job}} HTTP",
+          "refId": "A"
+        },
+        {
+          "expr": "sum by (job) (rate({__name__=~\"com_iris_bridge_metrics_bridge_metrics_bridge_(client|api)_ws_received\"}[5m]))",
+          "legendFormat": "{{job}} WebSocket msgs",
+          "refId": "B"
+        }
+      ],
+      "title": "Requests (/s)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 10,
+            "lineWidth": 2,
+            "showPoints": "never"
+          },
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 32
+      },
+      "id": 211,
+      "targets": [
+        {
+          "expr": "sum by (job) (rate({__name__=~\"com_iris_bridge_metrics_bridge_metrics_bridge_(client|api)_http_error_sent\"}[5m]))",
+          "legendFormat": "{{job}} 5xx",
+          "refId": "A"
+        },
+        {
+          "expr": "sum by (job) (rate({__name__=~\"com_iris_bridge_metrics_bridge_metrics_bridge_(client|api)_http_bad_request_sent\"}[5m])) + sum by (job) (rate({__name__=~\"com_iris_bridge_metrics_bridge_metrics_bridge_(client|api)_http_forbidden_sent\"}[5m])) + sum by (job) (rate({__name__=~\"com_iris_bridge_metrics_bridge_metrics_bridge_(client|api)_http_notfound_sent\"}[5m]))",
+          "legendFormat": "{{job}} 4xx (400/403/404)",
+          "refId": "B"
+        }
+      ],
+      "title": "Error Responses (/s)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 10,
+            "lineWidth": 2,
+            "showPoints": "never"
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 32
+      },
+      "id": 212,
+      "targets": [
+        {
+          "expr": "max by (job) ({__name__=~\"com_iris_bridge_metrics_bridge_metrics_bridge_(client|api)_process_http_request\", quantile=\"0.95\"})",
+          "legendFormat": "{{job}} HTTP",
+          "refId": "A"
+        },
+        {
+          "expr": "max by (job) ({__name__=~\"com_iris_bridge_metrics_bridge_metrics_bridge_(client|api)_process_ws_request\", quantile=\"0.95\"})",
+          "legendFormat": "{{job}} WebSocket",
+          "refId": "B"
+        }
+      ],
+      "title": "Request Latency p95",
+      "type": "timeseries",
+      "description": "Time spent processing each request inside the bridge, as reported by the bridge (recent window, not affected by network time)."
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 10,
+            "lineWidth": 2,
+            "showPoints": "never"
+          },
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 40
+      },
+      "id": 213,
+      "targets": [
+        {
+          "expr": "sum by (bridge, handler, status) (rate(bridge_http_requests{bridge=~\"client|api\", handler!=\"checkpage\"}[5m]))",
+          "legendFormat": "{{bridge}} {{handler}} {{status}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Requests by Endpoint (/s)",
+      "type": "timeseries",
+      "description": "Per-handler HTTP requests by status code. Health checks (checkpage) are excluded."
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 10,
+            "lineWidth": 2,
+            "showPoints": "never"
+          },
+          "unit": "reqps"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*(failed|rejected).*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 40
+      },
+      "id": 214,
+      "targets": [
+        {
+          "expr": "sum by (bridge) (rate(bridge_http_requests{handler=\"sessionloginresponder\", status=\"200\"}[5m]))",
+          "legendFormat": "{{bridge}} login OK",
+          "refId": "A"
+        },
+        {
+          "expr": "sum by (bridge) (rate(bridge_http_requests{handler=\"sessionloginresponder\", status!=\"200\"}[5m]))",
+          "legendFormat": "{{bridge}} login failed",
+          "refId": "B"
+        },
+        {
+          "expr": "sum by (bridge) (rate(bridge_http_requests{handler=\"sessionauth\", status=\"401\"}[5m]))",
+          "legendFormat": "{{bridge}} session rejected (401)",
+          "refId": "C"
+        },
+        {
+          "expr": "sum by (job) (rate({__name__=~\"com_iris_bridge_metrics_bridge_metrics_bridge_(client|api)_authorization_failed\"}[5m]))",
+          "legendFormat": "{{job}} authorization failed",
+          "refId": "D"
+        }
+      ],
+      "title": "Logins & Authorization (/s)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 10,
+            "lineWidth": 2,
+            "showPoints": "never"
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 40
+      },
+      "id": 215,
+      "targets": [
+        {
+          "expr": "sum by (job) (increase({__name__=~\"com_iris_bridge_metrics_bridge_metrics_bridge_(client|api)_session_created\"}[5m]))",
+          "legendFormat": "{{job}} opened",
+          "refId": "A"
+        },
+        {
+          "expr": "sum by (job) (increase({__name__=~\"com_iris_bridge_metrics_bridge_metrics_bridge_(client|api)_session_destroyed\"}[5m]))",
+          "legendFormat": "{{job}} closed",
+          "refId": "B"
+        }
+      ],
+      "title": "Sessions Opened / Closed (per 5m)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 10,
+            "lineWidth": 2,
+            "showPoints": "never"
+          },
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 48
+      },
+      "id": 216,
+      "targets": [
+        {
+          "expr": "sum by (job) (rate({__name__=~\"com_iris_bridge_metrics_bridge_metrics_bridge_(client|api)_platform_received\"}[5m]))",
+          "legendFormat": "{{job}} from platform",
+          "refId": "A"
+        },
+        {
+          "expr": "sum by (job) (rate({__name__=~\"com_iris_bridge_metrics_bridge_metrics_bridge_(client|api)_platform_sent\"}[5m]))",
+          "legendFormat": "{{job}} to platform",
+          "refId": "B"
+        },
+        {
+          "expr": "sum by (job) (rate({__name__=~\"com_iris_bridge_metrics_bridge_metrics_bridge_(client|api)_platform_discarded\"}[5m]))",
+          "legendFormat": "{{job}} discarded",
+          "refId": "C"
+        },
+        {
+          "expr": "sum by (job) (rate({__name__=~\"com_iris_bridge_metrics_bridge_metrics_bridge_(client|api)_platform_devicenotfound\"}[5m]))",
+          "legendFormat": "{{job}} device not found",
+          "refId": "D"
+        }
+      ],
+      "title": "Platform Messages (/s)",
+      "type": "timeseries",
+      "description": "Messages between the bridge and the platform bus."
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 10,
+            "lineWidth": 2,
+            "showPoints": "never"
+          },
+          "unit": "Bps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 48
+      },
+      "id": 217,
+      "targets": [
+        {
+          "expr": "sum by (job) (rate({__name__=~\"bridge_(client|api)_bytes_received\"}[5m]))",
+          "legendFormat": "{{job}} RX",
+          "refId": "A"
+        },
+        {
+          "expr": "sum by (job) (rate({__name__=~\"bridge_(client|api)_bytes_sent\"}[5m]))",
+          "legendFormat": "{{job}} TX",
+          "refId": "B"
+        }
+      ],
+      "title": "Bandwidth (bytes/s)",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 56
+      },
       "id": 101,
       "title": "Hub & Client Bridge",
       "type": "row"
@@ -204,7 +863,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 15
+        "y": 57
       },
       "id": 2,
       "targets": [
@@ -246,7 +905,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 15
+        "y": 57
       },
       "id": 3,
       "targets": [
@@ -294,7 +953,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 15
+        "y": 57
       },
       "id": 4,
       "targets": [
@@ -342,7 +1001,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 23
+        "y": 65
       },
       "id": 5,
       "targets": [
@@ -379,7 +1038,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 23
+        "y": 65
       },
       "id": 6,
       "targets": [
@@ -427,7 +1086,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 23
+        "y": 65
       },
       "id": 7,
       "targets": [
@@ -459,7 +1118,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 31
+        "y": 73
       },
       "id": 8,
       "targets": [
@@ -483,7 +1142,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 39
+        "y": 81
       },
       "id": 103,
       "title": "Cassandra DAO",
@@ -509,7 +1168,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 40
+        "y": 82
       },
       "id": 20,
       "targets": [
@@ -557,7 +1216,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 40
+        "y": 82
       },
       "id": 21,
       "targets": [
@@ -591,7 +1250,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 48
+        "y": 90
       },
       "id": 104,
       "title": "Scheduler",
@@ -616,7 +1275,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 49
+        "y": 91
       },
       "id": 30,
       "targets": [
@@ -668,7 +1327,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 49
+        "y": 91
       },
       "id": 31,
       "targets": [
@@ -702,7 +1361,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 57
+        "y": 99
       },
       "id": 105,
       "title": "Platform & Drivers",
@@ -727,7 +1386,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 58
+        "y": 100
       },
       "id": 40,
       "targets": [
@@ -769,7 +1428,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 58
+        "y": 100
       },
       "id": 41,
       "targets": [
@@ -807,7 +1466,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 58
+        "y": 100
       },
       "id": 42,
       "targets": [
@@ -831,7 +1490,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 66
+        "y": 108
       },
       "id": 102,
       "title": "JVM Memory",
@@ -857,7 +1516,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 67
+        "y": 109
       },
       "id": 10,
       "targets": [
@@ -895,7 +1554,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 67
+        "y": 109
       },
       "id": 11,
       "targets": [
@@ -933,7 +1592,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 75
+        "y": 117
       },
       "id": 12,
       "targets": [
@@ -971,7 +1630,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 75
+        "y": 117
       },
       "id": 13,
       "targets": [
@@ -1008,7 +1667,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 83
+        "y": 125
       },
       "id": 14,
       "targets": [
@@ -1051,7 +1710,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 83
+        "y": 125
       },
       "id": 15,
       "targets": [
@@ -1070,7 +1729,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 91
+        "y": 133
       },
       "id": 106,
       "title": "Thread Pools",
@@ -1095,7 +1754,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 92
+        "y": 134
       },
       "id": 50,
       "targets": [
@@ -1127,7 +1786,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 92
+        "y": 134
       },
       "id": 51,
       "targets": [

@@ -35,7 +35,7 @@ scrape_configs:
   relabel_configs:
   - source_labels: [__meta_kubernetes_service_label_app]
     separator: ;
-    regex: (alarm-service|client-bridge|driver-services|hub-bridge|ivr-callback-server|history-service|notification-services|platform-services|rule-service|scheduler-service|subsystem-service|tag-service)
+    regex: (alarm-service|api-bridge|client-bridge|driver-services|hub-bridge|ivr-callback-server|history-service|notification-services|platform-services|rule-service|scheduler-service|subsystem-service|tag-service)
     replacement: $1
     action: keep
   - source_labels: [__meta_kubernetes_endpoint_port_name]
@@ -79,7 +79,46 @@ scrape_configs:
     replacement: metrics
     action: replace
 
+  metric_relabel_configs:
+  # Bridges export one metric per HTTP handler and status code, e.g.
+  # com_iris_bridge_metrics_bridge_metrics_bridge_client_http_request_<handler class>_200.
+  # Fold them into bridge_http_requests{bridge,handler,status} so dashboards can group them.
+  - source_labels: [__name__]
+    regex: com_iris_bridge_metrics_bridge_metrics_bridge_(client|api|hub|ivr_callback)_http_request_(?:.+_)?([a-z0-9]+)_([0-9]{3})
+    target_label: bridge
+    replacement: $1
+  - source_labels: [__name__]
+    regex: com_iris_bridge_metrics_bridge_metrics_bridge_(client|api|hub|ivr_callback)_http_request_(?:.+_)?([a-z0-9]+)_([0-9]{3})
+    target_label: handler
+    replacement: $2
+  - source_labels: [__name__]
+    regex: com_iris_bridge_metrics_bridge_metrics_bridge_(client|api|hub|ivr_callback)_http_request_(?:.+_)?([a-z0-9]+)_([0-9]{3})
+    target_label: status
+    replacement: $3
+  - source_labels: [__name__]
+    regex: com_iris_bridge_metrics_bridge_metrics_bridge_(client|api|hub|ivr_callback)_http_request_(?:.+_)?([a-z0-9]+)_([0-9]{3})
+    target_label: __name__
+    replacement: bridge_http_requests
+
 - job_name: 'cert-manager'
   scrape_interval: 60s
   static_configs:
   - targets: ['cert-manager.cert-manager.svc.cluster.local:9402']
+
+# Traefik (bundled with k3s) serves Prometheus metrics on its "metrics" port.
+- job_name: 'traefik'
+  scrape_interval: 15s
+  kubernetes_sd_configs:
+  - role: pod
+    namespaces:
+      names:
+      - kube-system
+  relabel_configs:
+  - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_name]
+    regex: traefik
+    action: keep
+  - source_labels: [__meta_kubernetes_pod_container_port_name]
+    regex: metrics
+    action: keep
+  - source_labels: [__meta_kubernetes_pod_name]
+    target_label: pod
