@@ -98,45 +98,20 @@ function install_certmanager() {
   $KUBECTL apply -f "https://github.com/cert-manager/cert-manager/releases/download/${CERT_MANAGER_VERSION}/cert-manager.yaml"
 }
 
-function install_istio() {
-  $KUBECTL create namespace istio-system --dry-run=client -o yaml | $KUBECTL apply -f -
-
-  $KUBECTL get crd gateways.gateway.networking.k8s.io &>/dev/null || \
-    $KUBECTL kustomize "github.com/kubernetes-sigs/gateway-api/config/crd?ref=v1.3.0" | $KUBECTL apply -f -
-
-  helm repo add istio https://istio-release.storage.googleapis.com/charts
-  helm repo update
-
-  helm upgrade --install istio-base istio/base \
-    --namespace istio-system \
-    --version "$ISTIO_VERSION" \
-    --set defaultRevision=default \
-    --create-namespace
-
-  helm upgrade --install istiod istio/istiod \
-    --namespace istio-system \
-    --version "$ISTIO_VERSION" \
-    --set pilot.resources.requests.cpu=100m \
-    --set pilot.resources.requests.memory=512M
-
-  $KUBECTL label namespace default istio-injection=enabled --overwrite &>/dev/null || true
-}
-
 function install() {
   load
   local targets=("$@")
   if [[ ${#targets[@]} -eq 0 ]]; then
-    targets=(traefik cert-manager istio)
+    targets=(traefik cert-manager)
   fi
   for target in "${targets[@]}"; do
     case "$target" in
       metallb)      install_metallb ;;
       traefik)      install_traefik ;;
       cert-manager) install_certmanager ;;
-      istio)        install_istio ;;
       *)
         echo "Unknown component: $target"
-        echo "Available: metallb, traefik, cert-manager, istio"
+        echo "Available: metallb, traefik, cert-manager"
         return 1
         ;;
     esac

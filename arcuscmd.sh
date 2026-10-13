@@ -10,7 +10,6 @@ K3S_VERSION='v1.36.5+k3s1'
 METALLB_VERSION='v0.16.1'
 TRAEFIK_VERSION='3.7.13'
 CERT_MANAGER_VERSION='v1.21.2'
-ISTIO_VERSION='1.26.0'
 
 SCRIPT_PATH="$0"
 SCRIPT_DIR=$(dirname "${SCRIPT_PATH}")
@@ -47,7 +46,7 @@ arcuscmd: manage your arcus deployment
 Setup:
   setup               Setup a new instance of Arcus
   k3s                 Install or upgrade k3s
-  install [component] Install/upgrade infrastructure (metallb, traefik, cert-manager, istio)
+  install [component] Install/upgrade infrastructure (metallb, traefik, cert-manager)
                         Installs all if none specified
   configure           Configure Arcus by answering a few questions
   shell-setup         Add 'arcuscmd' shortcut to your shell config

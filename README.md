@@ -12,7 +12,7 @@ Kubernetes deployment infrastructure for [Arcus Smart Home](https://github.com/a
 
 # Or step by step / cloud deployment
 ./arcuscmd.sh k3s                # Install k3s (skip for cloud)
-./arcuscmd.sh install            # Install infrastructure (traefik, cert-manager, istio)
+./arcuscmd.sh install            # Install infrastructure (traefik, cert-manager)
 ./arcuscmd.sh configure          # Configure domain, secrets, and external services
 ./arcuscmd.sh apply              # Deploy Arcus to the cluster
 ./arcuscmd.sh modelmanager       # Provision database schemas (first time only)
@@ -38,7 +38,7 @@ For notifications, you must create a Twilio and Sendgrid account. APNS and GCM s
 Only the latest version of this project is supported. To stay current:
 
 1. **Pull changes:** `./arcuscmd.sh update`
-2. **Upgrade infrastructure** (traefik, cert-manager, istio): `./arcuscmd.sh install`
+2. **Upgrade infrastructure** (traefik, cert-manager): `./arcuscmd.sh install`
 3. **Apply configuration:** `./arcuscmd.sh apply`
 4. **Restart services** to pick up new images: `./arcuscmd.sh deploy`
 
@@ -46,7 +46,7 @@ It is recommended to do this at least weekly. Running `install` and `apply` toge
 
 # Run locally (k3s) - Recommended
 
-[k3s by rancher](https://k3s.io/) is the recommended means of installing Kubernetes, as it's more trimmed down and allows this project to use more modern versions of Kubernetes projects, like Istio.
+[k3s by rancher](https://k3s.io/) is the recommended means of installing Kubernetes, as it's lightweight and bundles Traefik + MetalLB-friendly defaults out of the box.
 
 Simply execute:
 
@@ -71,7 +71,7 @@ client.dev.arcus.wl-net.net:443   -> 172.16.6.4:443
 static.dev.arcus.wl-net.net:443   -> 172.16.6.4:443
 ipcd.dev.arcus.wl-net.net:443     -> 172.16.6.4:443
 admin.dev.arcus.wl-net.net:443    -> 172.16.6.4:443
-hub.dev.arcus.wl-net.net:443      -> 172.16.6.4:443 OR 172.16.6.2:8082
+hub.dev.arcus.wl-net.net:8082     -> 172.16.6.2:8082
 ```
 
 Alternatively: 
@@ -81,32 +81,32 @@ $ kubectl get service
 NAME                    TYPE           CLUSTER-IP       EXTERNAL-IP   PORT(S)                                                                      AGE
 cassandra-service       NodePort       10.152.183.225   <none>        7000:31287/TCP,7001:31914/TCP,7199:32251/TCP,9042:32178/TCP,9160:31262/TCP   27h
 client-bridge-service   NodePort       10.152.183.68    <none>        80:31803/TCP                                                                 27h
-hub-bridge-service      LoadBalancer   10.152.183.14    172.16.6.1    8082:31804/TCP                                                               6h1m
+hub-bridge-service      LoadBalancer   10.152.183.14    172.16.6.2    8082:31804/TCP                                                               6h1m
 kafka-service           NodePort       10.152.183.250   <none>        9092:30997/TCP                                                               27h
 kubernetes              ClusterIP      10.152.183.1     <none>        443/TCP                                                                      27h
 ui-server-service       NodePort       10.152.183.88    <none>        80:30787/TCP                                                                 27h
 zookeeper-service       NodePort       10.152.183.132   <none>        2181:30849/TCP                                                               27h
 ```
 
-This shows that 172.16.6.1 is the IP address of our hub-bridge service (listening on port 8082).
+This shows that 172.16.6.2 is the IP address of our hub-bridge service (listening on port 8082).
 
 ```
 $ kubectl get service -n kube-system traefik
 NAME      TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)                      AGE
-traefik   LoadBalancer   10.43.54.181    172.16.6.1    80:30359/TCP,443:31988/TCP   27h
+traefik   LoadBalancer   10.43.54.181    172.16.6.4    80:30359/TCP,443:31988/TCP   27h
 ```
 
-This shows that 172.16.6.1 is the IP address of the ui-service and client-bridge services (via Traefik). 
+This shows that 172.16.6.4 is the shared IP for the Arcus web ingress (ui-server, client-bridge, static, etc.) via Traefik. 
 
 It's beyond the scope of this document to describe how to configure your network, but at a high level you will need to forward traffic to these ports (e.g. port forwarding).
 
 Example (note, you must replace GATEWAY_IP accordingly):
 
 ```
-iptables -t nat -A PREROUTING -p tcp -d GATEWAY_IP --dport 8082 -j DNAT --to-destination 172.16.6.1:8082
-iptables -t nat -A PREROUTING -p tcp -d GATEWAY_IP --dport 443 -j DNAT --to-destination 172.16.6.0:443
-iptables -t nat -A PREROUTING -p tcp -d GATEWAY_IP --dport 80 -j DNAT --to-destination 172.16.6.0:80
-iptables -t nat -A POSTROUTING -o eth1 -j MASQUERADE # replace with whatever has the 172.16.6.0 subnet
+iptables -t nat -A PREROUTING -p tcp -d GATEWAY_IP --dport 8082 -j DNAT --to-destination 172.16.6.2:8082
+iptables -t nat -A PREROUTING -p tcp -d GATEWAY_IP --dport 443 -j DNAT --to-destination 172.16.6.4:443
+iptables -t nat -A PREROUTING -p tcp -d GATEWAY_IP --dport 80 -j DNAT --to-destination 172.16.6.4:80
+iptables -t nat -A POSTROUTING -o eth1 -j MASQUERADE # replace with whatever has the 172.16.6.0/24 subnet
 iptables -P FORWARD ACCEPT
 sysctl -w net.ipv4.ip_forward=1
 ```

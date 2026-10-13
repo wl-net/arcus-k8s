@@ -20,7 +20,6 @@ config/
   certprovider/              # Let's Encrypt issuers
   cronjob/                   # Scheduled jobs (hub-keystore renewal)
   jobs/                      # One-shot Kubernetes jobs
-  istio/                     # Egress rules (Twilio, Sendgrid, SmartyStreets, APNS)
   templates/                 # Templates applied at runtime (MetalLB address pool)
 overlays/
   local-production/          # Base overlay for single-node dev deployments
@@ -34,12 +33,11 @@ Secrets are written to `secret/` and local overlay state to `overlays/<overlay>-
 
 | Layer | Tool / Version |
 |---|---|
-| Kubernetes distro | k3s v1.32.4 (recommended) |
+| Kubernetes distro | k3s v1.36.5+k3s1 (recommended) |
 | Config management | Kustomize |
-| Service mesh | Istio v1.26.0 (installed via Helm) |
-| Ingress | Traefik v3.3.6 (bundled with k3s) |
-| Load balancer | MetalLB v0.15.3 (opt-in) |
-| Certificates | cert-manager v1.19.4 + Let's Encrypt |
+| Ingress | Traefik v3.7.13 (bundled with k3s) |
+| Load balancer | MetalLB v0.16.1 (opt-in) |
+| Certificates | cert-manager v1.21.2 + Let's Encrypt |
 | Database | Apache Cassandra |
 | Messaging | Apache Kafka + Zookeeper |
 | Monitoring | Prometheus + Grafana (optional) |
@@ -51,7 +49,7 @@ Secrets are written to `secret/` and local overlay state to `overlays/<overlay>-
 ./arcuscmd.sh setup          # Full first-time cluster init (interactive)
 ./arcuscmd.sh k3s            # Install or upgrade k3s
 ./arcuscmd.sh install        # Install/upgrade all infrastructure components
-./arcuscmd.sh install traefik  # Install/upgrade a single component (metallb, traefik, cert-manager, istio)
+./arcuscmd.sh install traefik  # Install/upgrade a single component (metallb, traefik, cert-manager)
 ./arcuscmd.sh configure      # Interactive configuration wizard
 ./arcuscmd.sh shell-setup    # Add 'arcuscmd' shortcut to your shell
 
@@ -111,7 +109,6 @@ Secrets are written to `secret/` and local overlay state to `overlays/<overlay>-
 
 - The project targets **k3s** as the recommended Kubernetes distribution.
 - MetalLB is opt-in (enable via `./arcuscmd.sh configure` or write `yes` to `.config/metallb`). When enabled, it provides LoadBalancer IPs using the address pool template in `config/templates/metallb.yaml`. Configure the subnet to a static range excluded from your DHCP scope.
-- Istio is installed via Helm charts, pinned to `$ISTIO_VERSION`. Egress rules in `config/istio/` control outbound traffic to external APIs (Twilio, Sendgrid, SmartyStreets, APNS).
 - cert-manager handles Let's Encrypt certificates. Start with the staging issuer and switch to production via `./arcuscmd.sh useprodcert` once DNS is verified.
 - Hub-bridge requires PKCS#8 keys; run `./arcuscmd.sh updatehubkeystore` after obtaining a production certificate. A CronJob (`hub-keystore-renewal`) runs every 6 hours to automatically detect cert-manager renewals of `nginx-production-tls` and recreate the `hub-keystore` secret + restart hub-bridge. It uses an `arcus.io/source-resource-version` annotation for idempotency. To test manually: `kubectl create job --from=cronjob/hub-keystore-renewal hub-keystore-test`.
 

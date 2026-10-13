@@ -151,9 +151,6 @@ function infra_versions() {
   _infra_version_check "cert-manager" \
     "$($KUBECTL get deployment -n cert-manager cert-manager -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null | grep -oP 'v[\d.]+')" \
     "$CERT_MANAGER_VERSION"
-  _infra_version_check "istio" \
-    "$($KUBECTL get deployment -n istio-system istiod -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null | grep -oP '[\d.]+$')" \
-    "$ISTIO_VERSION"
   set -e
 }
 
