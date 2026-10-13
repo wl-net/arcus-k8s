@@ -82,12 +82,6 @@ function apply() {
     $KUBECTL apply -f "overlays/${ARCUS_OVERLAY_NAME}-local/metallb.yaml"
   fi
 
-  if [[ -n "${ARCUS_PROXY_REAL_IP-}" ]]; then
-    cp config/nginx-proxy.yaml "overlays/${ARCUS_OVERLAY_NAME}-local/nginx-proxy.yaml"
-    sed -i "s!PLACEHOLDER_PROXY_IP!${ARCUS_PROXY_REAL_IP}!" "overlays/${ARCUS_OVERLAY_NAME}-local/nginx-proxy.yaml"
-    $KUBECTL apply -f "overlays/${ARCUS_OVERLAY_NAME}-local/nginx-proxy.yaml"
-  fi
-
   if [[ -n "${ARCUS_ADMIN_DOMAIN-}" ]]; then
     # Only create a separate admin ingress when the admin domain is NOT already
     # covered by ui-service-ingress (which includes admin.$ARCUS_DOMAIN_NAME).
