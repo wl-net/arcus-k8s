@@ -6,7 +6,7 @@ if [[ $EUID -eq 0 ]]; then
   exit 1
 fi
 
-K3S_VERSION='v1.32.4+k3s1'
+K3S_VERSION='v1.34.12+k3s1'
 METALLB_VERSION='v0.16.1'
 TRAEFIK_VERSION='3.3.6'
 CERT_MANAGER_VERSION='v1.21.2'
