@@ -38,6 +38,9 @@ function apply() {
   rm -f "overlays/${ARCUS_OVERLAY_NAME}-local/arcus-config-tunable.yml" \
         "overlays/${ARCUS_OVERLAY_NAME}-local/cluster-config-tunable.yml"
 
+  # Clean up stale ingress-nginx overlay from the Traefik migration
+  rm -f "overlays/${ARCUS_OVERLAY_NAME}-local/nginx-proxy.yaml"
+
   # Apply Cassandra DC overrides from .config/ into the cluster tunable
   if [[ -n "${ARCUS_CASSANDRA_DC-}" ]]; then
     sed -i "s/CASSANDRA_LOADBALANCINGPOLICY: roundrobin$/CASSANDRA_LOADBALANCINGPOLICY: roundrobindc/" "$cluster_tunable"
@@ -128,6 +131,9 @@ function apply() {
   else
     $KUBECTL apply -k "overlays/${ARCUS_OVERLAY_NAME}-local"
   fi
+
+  # Remove the ingress-nginx IngressClass left over from pre-Traefik days.
+  $KUBECTL delete ingressclass nginx --ignore-not-found > /dev/null
 
   mkdir -p "$ROOT/.cache"
   git -C "$ROOT" rev-parse HEAD > "$ROOT/.cache/last-applied-rev"
