@@ -170,6 +170,8 @@ function configure() {
     openssl rand -base64 32 | tr -d '\n' > secret/questions.aes.secret
   fi
 
+  ensure_grafana_renderer_token
+
   if [[ ! -e secret/smarty.auth.id ]]; then
     echo "Setting up default secret for smarty.auth.id"
     echo -n "12345" > secret/smarty.auth.id
@@ -257,6 +259,17 @@ function configure() {
     fi
   elif [[ "$skip_creds" != "done" ]]; then
     echo "Skipping external service credentials. Run './arcuscmd.sh configure' when you're ready to set them up."
+  fi
+}
+
+# Shared token between Grafana and grafana-image-renderer. Grafana refuses to
+# start with the default renderer token, so generate one if it is missing.
+# Called from apply too, so existing nodes pick it up without re-running configure.
+function ensure_grafana_renderer_token() {
+  if [[ ! -s secret/grafana.renderer.token ]]; then
+    echo "Generating secret for grafana.renderer.token"
+    mkdir -p secret
+    openssl rand -hex 32 | tr -d '\n' > secret/grafana.renderer.token
   fi
 }
 
@@ -384,6 +397,7 @@ function verify_config() {
     iris.aes.iv
     iris.aes.secret
     questions.aes.secret
+    grafana.renderer.token
     smarty.auth.id
     smarty.auth.token
     tls.server.truststore.password

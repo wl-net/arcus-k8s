@@ -31,12 +31,15 @@ spec:
               name: arcus-config
         - name: GF_SERVER_ROOT_URL
           value: https://PLACEHOLDER_ADMIN_DOMAIN
-        - name: GF_INSTALL_PLUGINS
-          value: grafana-kairosdb-datasource
         - name: GF_RENDERING_SERVER_URL
           value: http://grafana-renderer.default.svc.cluster.local:8081/render
         - name: GF_RENDERING_CALLBACK_URL
           value: http://grafana-service.default.svc.cluster.local:3000
+        - name: GF_RENDERING_RENDERER_TOKEN
+          valueFrom:
+            secretKeyRef:
+              key: grafana.renderer.token
+              name: shared
         - name: GF_SMTP_HOST
           value: smtp.sendgrid.net:587
         - name: GF_SMTP_USER
@@ -53,7 +56,7 @@ spec:
           #ports:
           #- containerPort: 3000
           #name: tcp-3000
-        image: grafana/grafana
+        image: grafana/grafana:13.2.3
         imagePullPolicy: IfNotPresent
         name: grafana
         resources:
@@ -118,7 +121,7 @@ spec:
         app: grafana-renderer
     spec:
       containers:
-      - image: grafana/grafana-image-renderer:latest
+      - image: grafana/grafana-image-renderer:v5.12.6
         imagePullPolicy: IfNotPresent
         name: grafana-renderer
         resources:
@@ -127,6 +130,11 @@ spec:
           requests:
             cpu: "10m"
         env:
+        - name: AUTH_TOKEN
+          valueFrom:
+            secretKeyRef:
+              key: grafana.renderer.token
+              name: shared
         ports:
         - containerPort: 8081
           name: tcp-8081

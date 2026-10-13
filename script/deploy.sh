@@ -120,6 +120,7 @@ function apply() {
     --from-file=firmware.xml=config/extrafiles/firmware.xml \
     --from-file=logback.xml=config/extrafiles/logback.xml > /dev/null
 
+  ensure_grafana_renderer_token
   $KUBECTL create secret generic shared --from-file secret/ --dry-run=client -o yaml | $KUBECTL apply -f - > /dev/null
 
   # Show what would change before applying.
