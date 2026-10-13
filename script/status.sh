@@ -145,9 +145,9 @@ function infra_versions() {
   _infra_version_check "metallb" \
     "$($KUBECTL get deployment -n metallb-system controller -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null | grep -oP 'v[\d.]+')" \
     "$METALLB_VERSION"
-  _infra_version_check "ingress-nginx" \
-    "$($KUBECTL get deployment -n ingress-nginx ingress-nginx-controller -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null | grep -oP 'v[\d.]+')" \
-    "$NGINX_VERSION"
+  _infra_version_check "traefik" \
+    "$($KUBECTL get deployment -n kube-system traefik -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null | grep -oP '[\d.]+$')" \
+    "$TRAEFIK_VERSION"
   _infra_version_check "cert-manager" \
     "$($KUBECTL get deployment -n cert-manager cert-manager -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null | grep -oP 'v[\d.]+')" \
     "$CERT_MANAGER_VERSION"
@@ -170,8 +170,8 @@ function _infra_version_check() {
 
 function info() {
   load
-  IPADDRESS=$($KUBECTL describe service -n ingress-nginx | grep 'LoadBalancer Ingress:' | awk '{print $3}')
-  HUB_IPADDRESS=$($KUBECTL describe service hub-bridge-service | grep 'LoadBalancer Ingress:' | awk '{print $3}')
+  IPADDRESS=$($KUBECTL get service -n kube-system traefik -o jsonpath='{.status.loadBalancer.ingress[0].ip}' 2>/dev/null)
+  HUB_IPADDRESS=$($KUBECTL get service hub-bridge-service -o jsonpath='{.status.loadBalancer.ingress[0].ip}' 2>/dev/null)
 
   echo "DNS -> IP/Port Mappings: "
   echo "If these IP addresses are private, you are responsible for setting up port forwarding"
@@ -182,7 +182,7 @@ function info() {
   echo "static.${ARCUS_DOMAIN_NAME}:443   -> $IPADDRESS:443"
   echo "ipcd.${ARCUS_DOMAIN_NAME}:443     -> $IPADDRESS:443"
   echo "admin.${ARCUS_DOMAIN_NAME}:443    -> $IPADDRESS:443"
-  echo "hub.${ARCUS_DOMAIN_NAME}:443      -> $IPADDRESS:443 OR $HUB_IPADDRESS:8082"
+  echo "hub.${ARCUS_DOMAIN_NAME}:8082     -> $HUB_IPADDRESS:8082"
 }
 
 function connectivity_check() {
@@ -297,7 +297,7 @@ function certlogs() {
 }
 
 function httplogs() {
-  $KUBECTL logs --tail=1000 -n ingress-nginx -l app.kubernetes.io/name=ingress-nginx "$@"
+  $KUBECTL logs --tail=1000 -n kube-system -l app.kubernetes.io/name=traefik "$@"
 }
 
 function delete() {

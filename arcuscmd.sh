@@ -8,7 +8,7 @@ fi
 
 K3S_VERSION='v1.32.4+k3s1'
 METALLB_VERSION='v0.15.3'
-NGINX_VERSION='v1.15.0'
+TRAEFIK_VERSION='3.3.6'
 CERT_MANAGER_VERSION='v1.19.4'
 ISTIO_VERSION='1.26.0'
 
@@ -47,7 +47,7 @@ arcuscmd: manage your arcus deployment
 Setup:
   setup               Setup a new instance of Arcus
   k3s                 Install or upgrade k3s
-  install [component] Install/upgrade infrastructure (metallb, nginx, traefik, cert-manager, istio)
+  install [component] Install/upgrade infrastructure (metallb, traefik, cert-manager, istio)
                         Installs all if none specified
   configure           Configure Arcus by answering a few questions
   shell-setup         Add 'arcuscmd' shortcut to your shell config
@@ -96,7 +96,7 @@ Node:
 Troubleshooting:
   logs <app>          Get logs for a service
   certlogs [part]     Get logs for cert-manager (optionally: webhook, cainjector)
-  httplogs            Get logs for ingress-nginx
+  httplogs            Get logs for the Traefik ingress controller
   shell <app>         Get an interactive shell on a pod
   dbshell             Open a Cassandra CQL shell
   deletepod <app>     Delete pods matching an application

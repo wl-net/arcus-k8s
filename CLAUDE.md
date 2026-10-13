@@ -37,7 +37,7 @@ Secrets are written to `secret/` and local overlay state to `overlays/<overlay>-
 | Kubernetes distro | k3s v1.32.4 (recommended) |
 | Config management | Kustomize |
 | Service mesh | Istio v1.26.0 (installed via Helm) |
-| Ingress | nginx-ingress v1.15.0 |
+| Ingress | Traefik v3.3.6 (bundled with k3s) |
 | Load balancer | MetalLB v0.15.3 (opt-in) |
 | Certificates | cert-manager v1.19.4 + Let's Encrypt |
 | Database | Apache Cassandra |
@@ -51,7 +51,7 @@ Secrets are written to `secret/` and local overlay state to `overlays/<overlay>-
 ./arcuscmd.sh setup          # Full first-time cluster init (interactive)
 ./arcuscmd.sh k3s            # Install or upgrade k3s
 ./arcuscmd.sh install        # Install/upgrade all infrastructure components
-./arcuscmd.sh install nginx  # Install/upgrade a single component (metallb, nginx, cert-manager, istio)
+./arcuscmd.sh install traefik  # Install/upgrade a single component (metallb, traefik, cert-manager, istio)
 ./arcuscmd.sh configure      # Interactive configuration wizard
 ./arcuscmd.sh shell-setup    # Add 'arcuscmd' shortcut to your shell
 

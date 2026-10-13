@@ -12,7 +12,7 @@ Kubernetes deployment infrastructure for [Arcus Smart Home](https://github.com/a
 
 # Or step by step / cloud deployment
 ./arcuscmd.sh k3s                # Install k3s (skip for cloud)
-./arcuscmd.sh install            # Install infrastructure (nginx-ingress, cert-manager, istio)
+./arcuscmd.sh install            # Install infrastructure (traefik, cert-manager, istio)
 ./arcuscmd.sh configure          # Configure domain, secrets, and external services
 ./arcuscmd.sh apply              # Deploy Arcus to the cluster
 ./arcuscmd.sh modelmanager       # Provision database schemas (first time only)
@@ -38,7 +38,7 @@ For notifications, you must create a Twilio and Sendgrid account. APNS and GCM s
 Only the latest version of this project is supported. To stay current:
 
 1. **Pull changes:** `./arcuscmd.sh update`
-2. **Upgrade infrastructure** (nginx-ingress, cert-manager, istio): `./arcuscmd.sh install`
+2. **Upgrade infrastructure** (traefik, cert-manager, istio): `./arcuscmd.sh install`
 3. **Apply configuration:** `./arcuscmd.sh apply`
 4. **Restart services** to pick up new images: `./arcuscmd.sh deploy`
 
@@ -91,12 +91,12 @@ zookeeper-service       NodePort       10.152.183.132   <none>        2181:30849
 This shows that 172.16.6.1 is the IP address of our hub-bridge service (listening on port 8082).
 
 ```
-$ kubectl get service -n ingress-nginx
-NAME            TYPE           CLUSTER-IP       EXTERNAL-IP   PORT(S)                      AGE
-ingress-nginx   LoadBalancer   10.152.183.146   172.16.6.0    80:31535/TCP,443:32684/TCP   27h
+$ kubectl get service -n kube-system traefik
+NAME      TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)                      AGE
+traefik   LoadBalancer   10.43.54.181    172.16.6.1    80:30359/TCP,443:31988/TCP   27h
 ```
 
-This shows that 172.16.6.0 is the IP address of the ui-service and client-bridge services (via nginx proxy). 
+This shows that 172.16.6.1 is the IP address of the ui-service and client-bridge services (via Traefik). 
 
 It's beyond the scope of this document to describe how to configure your network, but at a high level you will need to forward traffic to these ports (e.g. port forwarding).
 

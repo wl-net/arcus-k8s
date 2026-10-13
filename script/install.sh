@@ -80,13 +80,6 @@ function install_metallb() {
   $KUBECTL apply -f "https://raw.githubusercontent.com/metallb/metallb/${METALLB_VERSION}/config/manifests/metallb-native.yaml"
 }
 
-function install_nginx() {
-  # Delete completed admission jobs — their spec.template is immutable and
-  # kubectl apply will fail if they already exist from a previous install.
-  $KUBECTL delete job -n ingress-nginx ingress-nginx-admission-create ingress-nginx-admission-patch 2>/dev/null || true
-  $KUBECTL apply -f "https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-${NGINX_VERSION}/deploy/static/provider/baremetal/deploy.yaml"
-}
-
 function install_traefik() {
   # Traefik is bundled with k3s. We configure it via a HelmChartConfig in
   # kube-system; k3s's helm controller reconciles the chart. Requires k3s to
@@ -133,18 +126,17 @@ function install() {
   load
   local targets=("$@")
   if [[ ${#targets[@]} -eq 0 ]]; then
-    targets=(nginx cert-manager istio)
+    targets=(traefik cert-manager istio)
   fi
   for target in "${targets[@]}"; do
     case "$target" in
       metallb)      install_metallb ;;
-      nginx)        install_nginx ;;
       traefik)      install_traefik ;;
       cert-manager) install_certmanager ;;
       istio)        install_istio ;;
       *)
         echo "Unknown component: $target"
-        echo "Available: metallb, nginx, traefik, cert-manager, istio"
+        echo "Available: metallb, traefik, cert-manager, istio"
         return 1
         ;;
     esac
