@@ -1160,7 +1160,7 @@
             "lineWidth": 2,
             "showPoints": "never"
           },
-          "unit": "ms"
+          "unit": "s"
         },
         "overrides": []
       },
@@ -1173,28 +1173,34 @@
       "id": 20,
       "targets": [
         {
-          "expr": "sum(rate(dao_read_time[5m])) by (job) / sum(rate(dao_read_time_count[5m])) by (job)",
+          "expr": "max by (job) (dao_read_time{quantile=\"0.95\"})",
           "legendFormat": "{{job}} read",
           "refId": "A"
         },
         {
-          "expr": "sum(rate(dao_insert_time[5m])) by (job) / sum(rate(dao_insert_time_count[5m])) by (job)",
+          "expr": "max by (job) (dao_insert_time{quantile=\"0.95\"})",
           "legendFormat": "{{job}} insert",
           "refId": "B"
         },
         {
-          "expr": "sum(rate(dao_update_time[5m])) by (job) / sum(rate(dao_update_time_count[5m])) by (job)",
+          "expr": "max by (job) (dao_update_time{quantile=\"0.95\"})",
           "legendFormat": "{{job}} update",
           "refId": "C"
         },
         {
-          "expr": "sum(rate(dao_delete_time[5m])) by (job) / sum(rate(dao_delete_time_count[5m])) by (job)",
-          "legendFormat": "{{job}} delete",
+          "expr": "max by (job) (dao_upsert_time{quantile=\"0.95\"})",
+          "legendFormat": "{{job}} upsert",
           "refId": "D"
+        },
+        {
+          "expr": "max by (job) (dao_delete_time{quantile=\"0.95\"})",
+          "legendFormat": "{{job}} delete",
+          "refId": "E"
         }
       ],
-      "title": "DAO Latency (ms/op)",
-      "type": "timeseries"
+      "title": "DAO Latency p95 (slowest op per service)",
+      "type": "timeseries",
+      "description": "95th percentile Cassandra DAO time for the slowest operation of each type, per service, over the timers' recent window."
     },
     {
       "datasource": {
@@ -1222,23 +1228,28 @@
       "targets": [
         {
           "expr": "sum(rate(dao_read_time_count[5m])) by (job)",
-          "legendFormat": "{{job}} reads",
+          "legendFormat": "{{job}} read",
           "refId": "A"
         },
         {
           "expr": "sum(rate(dao_insert_time_count[5m])) by (job)",
-          "legendFormat": "{{job}} inserts",
+          "legendFormat": "{{job}} insert",
           "refId": "B"
         },
         {
           "expr": "sum(rate(dao_update_time_count[5m])) by (job)",
-          "legendFormat": "{{job}} updates",
+          "legendFormat": "{{job}} update",
           "refId": "C"
         },
         {
-          "expr": "sum(rate(dao_delete_time_count[5m])) by (job)",
-          "legendFormat": "{{job}} deletes",
+          "expr": "sum(rate(dao_upsert_time_count[5m])) by (job)",
+          "legendFormat": "{{job}} upsert",
           "refId": "D"
+        },
+        {
+          "expr": "sum(rate(dao_delete_time_count[5m])) by (job)",
+          "legendFormat": "{{job}} delete",
+          "refId": "E"
         }
       ],
       "title": "DAO Throughput (ops/s)",
@@ -1392,58 +1403,36 @@
       "targets": [
         {
           "expr": "max(service_platform_hubregistry_online) by (job)",
-          "legendFormat": "Online",
+          "legendFormat": "Hubs online",
           "refId": "A"
         },
         {
           "expr": "max(service_platform_hubregistry_disconnected) by (job)",
-          "legendFormat": "Disconnected",
+          "legendFormat": "Hubs disconnected",
           "refId": "B"
         },
         {
           "expr": "max(service_platform_hubregistry_timedout) by (job)",
-          "legendFormat": "Timed Out",
+          "legendFormat": "Hubs timed out",
           "refId": "C"
-        }
-      ],
-      "title": "Hub Registry",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "custom": {
-            "fillOpacity": 10,
-            "lineWidth": 2,
-            "showPoints": "never"
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 8,
-        "y": 100
-      },
-      "id": 41,
-      "targets": [
-        {
-          "expr": "max(drivers_connected) by (job)",
-          "legendFormat": "Connected",
-          "refId": "A"
         },
         {
-          "expr": "max(drivers_disconnected) by (job)",
-          "legendFormat": "Disconnected",
-          "refId": "B"
+          "expr": "max(service_platform_ipcdregistry_online) by (job)",
+          "legendFormat": "IPCD online",
+          "refId": "D"
+        },
+        {
+          "expr": "max(service_platform_ipcdregistry_disconnected) by (job)",
+          "legendFormat": "IPCD disconnected",
+          "refId": "E"
+        },
+        {
+          "expr": "max(service_platform_ipcdregistry_timedout) by (job)",
+          "legendFormat": "IPCD timed out",
+          "refId": "F"
         }
       ],
-      "title": "Device Drivers (connected)",
+      "title": "Hub & IPCD Device Registry",
       "type": "timeseries"
     },
     {
@@ -1460,7 +1449,83 @@
           },
           "unit": "ops"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "Failed"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 100
+      },
+      "id": 41,
+      "targets": [
+        {
+          "expr": "sum(rate(driver_service_pool_tasks_submitted[5m])) by (job)",
+          "legendFormat": "Submitted",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(rate(driver_service_pool_tasks_succeeded_count[5m])) by (job)",
+          "legendFormat": "Succeeded",
+          "refId": "B"
+        },
+        {
+          "expr": "sum(rate(driver_service_pool_tasks_failed_count[5m])) by (job)",
+          "legendFormat": "Failed",
+          "refId": "C"
+        }
+      ],
+      "title": "Driver Service Tasks (/s)",
+      "type": "timeseries",
+      "description": "Device messages processed by driver-services."
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 10,
+            "lineWidth": 2,
+            "showPoints": "never"
+          },
+          "unit": "ops"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "Errors"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "h": 8,
@@ -1471,18 +1536,24 @@
       "id": 42,
       "targets": [
         {
-          "expr": "sum(rate(notifications_sent[5m])) by (job)",
-          "legendFormat": "Sent",
+          "expr": "sum(rate(notifications_message_count[5m])) by (job)",
+          "legendFormat": "Processed",
           "refId": "A"
         },
         {
-          "expr": "sum(rate(notifications_failed[5m])) by (job)",
-          "legendFormat": "Failed",
+          "expr": "sum(rate(notifications_retry_count[5m])) by (job)",
+          "legendFormat": "Retries",
           "refId": "B"
+        },
+        {
+          "expr": "sum(rate(notifications_email_error_count[5m])) by (job) + sum(rate(notifications_sms_error_count[5m])) by (job) + sum(rate(notifications_push_error_count[5m])) by (job) + sum(rate(notifications_apns_error_count[5m])) by (job) + sum(rate(notifications_gcm_error_count[5m])) by (job) + sum(rate(notifications_ivr_error_count[5m])) by (job) + sum(rate(notifications_webhook_error_count[5m])) by (job) + sum(rate(notifications_log_error_count[5m])) by (job)",
+          "legendFormat": "Errors",
+          "refId": "C"
         }
       ],
       "title": "Notifications (/s)",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Errors are summed across all channels (email, sms, push, apns, gcm, ivr, webhook, log)."
     },
     {
       "collapsed": false,
@@ -1715,13 +1786,14 @@
       "id": 15,
       "targets": [
         {
-          "expr": "max(jvm_attribute_uptime) by (job) / 1000",
-          "legendFormat": "{{job}}",
+          "expr": "time() - max by (container) (container_start_time_seconds{namespace=\"default\"})",
+          "legendFormat": "{{container}}",
           "refId": "A"
         }
       ],
       "title": "Service Uptime",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Time since each container in the default namespace last started (rollouts and in-place restarts both reset it)."
     },
     {
       "collapsed": false,

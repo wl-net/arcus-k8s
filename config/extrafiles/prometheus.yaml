@@ -122,3 +122,31 @@ scrape_configs:
     action: keep
   - source_labels: [__meta_kubernetes_pod_name]
     target_label: pod
+
+# Container start times from each node's kubelet (cAdvisor), proxied through the API
+# server. Only container_start_time_seconds for the default namespace is kept.
+- job_name: 'kubelet-cadvisor'
+  scrape_interval: 60s
+  scheme: https
+  authorization:
+    credentials_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+  tls_config:
+    ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+  kubernetes_sd_configs:
+  - role: node
+  relabel_configs:
+  - source_labels: [__meta_kubernetes_node_name]
+    target_label: instance
+  - target_label: __address__
+    replacement: kubernetes.default.svc:443
+  - source_labels: [__meta_kubernetes_node_name]
+    regex: (.+)
+    target_label: __metrics_path__
+    replacement: /api/v1/nodes/$1/proxy/metrics/cadvisor
+  metric_relabel_configs:
+  - source_labels: [__name__]
+    regex: container_start_time_seconds
+    action: keep
+  - source_labels: [namespace, container]
+    regex: default;.+
+    action: keep
