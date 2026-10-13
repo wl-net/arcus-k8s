@@ -17,7 +17,7 @@ function check_prerequisites() {
 }
 
 function setup_k3s() {
-  curl -sfL https://get.k3s.io | sudo INSTALL_K3S_EXEC='--disable=servicelb --disable=traefik --write-kubeconfig-mode 644' sh -
+  curl -sfL https://get.k3s.io | sudo INSTALL_K3S_VERSION="${K3S_VERSION}" INSTALL_K3S_EXEC='--disable=servicelb --write-kubeconfig-mode 644' sh -
 
   local inotify_watches
   inotify_watches=$(cat /proc/sys/fs/inotify/max_user_watches 2>/dev/null) || true

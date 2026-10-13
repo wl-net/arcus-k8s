@@ -3,7 +3,6 @@ kind: Kustomization
 resources:
 - certprovider/letsencrypt-production.yaml
 - certprovider/letsencrypt-staging.yaml
-- cloud-generic.yaml
 - deployments/alarm-service.yaml
 - deployments/api-bridge.yaml
 - deployments/client-bridge.yaml
@@ -33,7 +32,6 @@ resources:
 - service/static-service.yaml
 - service/ui-service-ingress.yaml
 - service/ui-service.yaml
-- service/tcp-services.yaml
 - service/zookeeper.yaml
 - configmaps/arcus-config.yaml
 - configmaps/cluster-config.yaml

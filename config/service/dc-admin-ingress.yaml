@@ -5,6 +5,7 @@ metadata:
   annotations:
     cert-manager.io/cluster-issuer: "letsencrypt-production"
 spec:
+  ingressClassName: traefik
   rules:
   - host: PLACEHOLDER_ADMIN_DOMAIN
     http:
