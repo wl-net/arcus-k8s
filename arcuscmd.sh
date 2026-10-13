@@ -46,7 +46,7 @@ arcuscmd: manage your arcus deployment
 Setup:
   setup               Setup a new instance of Arcus
   k3s                 Install or upgrade k3s
-  install [component] Install/upgrade infrastructure (metallb, nginx, cert-manager, istio)
+  install [component] Install/upgrade infrastructure (metallb, nginx, traefik, cert-manager, istio)
                         Installs all if none specified
   configure           Configure Arcus by answering a few questions
   shell-setup         Add 'arcuscmd' shortcut to your shell config

@@ -87,6 +87,20 @@ function install_nginx() {
   $KUBECTL apply -f "https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-${NGINX_VERSION}/deploy/static/provider/baremetal/deploy.yaml"
 }
 
+function install_traefik() {
+  # Traefik is bundled with k3s. We configure it via a HelmChartConfig in
+  # kube-system; k3s's helm controller reconciles the chart. Requires k3s to
+  # be installed WITHOUT --disable=traefik.
+  if [[ -n "${ARCUS_PROXY_REAL_IP-}" ]]; then
+    mkdir -p "overlays/${ARCUS_OVERLAY_NAME}-local"
+    cp config/templates/traefik-proxy.yaml "overlays/${ARCUS_OVERLAY_NAME}-local/traefik-config.yaml"
+    sed -i "s!PLACEHOLDER_PROXY_IP!${ARCUS_PROXY_REAL_IP}!" "overlays/${ARCUS_OVERLAY_NAME}-local/traefik-config.yaml"
+    $KUBECTL apply -f "overlays/${ARCUS_OVERLAY_NAME}-local/traefik-config.yaml"
+  else
+    $KUBECTL apply -f config/traefik-config.yaml
+  fi
+}
+
 function install_certmanager() {
   $KUBECTL apply -f "https://github.com/cert-manager/cert-manager/releases/download/${CERT_MANAGER_VERSION}/cert-manager.yaml"
 }
@@ -125,11 +139,12 @@ function install() {
     case "$target" in
       metallb)      install_metallb ;;
       nginx)        install_nginx ;;
+      traefik)      install_traefik ;;
       cert-manager) install_certmanager ;;
       istio)        install_istio ;;
       *)
         echo "Unknown component: $target"
-        echo "Available: metallb, nginx, cert-manager, istio"
+        echo "Available: metallb, nginx, traefik, cert-manager, istio"
         return 1
         ;;
     esac
