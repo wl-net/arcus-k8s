@@ -1,6 +1,32 @@
 {
   "annotations": {
-    "list": []
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "enable": true,
+        "expr": "max by (container) (time() - container_start_time_seconds{namespace=\"default\"}) < 120",
+        "iconColor": "blue",
+        "name": "Container starts",
+        "step": "60s",
+        "tagKeys": "container",
+        "titleFormat": "{{container}} started"
+      }
+    ]
   },
   "editable": true,
   "fiscalYearStartMonth": 0,
@@ -19,6 +45,473 @@
       "id": 100,
       "title": "Service Health",
       "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "id": 300,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "expr": "count(min by (job) (last_over_time(up[5m])) == 0) or vector(0)",
+          "refId": "A"
+        }
+      ],
+      "title": "Targets Down",
+      "type": "stat",
+      "description": "Scrape targets that have been down for the whole of the last 5 minutes. The tiles below show which.",
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 0,
+        "y": 1
+      }
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "text",
+            "mode": "fixed"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          },
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "id": 301,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "expr": "max(bridge_sessions_hub_authorized)",
+          "refId": "A"
+        }
+      ],
+      "title": "Hubs Online",
+      "type": "stat",
+      "description": "Authorized hub sessions on hub-bridge.",
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 3,
+        "y": 1
+      }
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "text",
+            "mode": "fixed"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          },
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "id": 302,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "expr": "sum(max by (job) (bridge_sessions_active{job=~\"client-bridge|api-bridge\"}))",
+          "refId": "A"
+        }
+      ],
+      "title": "App Sessions",
+      "type": "stat",
+      "description": "Active sessions on client-bridge and api-bridge.",
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 6,
+        "y": 1
+      }
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "text",
+            "mode": "fixed"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          },
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "id": 303,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(traefik_service_requests_total[5m]))",
+          "refId": "A"
+        }
+      ],
+      "title": "Requests",
+      "type": "stat",
+      "description": "All requests routed by Traefik.",
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 9,
+        "y": 1
+      }
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.01
+              },
+              {
+                "color": "red",
+                "value": 0.05
+              }
+            ]
+          },
+          "unit": "percentunit",
+          "decimals": 2,
+          "noValue": "no traffic"
+        },
+        "overrides": []
+      },
+      "id": 304,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(traefik_service_requests_total{code=~\"5..\"}[5m])) / sum(rate(traefik_service_requests_total[5m]))",
+          "refId": "A"
+        }
+      ],
+      "title": "Ingress 5xx",
+      "type": "stat",
+      "description": "Share of Traefik responses that were 5xx over the last 5 minutes.",
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 12,
+        "y": 1
+      }
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "text",
+            "mode": "fixed"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          },
+          "decimals": 0,
+          "noValue": "0"
+        },
+        "overrides": []
+      },
+      "id": 305,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "expr": "sum(count_over_time({app=~\".+\"} |~ \"ERROR|Exception\" [5m]))",
+          "refId": "A"
+        }
+      ],
+      "title": "Errors / 5m",
+      "type": "stat",
+      "description": "Log lines matching ERROR or Exception across all pods. See the Logs row for which.",
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 15,
+        "y": 1
+      }
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              }
+            ]
+          },
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "id": 306,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "expr": "sum(changes(container_start_time_seconds{namespace=\"default\"}[$__range])) or vector(0)",
+          "refId": "A",
+          "legendFormat": "__auto",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "title": "Restarts",
+      "type": "stat",
+      "description": "Containers in the default namespace that restarted in place during the selected time range. Pods replaced by a rollout are not counted.",
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 18,
+        "y": 1
+      }
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 14
+              },
+              {
+                "color": "green",
+                "value": 28
+              }
+            ]
+          },
+          "unit": "suffix: days",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "id": 307,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value"
+      },
+      "targets": [
+        {
+          "expr": "min((traefik_tls_certs_not_after - time()) / 86400)",
+          "refId": "A"
+        }
+      ],
+      "title": "Cert Expiry",
+      "type": "stat",
+      "description": "Days until the soonest-expiring certificate served by Traefik expires.",
+      "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 21,
+        "y": 1
+      }
     },
     {
       "datasource": {
@@ -62,10 +555,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 4,
+        "h": 3,
         "w": 24,
         "x": 0,
-        "y": 1
+        "y": 5
       },
       "id": 1,
       "options": {
@@ -79,7 +572,11 @@
           "fields": "",
           "values": false
         },
-        "textMode": "auto"
+        "textMode": "auto",
+        "text": {
+          "titleSize": 11,
+          "valueSize": 20
+        }
       },
       "targets": [
         {
@@ -97,7 +594,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 5
+        "y": 8
       },
       "id": 107,
       "title": "Logs",
@@ -116,27 +613,47 @@
             "showPoints": "never",
             "stacking": {
               "mode": "normal"
-            }
-          }
+            },
+            "axisLabel": "lines / min"
+          },
+          "min": 0
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
+        "h": 9,
         "w": 12,
         "x": 0,
-        "y": 6
+        "y": 9
       },
       "id": 60,
       "targets": [
         {
-          "expr": "sum(count_over_time({app=~\".+\"}[1m])) by (app)",
-          "legendFormat": "{{app}}",
-          "refId": "A"
+          "expr": "sum by (app) (count_over_time({app=~\"$service\"}[1m]))",
+          "refId": "A",
+          "legendFormat": "{{app}}"
         }
       ],
       "title": "Log Volume by Service",
-      "type": "timeseries"
+      "type": "timeseries",
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "sortBy": "Max",
+          "sortDesc": true
+        }
+      }
     },
     {
       "datasource": {
@@ -151,27 +668,82 @@
             "showPoints": "never",
             "stacking": {
               "mode": "normal"
-            }
-          }
+            },
+            "axisLabel": "lines / min",
+            "drawStyle": "bars"
+          },
+          "min": 0
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
+        "h": 9,
         "w": 12,
         "x": 12,
-        "y": 6
+        "y": 9
       },
       "id": 61,
       "targets": [
         {
-          "expr": "sum(count_over_time({app=~\".+\"} |~ \"ERROR|Exception\" [1m])) by (app)",
-          "legendFormat": "{{app}}",
-          "refId": "A"
+          "expr": "sum by (app) (count_over_time({app=~\"$service\"} |~ \"ERROR|Exception\" [1m]))",
+          "refId": "A",
+          "legendFormat": "{{app}}"
         }
       ],
-      "title": "Error Log Rate",
-      "type": "timeseries"
+      "title": "Error Logs",
+      "type": "timeseries",
+      "description": "Log lines matching ERROR or Exception, per minute.",
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "sortBy": "Max",
+          "sortDesc": true
+        }
+      }
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "description": "Latest log lines for the services picked in the \"Service\" variable, filtered by \"Search\" (case-insensitive regex). Viewers can read logs here without access to Explore.",
+      "id": 62,
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "prettifyLogMessage": false,
+        "showCommonLabels": false,
+        "showLabels": false,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true
+      },
+      "targets": [
+        {
+          "expr": "{app=~\"$service\"} |~ \"(?i)$search\"",
+          "refId": "A",
+          "maxLines": 500
+        }
+      ],
+      "title": "Logs",
+      "type": "logs",
+      "gridPos": {
+        "h": 12,
+        "w": 24,
+        "x": 0,
+        "y": 18
+      }
     },
     {
       "collapsed": false,
@@ -179,7 +751,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 14
+        "y": 30
       },
       "id": 108,
       "title": "Ingress (Traefik)",
@@ -197,7 +769,8 @@
             "lineWidth": 2,
             "showPoints": "never"
           },
-          "unit": "reqps"
+          "unit": "reqps",
+          "min": 0
         },
         "overrides": []
       },
@@ -205,7 +778,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 15
+        "y": 31
       },
       "id": 200,
       "targets": [
@@ -216,7 +789,19 @@
         }
       ],
       "title": "Requests by Service (/s)",
-      "type": "timeseries"
+      "type": "timeseries",
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
+      }
     },
     {
       "datasource": {
@@ -233,7 +818,8 @@
               "mode": "normal"
             }
           },
-          "unit": "reqps"
+          "unit": "reqps",
+          "min": 0
         },
         "overrides": [
           {
@@ -302,7 +888,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 15
+        "y": 31
       },
       "id": 201,
       "targets": [
@@ -314,7 +900,19 @@
       ],
       "title": "Responses by Status Class (/s)",
       "type": "timeseries",
-      "description": "All requests arriving at Traefik on ports 80/443, including ones that matched no route."
+      "description": "All requests arriving at Traefik on ports 80/443, including ones that matched no route.",
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
+      }
     },
     {
       "datasource": {
@@ -328,7 +926,8 @@
             "lineWidth": 2,
             "showPoints": "never"
           },
-          "unit": "percentunit"
+          "unit": "percentunit",
+          "min": 0
         },
         "overrides": []
       },
@@ -336,7 +935,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 15
+        "y": 31
       },
       "id": 202,
       "targets": [
@@ -347,7 +946,19 @@
         }
       ],
       "title": "5xx Error Ratio by Service",
-      "type": "timeseries"
+      "type": "timeseries",
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
+      }
     },
     {
       "datasource": {
@@ -361,7 +972,8 @@
             "lineWidth": 2,
             "showPoints": "never"
           },
-          "unit": "s"
+          "unit": "s",
+          "min": 0
         },
         "overrides": []
       },
@@ -369,7 +981,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 23
+        "y": 39
       },
       "id": 203,
       "targets": [
@@ -386,7 +998,19 @@
       ],
       "title": "Latency by Service (excl. WebSocket)",
       "type": "timeseries",
-      "description": "Average per service, plus p95 across all services. Traefik's default histogram buckets are coarse (0.1s, 0.3s, 1.2s, 5s), so the p95 is approximate."
+      "description": "Average per service, plus p95 across all services. Traefik's default histogram buckets are coarse (0.1s, 0.3s, 1.2s, 5s), so the p95 is approximate.",
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
+      }
     },
     {
       "datasource": {
@@ -399,7 +1023,8 @@
             "fillOpacity": 10,
             "lineWidth": 2,
             "showPoints": "never"
-          }
+          },
+          "min": 0
         },
         "overrides": []
       },
@@ -407,7 +1032,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 23
+        "y": 39
       },
       "id": 204,
       "targets": [
@@ -418,7 +1043,19 @@
         }
       ],
       "title": "Open Connections",
-      "type": "timeseries"
+      "type": "timeseries",
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
+      }
     },
     {
       "datasource": {
@@ -449,7 +1086,9 @@
                 "value": 28
               }
             ]
-          }
+          },
+          "min": 0,
+          "max": 90
         },
         "overrides": []
       },
@@ -457,13 +1096,12 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 23
+        "y": 39
       },
       "id": 205,
       "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "orientation": "auto",
+        "displayMode": "basic",
+        "orientation": "horizontal",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -471,7 +1109,8 @@
           "fields": "",
           "values": false
         },
-        "textMode": "auto"
+        "showUnfilled": true,
+        "valueMode": "color"
       },
       "targets": [
         {
@@ -480,8 +1119,8 @@
           "refId": "A"
         }
       ],
-      "title": "TLS Certificate Expiry",
-      "type": "stat"
+      "title": "TLS Certificate Expiry (days)",
+      "type": "bargauge"
     },
     {
       "collapsed": false,
@@ -489,7 +1128,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 31
+        "y": 47
       },
       "id": 109,
       "title": "Client & API Bridge",
@@ -507,7 +1146,8 @@
             "lineWidth": 2,
             "showPoints": "never"
           },
-          "unit": "reqps"
+          "unit": "reqps",
+          "min": 0
         },
         "overrides": []
       },
@@ -515,7 +1155,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 32
+        "y": 48
       },
       "id": 210,
       "targets": [
@@ -531,7 +1171,19 @@
         }
       ],
       "title": "Requests (/s)",
-      "type": "timeseries"
+      "type": "timeseries",
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
+      }
     },
     {
       "datasource": {
@@ -545,7 +1197,8 @@
             "lineWidth": 2,
             "showPoints": "never"
           },
-          "unit": "reqps"
+          "unit": "reqps",
+          "min": 0
         },
         "overrides": []
       },
@@ -553,7 +1206,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 32
+        "y": 48
       },
       "id": 211,
       "targets": [
@@ -569,7 +1222,19 @@
         }
       ],
       "title": "Error Responses (/s)",
-      "type": "timeseries"
+      "type": "timeseries",
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
+      }
     },
     {
       "datasource": {
@@ -583,7 +1248,8 @@
             "lineWidth": 2,
             "showPoints": "never"
           },
-          "unit": "s"
+          "unit": "s",
+          "min": 0
         },
         "overrides": []
       },
@@ -591,7 +1257,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 32
+        "y": 48
       },
       "id": 212,
       "targets": [
@@ -608,7 +1274,19 @@
       ],
       "title": "Request Latency p95",
       "type": "timeseries",
-      "description": "Time spent processing each request inside the bridge, as reported by the bridge (recent window, not affected by network time)."
+      "description": "Time spent processing each request inside the bridge, as reported by the bridge (recent window, not affected by network time).",
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
+      }
     },
     {
       "datasource": {
@@ -618,19 +1296,20 @@
       "fieldConfig": {
         "defaults": {
           "custom": {
-            "fillOpacity": 10,
-            "lineWidth": 2,
+            "fillOpacity": 0,
+            "lineWidth": 1,
             "showPoints": "never"
           },
-          "unit": "reqps"
+          "unit": "reqps",
+          "min": 0
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
+        "h": 9,
         "w": 8,
         "x": 0,
-        "y": 40
+        "y": 56
       },
       "id": 213,
       "targets": [
@@ -642,7 +1321,25 @@
       ],
       "title": "Requests by Endpoint (/s)",
       "type": "timeseries",
-      "description": "Per-handler HTTP requests by status code. Health checks (checkpage) are excluded."
+      "description": "Per-handler HTTP requests by status code. Health checks (checkpage) are excluded.",
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "sortBy": "Max",
+          "sortDesc": true
+        }
+      }
     },
     {
       "datasource": {
@@ -656,7 +1353,8 @@
             "lineWidth": 2,
             "showPoints": "never"
           },
-          "unit": "reqps"
+          "unit": "reqps",
+          "min": 0
         },
         "overrides": [
           {
@@ -677,10 +1375,10 @@
         ]
       },
       "gridPos": {
-        "h": 8,
+        "h": 9,
         "w": 8,
         "x": 8,
-        "y": 40
+        "y": 56
       },
       "id": 214,
       "targets": [
@@ -706,7 +1404,19 @@
         }
       ],
       "title": "Logins & Authorization (/s)",
-      "type": "timeseries"
+      "type": "timeseries",
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
+      }
     },
     {
       "datasource": {
@@ -719,15 +1429,16 @@
             "fillOpacity": 10,
             "lineWidth": 2,
             "showPoints": "never"
-          }
+          },
+          "min": 0
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
+        "h": 9,
         "w": 8,
         "x": 16,
-        "y": 40
+        "y": 56
       },
       "id": 215,
       "targets": [
@@ -743,7 +1454,19 @@
         }
       ],
       "title": "Sessions Opened / Closed (per 5m)",
-      "type": "timeseries"
+      "type": "timeseries",
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
+      }
     },
     {
       "datasource": {
@@ -757,7 +1480,8 @@
             "lineWidth": 2,
             "showPoints": "never"
           },
-          "unit": "ops"
+          "unit": "ops",
+          "min": 0
         },
         "overrides": []
       },
@@ -765,7 +1489,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 48
+        "y": 65
       },
       "id": 216,
       "targets": [
@@ -792,7 +1516,19 @@
       ],
       "title": "Platform Messages (/s)",
       "type": "timeseries",
-      "description": "Messages between the bridge and the platform bus."
+      "description": "Messages between the bridge and the platform bus.",
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
+      }
     },
     {
       "datasource": {
@@ -806,7 +1542,8 @@
             "lineWidth": 2,
             "showPoints": "never"
           },
-          "unit": "Bps"
+          "unit": "Bps",
+          "min": 0
         },
         "overrides": []
       },
@@ -814,7 +1551,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 48
+        "y": 65
       },
       "id": 217,
       "targets": [
@@ -830,7 +1567,19 @@
         }
       ],
       "title": "Bandwidth (bytes/s)",
-      "type": "timeseries"
+      "type": "timeseries",
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
+      }
     },
     {
       "collapsed": false,
@@ -838,7 +1587,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 56
+        "y": 73
       },
       "id": 101,
       "title": "Hub & Client Bridge",
@@ -855,7 +1604,8 @@
             "fillOpacity": 10,
             "lineWidth": 2,
             "showPoints": "never"
-          }
+          },
+          "min": 0
         },
         "overrides": []
       },
@@ -863,28 +1613,40 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 57
+        "y": 74
       },
       "id": 2,
       "targets": [
         {
-          "expr": "max(bridge_sessions_active) by (job)",
-          "legendFormat": "Active",
-          "refId": "A"
+          "expr": "max by (job) (bridge_sessions_active)",
+          "refId": "A",
+          "legendFormat": "{{job}} active"
         },
         {
-          "expr": "max(bridge_sessions_hub_total) by (job)",
-          "legendFormat": "Hub Total",
-          "refId": "B"
+          "expr": "max(bridge_sessions_hub_total)",
+          "refId": "B",
+          "legendFormat": "hub sessions (total)"
         },
         {
-          "expr": "max(bridge_sessions_hub_authorized) by (job)",
-          "legendFormat": "Hub Authorized",
-          "refId": "C"
+          "expr": "max(bridge_sessions_hub_authorized)",
+          "refId": "C",
+          "legendFormat": "hub sessions (authorized)"
         }
       ],
       "title": "Active Sessions",
-      "type": "timeseries"
+      "type": "timeseries",
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
+      }
     },
     {
       "datasource": {
@@ -897,7 +1659,8 @@
             "fillOpacity": 10,
             "lineWidth": 2,
             "showPoints": "never"
-          }
+          },
+          "min": 0
         },
         "overrides": []
       },
@@ -905,7 +1668,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 57
+        "y": 74
       },
       "id": 3,
       "targets": [
@@ -931,7 +1694,19 @@
         }
       ],
       "title": "Hub Sessions (Detail)",
-      "type": "timeseries"
+      "type": "timeseries",
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
+      }
     },
     {
       "datasource": {
@@ -945,7 +1720,8 @@
             "lineWidth": 2,
             "showPoints": "never"
           },
-          "unit": "Bps"
+          "unit": "Bps",
+          "min": 0
         },
         "overrides": []
       },
@@ -953,7 +1729,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 57
+        "y": 74
       },
       "id": 4,
       "targets": [
@@ -979,7 +1755,19 @@
         }
       ],
       "title": "Bridge Throughput (bytes/s)",
-      "type": "timeseries"
+      "type": "timeseries",
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
+      }
     },
     {
       "datasource": {
@@ -993,7 +1781,8 @@
             "lineWidth": 2,
             "showPoints": "never"
           },
-          "unit": "ops"
+          "unit": "ops",
+          "min": 0
         },
         "overrides": []
       },
@@ -1001,23 +1790,35 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 65
+        "y": 82
       },
       "id": 5,
       "targets": [
         {
-          "expr": "sum(rate(bridge_ssl_handshake_successes[5m])) by (job)",
-          "legendFormat": "Successes",
-          "refId": "A"
+          "expr": "sum by (job) (rate(bridge_ssl_handshake_successes_count[5m]))",
+          "refId": "A",
+          "legendFormat": "{{job}} ok"
         },
         {
-          "expr": "sum(rate(bridge_ssl_handshake_failures[5m])) by (job)",
-          "legendFormat": "Failures",
-          "refId": "B"
+          "expr": "sum by (job) (rate(bridge_ssl_handshake_failures_count[5m]))",
+          "refId": "B",
+          "legendFormat": "{{job}} failed"
         }
       ],
       "title": "SSL Handshakes (/s)",
-      "type": "timeseries"
+      "type": "timeseries",
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
+      }
     },
     {
       "datasource": {
@@ -1030,7 +1831,8 @@
             "fillOpacity": 10,
             "lineWidth": 2,
             "showPoints": "never"
-          }
+          },
+          "min": 0
         },
         "overrides": []
       },
@@ -1038,7 +1840,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 65
+        "y": 82
       },
       "id": 6,
       "targets": [
@@ -1064,7 +1866,19 @@
         }
       ],
       "title": "Authorization",
-      "type": "timeseries"
+      "type": "timeseries",
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
+      }
     },
     {
       "datasource": {
@@ -1078,7 +1892,8 @@
             "lineWidth": 2,
             "showPoints": "never"
           },
-          "unit": "ops"
+          "unit": "ops",
+          "min": 0
         },
         "overrides": []
       },
@@ -1086,18 +1901,30 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 65
+        "y": 82
       },
       "id": 7,
       "targets": [
         {
-          "expr": "sum(rate(bridge_hub_heartbeat[5m])) by (job)",
-          "legendFormat": "Heartbeats",
-          "refId": "A"
+          "expr": "sum(rate(bridge_hub_heartbeat_count[5m]))",
+          "refId": "A",
+          "legendFormat": "heartbeats"
         }
       ],
       "title": "Hub Heartbeats (/s)",
-      "type": "timeseries"
+      "type": "timeseries",
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
+      }
     },
     {
       "datasource": {
@@ -1110,7 +1937,8 @@
             "fillOpacity": 10,
             "lineWidth": 2,
             "showPoints": "never"
-          }
+          },
+          "min": 0
         },
         "overrides": []
       },
@@ -1118,23 +1946,92 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 73
+        "y": 90
       },
       "id": 8,
       "targets": [
         {
-          "expr": "sum(rate(messages_platform_recv_type_hub_hubconnected[5m])) by (job)",
-          "legendFormat": "Connected",
-          "refId": "A"
+          "expr": "max(increase(messages_platform_recv_type_hub_hubconnected[5m]))",
+          "refId": "A",
+          "legendFormat": "connected"
         },
         {
-          "expr": "sum(rate(messages_platform_recv_type_hub_hubdisconnected[5m])) by (job)",
-          "legendFormat": "Disconnected",
-          "refId": "B"
+          "expr": "max(increase(messages_platform_recv_type_hub_hubdisconnected[5m]))",
+          "refId": "B",
+          "legendFormat": "disconnected"
         }
       ],
-      "title": "Hub Connect/Disconnect Events (/s)",
-      "type": "timeseries"
+      "title": "Hub Connect / Disconnect Events (per 5m)",
+      "type": "timeseries",
+      "description": "HubConnected / HubDisconnected messages seen on the platform bus.",
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
+      }
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 10,
+            "lineWidth": 2,
+            "showPoints": "never"
+          },
+          "unit": "ops",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "id": 9,
+      "targets": [
+        {
+          "expr": "sum(rate(com_iris_bridge_metrics_bridge_metrics_bridge_hub_authentication_failed[5m]))",
+          "refId": "A",
+          "legendFormat": "hub authentication failed"
+        },
+        {
+          "expr": "sum(rate(com_iris_bridge_metrics_bridge_metrics_bridge_hub_authorization_failed[5m]))",
+          "refId": "B",
+          "legendFormat": "hub authorization failed"
+        },
+        {
+          "expr": "sum by (job) (rate(bridge_ssl_connect_refused[5m]))",
+          "refId": "C",
+          "legendFormat": "{{job}} TLS connect refused"
+        }
+      ],
+      "title": "Connection Rejections (/s)",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 90
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
+      }
     },
     {
       "collapsed": false,
@@ -1142,7 +2039,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 81
+        "y": 98
       },
       "id": 103,
       "title": "Cassandra DAO",
@@ -1156,19 +2053,20 @@
       "fieldConfig": {
         "defaults": {
           "custom": {
-            "fillOpacity": 10,
-            "lineWidth": 2,
+            "fillOpacity": 0,
+            "lineWidth": 1,
             "showPoints": "never"
           },
-          "unit": "s"
+          "unit": "s",
+          "min": 0
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
+        "h": 10,
         "w": 12,
         "x": 0,
-        "y": 82
+        "y": 99
       },
       "id": 20,
       "targets": [
@@ -1200,7 +2098,25 @@
       ],
       "title": "DAO Latency p95 (slowest op per service)",
       "type": "timeseries",
-      "description": "95th percentile Cassandra DAO time for the slowest operation of each type, per service, over the timers' recent window."
+      "description": "95th percentile Cassandra DAO time for the slowest operation of each type, per service, over the timers' recent window.",
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "sortBy": "Max",
+          "sortDesc": true
+        }
+      }
     },
     {
       "datasource": {
@@ -1210,19 +2126,20 @@
       "fieldConfig": {
         "defaults": {
           "custom": {
-            "fillOpacity": 10,
-            "lineWidth": 2,
+            "fillOpacity": 0,
+            "lineWidth": 1,
             "showPoints": "never"
           },
-          "unit": "ops"
+          "unit": "ops",
+          "min": 0
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
+        "h": 10,
         "w": 12,
         "x": 12,
-        "y": 82
+        "y": 99
       },
       "id": 21,
       "targets": [
@@ -1253,7 +2170,25 @@
         }
       ],
       "title": "DAO Throughput (ops/s)",
-      "type": "timeseries"
+      "type": "timeseries",
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "sortBy": "Max",
+          "sortDesc": true
+        }
+      }
     },
     {
       "collapsed": false,
@@ -1261,7 +2196,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 90
+        "y": 109
       },
       "id": 104,
       "title": "Scheduler",
@@ -1278,15 +2213,17 @@
             "fillOpacity": 10,
             "lineWidth": 2,
             "showPoints": "never"
-          }
+          },
+          "unit": "ops",
+          "min": 0
         },
         "overrides": []
       },
       "gridPos": {
         "h": 8,
-        "w": 12,
+        "w": 8,
         "x": 0,
-        "y": 91
+        "y": 110
       },
       "id": 30,
       "targets": [
@@ -1316,8 +2253,20 @@
           "refId": "E"
         }
       ],
-      "title": "Scheduled Commands",
-      "type": "timeseries"
+      "title": "Scheduled Commands (/s)",
+      "type": "timeseries",
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
+      }
     },
     {
       "datasource": {
@@ -1330,15 +2279,16 @@
             "fillOpacity": 10,
             "lineWidth": 2,
             "showPoints": "never"
-          }
+          },
+          "min": 0
         },
         "overrides": []
       },
       "gridPos": {
         "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 91
+        "w": 8,
+        "x": 8,
+        "y": 110
       },
       "id": 31,
       "targets": [
@@ -1351,20 +2301,73 @@
           "expr": "max(scheduler_partition_pending) by (job)",
           "legendFormat": "Pending",
           "refId": "B"
-        },
-        {
-          "expr": "sum(rate(scheduler_partition_completed[5m])) by (job)",
-          "legendFormat": "Completed /s",
-          "refId": "C"
-        },
-        {
-          "expr": "sum(rate(scheduler_partition_errors[5m])) by (job)",
-          "legendFormat": "Errors /s",
-          "refId": "D"
         }
       ],
       "title": "Scheduler Partitions",
-      "type": "timeseries"
+      "type": "timeseries",
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
+      }
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 10,
+            "lineWidth": 2,
+            "showPoints": "never"
+          },
+          "unit": "ops",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "id": 32,
+      "targets": [
+        {
+          "expr": "sum(rate(scheduler_partition_completed[5m]))",
+          "refId": "A",
+          "legendFormat": "completed"
+        },
+        {
+          "expr": "sum(rate(scheduler_partition_errors[5m]))",
+          "refId": "B",
+          "legendFormat": "errors"
+        }
+      ],
+      "title": "Partition Throughput (/s)",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 110
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
+      }
     },
     {
       "collapsed": false,
@@ -1372,7 +2375,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 99
+        "y": 118
       },
       "id": 105,
       "title": "Platform & Drivers",
@@ -1389,7 +2392,8 @@
             "fillOpacity": 10,
             "lineWidth": 2,
             "showPoints": "never"
-          }
+          },
+          "min": 0
         },
         "overrides": []
       },
@@ -1397,7 +2401,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 100
+        "y": 119
       },
       "id": 40,
       "targets": [
@@ -1433,7 +2437,19 @@
         }
       ],
       "title": "Hub & IPCD Device Registry",
-      "type": "timeseries"
+      "type": "timeseries",
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
+      }
     },
     {
       "datasource": {
@@ -1447,7 +2463,8 @@
             "lineWidth": 2,
             "showPoints": "never"
           },
-          "unit": "ops"
+          "unit": "ops",
+          "min": 0
         },
         "overrides": [
           {
@@ -1471,7 +2488,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 100
+        "y": 119
       },
       "id": 41,
       "targets": [
@@ -1493,7 +2510,19 @@
       ],
       "title": "Driver Service Tasks (/s)",
       "type": "timeseries",
-      "description": "Device messages processed by driver-services."
+      "description": "Device messages processed by driver-services.",
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
+      }
     },
     {
       "datasource": {
@@ -1507,7 +2536,8 @@
             "lineWidth": 2,
             "showPoints": "never"
           },
-          "unit": "ops"
+          "unit": "ops",
+          "min": 0
         },
         "overrides": [
           {
@@ -1531,7 +2561,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 100
+        "y": 119
       },
       "id": 42,
       "targets": [
@@ -1553,7 +2583,19 @@
       ],
       "title": "Notifications (/s)",
       "type": "timeseries",
-      "description": "Errors are summed across all channels (email, sms, push, apns, gcm, ivr, webhook, log)."
+      "description": "Errors are summed across all channels (email, sms, push, apns, gcm, ivr, webhook, log).",
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
+      }
     },
     {
       "collapsed": false,
@@ -1561,7 +2603,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 108
+        "y": 127
       },
       "id": 102,
       "title": "JVM Memory",
@@ -1575,35 +2617,67 @@
       "fieldConfig": {
         "defaults": {
           "custom": {
-            "fillOpacity": 10,
-            "lineWidth": 2,
-            "showPoints": "never"
+            "fillOpacity": 0,
+            "lineWidth": 1,
+            "showPoints": "never",
+            "thresholdsStyle": {
+              "mode": "dashed"
+            }
           },
-          "unit": "bytes"
+          "unit": "percentunit",
+          "max": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "transparent",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.9
+              }
+            ]
+          },
+          "min": 0
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
+        "h": 10,
         "w": 12,
         "x": 0,
-        "y": 109
+        "y": 128
       },
       "id": 10,
       "targets": [
         {
-          "expr": "max(jvm_memory_heap_used) by (job)",
-          "legendFormat": "{{job}} used",
-          "refId": "A"
-        },
-        {
-          "expr": "max(jvm_memory_heap_max) by (job)",
-          "legendFormat": "{{job}} max",
-          "refId": "B"
+          "expr": "max by (job) ({__name__=~\"jvm_memory_pools_(Tenured_Gen|G1_Old_Gen)_used_after_gc\"}) / max by (job) ({__name__=~\"jvm_memory_pools_(Tenured_Gen|G1_Old_Gen)_max\"})",
+          "refId": "A",
+          "legendFormat": "{{job}}"
         }
       ],
-      "title": "Heap Usage",
-      "type": "timeseries"
+      "title": "Old Gen After GC (% of max)",
+      "type": "timeseries",
+      "description": "Old-generation heap still in use after the last collection, as a share of its max. This is live data the service cannot free, so a value that stays above 90% means it is short of heap (-Xmx). Covers both the Serial (Tenured Gen) and G1 (G1 Old Gen) collectors.",
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "sortBy": "Max",
+          "sortDesc": true
+        }
+      }
     },
     {
       "datasource": {
@@ -1613,35 +2687,49 @@
       "fieldConfig": {
         "defaults": {
           "custom": {
-            "fillOpacity": 10,
-            "lineWidth": 2,
+            "fillOpacity": 0,
+            "lineWidth": 1,
             "showPoints": "never"
           },
-          "unit": "bytes"
+          "unit": "bytes",
+          "min": 0
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
+        "h": 10,
         "w": 12,
         "x": 12,
-        "y": 109
+        "y": 128
       },
       "id": 11,
       "targets": [
         {
-          "expr": "max(jvm_memory_non_heap_used) by (job)",
-          "legendFormat": "{{job}} used",
-          "refId": "A"
-        },
-        {
-          "expr": "max(jvm_memory_non_heap_committed) by (job)",
-          "legendFormat": "{{job}} committed",
-          "refId": "B"
+          "expr": "max by (job) (jvm_memory_non_heap_used)",
+          "refId": "A",
+          "legendFormat": "{{job}}"
         }
       ],
-      "title": "Non-Heap (Metaspace) Usage",
-      "type": "timeseries"
+      "title": "Non-Heap (Metaspace) Used",
+      "type": "timeseries",
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "sortBy": "Max",
+          "sortDesc": true
+        }
+      }
     },
     {
       "datasource": {
@@ -1651,19 +2739,20 @@
       "fieldConfig": {
         "defaults": {
           "custom": {
-            "fillOpacity": 10,
-            "lineWidth": 2,
+            "fillOpacity": 0,
+            "lineWidth": 1,
             "showPoints": "never"
           },
-          "unit": "ops"
+          "unit": "ops",
+          "min": 0
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
+        "h": 10,
         "w": 12,
         "x": 0,
-        "y": 117
+        "y": 138
       },
       "id": 12,
       "targets": [
@@ -1679,7 +2768,25 @@
         }
       ],
       "title": "GC Rate (/s)",
-      "type": "timeseries"
+      "type": "timeseries",
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "sortBy": "Max",
+          "sortDesc": true
+        }
+      }
     },
     {
       "datasource": {
@@ -1689,19 +2796,20 @@
       "fieldConfig": {
         "defaults": {
           "custom": {
-            "fillOpacity": 10,
-            "lineWidth": 2,
+            "fillOpacity": 0,
+            "lineWidth": 1,
             "showPoints": "never"
           },
-          "unit": "ms"
+          "unit": "ms",
+          "min": 0
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
+        "h": 10,
         "w": 12,
         "x": 12,
-        "y": 117
+        "y": 138
       },
       "id": 13,
       "targets": [
@@ -1717,7 +2825,25 @@
         }
       ],
       "title": "GC Time (ms/s)",
-      "type": "timeseries"
+      "type": "timeseries",
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "sortBy": "Max",
+          "sortDesc": true
+        }
+      }
     },
     {
       "datasource": {
@@ -1727,73 +2853,126 @@
       "fieldConfig": {
         "defaults": {
           "custom": {
-            "fillOpacity": 10,
-            "lineWidth": 2,
+            "fillOpacity": 0,
+            "lineWidth": 1,
             "showPoints": "never"
-          }
+          },
+          "min": 0
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
+        "h": 10,
         "w": 12,
         "x": 0,
-        "y": 125
+        "y": 148
       },
       "id": 14,
       "targets": [
         {
-          "expr": "max(jvm_threads_count) by (job)",
-          "legendFormat": "{{job}} total",
-          "refId": "A"
-        },
-        {
-          "expr": "max(jvm_threads_blocked_count) by (job)",
-          "legendFormat": "{{job}} blocked",
-          "refId": "B"
-        },
-        {
-          "expr": "max(jvm_threads_deadlock_count) by (job)",
-          "legendFormat": "{{job}} deadlock",
-          "refId": "C"
+          "expr": "max by (job) (jvm_threads_count)",
+          "refId": "A",
+          "legendFormat": "{{job}}"
         }
       ],
       "title": "Thread Count",
-      "type": "timeseries"
+      "type": "timeseries",
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "sortBy": "Max",
+          "sortDesc": true
+        }
+      }
     },
     {
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
       },
+      "description": "How long each container in the default namespace has been running, most recent first.",
       "fieldConfig": {
         "defaults": {
           "custom": {
-            "fillOpacity": 10,
-            "lineWidth": 2,
-            "showPoints": "never"
+            "align": "auto"
           },
           "unit": "s"
         },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 125
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Running for"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "container"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Container"
+              }
+            ]
+          }
+        ]
       },
       "id": 15,
+      "options": {
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": false,
+            "displayName": "Running for"
+          }
+        ]
+      },
       "targets": [
         {
           "expr": "time() - max by (container) (container_start_time_seconds{namespace=\"default\"})",
-          "legendFormat": "{{container}}",
-          "refId": "A"
+          "refId": "A",
+          "format": "table",
+          "instant": true,
+          "range": false
         }
       ],
-      "title": "Service Uptime",
-      "type": "timeseries",
-      "description": "Time since each container in the default namespace last started (rollouts and in-place restarts both reset it)."
+      "title": "Time Since Container Start",
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            }
+          }
+        }
+      ],
+      "type": "table",
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 12,
+        "y": 148
+      }
     },
     {
       "collapsed": false,
@@ -1801,7 +2980,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 133
+        "y": 158
       },
       "id": 106,
       "title": "Thread Pools",
@@ -1815,29 +2994,48 @@
       "fieldConfig": {
         "defaults": {
           "custom": {
-            "fillOpacity": 10,
-            "lineWidth": 2,
+            "fillOpacity": 0,
+            "lineWidth": 1,
             "showPoints": "never"
-          }
+          },
+          "min": 0
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
-        "w": 12,
+        "h": 10,
+        "w": 9,
         "x": 0,
-        "y": 134
+        "y": 159
       },
       "id": 50,
       "targets": [
         {
-          "expr": "max({__name__=~\".+_pool_tasks_running\"}) by (job, __name__)",
-          "legendFormat": "{{job}} {{__name__}}",
-          "refId": "A"
+          "expr": "label_replace(max by (job, __name__) ({__name__=~\".+_pool_tasks_running\"}), \"pool\", \"$1\", \"__name__\", \"(.+)_pool_tasks_running\")",
+          "refId": "A",
+          "legendFormat": "{{job}} / {{pool}}"
         }
       ],
       "title": "Pool Tasks Running",
-      "type": "timeseries"
+      "type": "timeseries",
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "sortBy": "Max",
+          "sortDesc": true
+        }
+      }
     },
     {
       "datasource": {
@@ -1847,29 +3045,140 @@
       "fieldConfig": {
         "defaults": {
           "custom": {
-            "fillOpacity": 10,
-            "lineWidth": 2,
+            "fillOpacity": 0,
+            "lineWidth": 1,
             "showPoints": "never"
-          }
+          },
+          "min": 0
         },
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 134
+        "h": 10,
+        "w": 9,
+        "x": 9,
+        "y": 159
       },
       "id": 51,
       "targets": [
         {
-          "expr": "max({__name__=~\".+_pool_tasks_queued\"}) by (job, __name__)",
-          "legendFormat": "{{job}} {{__name__}}",
-          "refId": "A"
+          "expr": "label_replace(max by (job, __name__) ({__name__=~\".+_pool_tasks_queued\"}), \"pool\", \"$1\", \"__name__\", \"(.+)_pool_tasks_queued\")",
+          "refId": "A",
+          "legendFormat": "{{job}} / {{pool}}"
         }
       ],
       "title": "Pool Tasks Queued",
-      "type": "timeseries"
+      "type": "timeseries",
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "sortBy": "Max",
+          "sortDesc": true
+        }
+      }
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              }
+            ]
+          },
+          "decimals": 0
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "deadlocked"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 1
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "id": 52,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name",
+        "text": {
+          "titleSize": 14,
+          "valueSize": 36
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum(jvm_threads_blocked_count)",
+          "refId": "A",
+          "legendFormat": "blocked"
+        },
+        {
+          "expr": "sum(jvm_threads_deadlock_count)",
+          "refId": "B",
+          "legendFormat": "deadlocked"
+        }
+      ],
+      "title": "Blocked / Deadlocked Threads",
+      "type": "stat",
+      "gridPos": {
+        "h": 10,
+        "w": 6,
+        "x": 18,
+        "y": 159
+      }
     }
   ],
   "refresh": "30s",
@@ -1879,7 +3188,58 @@
     "arcus"
   ],
   "templating": {
-    "list": []
+    "list": [
+      {
+        "allValue": ".+",
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "datasource": {
+          "type": "loki",
+          "uid": "loki"
+        },
+        "definition": "label_values(app)",
+        "includeAll": true,
+        "label": "Service",
+        "multi": true,
+        "name": "service",
+        "options": [],
+        "query": {
+          "label": "app",
+          "refId": "LokiVariableQueryEditor-VariableQuery",
+          "stream": "",
+          "type": 1
+        },
+        "refresh": 2,
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "",
+          "value": ""
+        },
+        "description": "Case-insensitive regex applied to the Logs panel.",
+        "label": "Search",
+        "name": "search",
+        "options": [
+          {
+            "selected": true,
+            "text": "",
+            "value": ""
+          }
+        ],
+        "query": "",
+        "type": "textbox"
+      }
+    ]
   },
   "time": {
     "from": "now-1h",
