@@ -69,7 +69,8 @@
               }
             ]
           },
-          "decimals": 0
+          "decimals": 0,
+          "displayName": "Targets Down"
         },
         "overrides": []
       },
@@ -86,7 +87,11 @@
           "fields": "",
           "values": false
         },
-        "textMode": "value"
+        "textMode": "value_and_name",
+        "text": {
+          "titleSize": 13,
+          "valueSize": 36
+        }
       },
       "targets": [
         {
@@ -94,7 +99,7 @@
           "refId": "A"
         }
       ],
-      "title": "Targets Down",
+      "title": "",
       "type": "stat",
       "description": "Scrape targets that have been down for the whole of the last 5 minutes. The tiles below show which.",
       "gridPos": {
@@ -124,7 +129,8 @@
               }
             ]
           },
-          "decimals": 0
+          "decimals": 0,
+          "displayName": "Hubs Online"
         },
         "overrides": []
       },
@@ -141,7 +147,11 @@
           "fields": "",
           "values": false
         },
-        "textMode": "value"
+        "textMode": "value_and_name",
+        "text": {
+          "titleSize": 13,
+          "valueSize": 36
+        }
       },
       "targets": [
         {
@@ -149,7 +159,7 @@
           "refId": "A"
         }
       ],
-      "title": "Hubs Online",
+      "title": "",
       "type": "stat",
       "description": "Authorized hub sessions on hub-bridge.",
       "gridPos": {
@@ -179,7 +189,8 @@
               }
             ]
           },
-          "decimals": 0
+          "decimals": 0,
+          "displayName": "App Sessions"
         },
         "overrides": []
       },
@@ -196,7 +207,11 @@
           "fields": "",
           "values": false
         },
-        "textMode": "value"
+        "textMode": "value_and_name",
+        "text": {
+          "titleSize": 13,
+          "valueSize": 36
+        }
       },
       "targets": [
         {
@@ -204,7 +219,7 @@
           "refId": "A"
         }
       ],
-      "title": "App Sessions",
+      "title": "",
       "type": "stat",
       "description": "Active sessions on client-bridge and api-bridge.",
       "gridPos": {
@@ -234,7 +249,8 @@
               }
             ]
           },
-          "unit": "reqps"
+          "unit": "short",
+          "displayName": "Requests / s"
         },
         "overrides": []
       },
@@ -251,7 +267,11 @@
           "fields": "",
           "values": false
         },
-        "textMode": "value"
+        "textMode": "value_and_name",
+        "text": {
+          "titleSize": 13,
+          "valueSize": 36
+        }
       },
       "targets": [
         {
@@ -259,7 +279,7 @@
           "refId": "A"
         }
       ],
-      "title": "Requests",
+      "title": "",
       "type": "stat",
       "description": "All requests routed by Traefik.",
       "gridPos": {
@@ -298,7 +318,8 @@
           },
           "unit": "percentunit",
           "decimals": 2,
-          "noValue": "no traffic"
+          "noValue": "n/a",
+          "displayName": "Ingress 5xx"
         },
         "overrides": []
       },
@@ -315,7 +336,11 @@
           "fields": "",
           "values": false
         },
-        "textMode": "value"
+        "textMode": "value_and_name",
+        "text": {
+          "titleSize": 13,
+          "valueSize": 36
+        }
       },
       "targets": [
         {
@@ -323,7 +348,7 @@
           "refId": "A"
         }
       ],
-      "title": "Ingress 5xx",
+      "title": "",
       "type": "stat",
       "description": "Share of Traefik responses that were 5xx over the last 5 minutes.",
       "gridPos": {
@@ -354,7 +379,8 @@
             ]
           },
           "decimals": 0,
-          "noValue": "0"
+          "noValue": "0",
+          "displayName": "Errors / 5m"
         },
         "overrides": []
       },
@@ -371,7 +397,11 @@
           "fields": "",
           "values": false
         },
-        "textMode": "value"
+        "textMode": "value_and_name",
+        "text": {
+          "titleSize": 13,
+          "valueSize": 36
+        }
       },
       "targets": [
         {
@@ -379,7 +409,7 @@
           "refId": "A"
         }
       ],
-      "title": "Errors / 5m",
+      "title": "",
       "type": "stat",
       "description": "Log lines matching ERROR or Exception across all pods. See the Logs row for which.",
       "gridPos": {
@@ -412,7 +442,8 @@
               }
             ]
           },
-          "decimals": 0
+          "decimals": 0,
+          "displayName": "Restarts"
         },
         "overrides": []
       },
@@ -429,7 +460,11 @@
           "fields": "",
           "values": false
         },
-        "textMode": "value"
+        "textMode": "value_and_name",
+        "text": {
+          "titleSize": 13,
+          "valueSize": 36
+        }
       },
       "targets": [
         {
@@ -440,7 +475,7 @@
           "range": false
         }
       ],
-      "title": "Restarts",
+      "title": "",
       "type": "stat",
       "description": "Container restarts across all namespaces during the selected time range, from kube-state-metrics.",
       "gridPos": {
@@ -477,8 +512,9 @@
               }
             ]
           },
-          "unit": "suffix: days",
-          "decimals": 0
+          "unit": "suffix:d",
+          "decimals": 0,
+          "displayName": "Cert Expiry"
         },
         "overrides": []
       },
@@ -495,7 +531,11 @@
           "fields": "",
           "values": false
         },
-        "textMode": "value"
+        "textMode": "value_and_name",
+        "text": {
+          "titleSize": 13,
+          "valueSize": 36
+        }
       },
       "targets": [
         {
@@ -503,7 +543,7 @@
           "refId": "A"
         }
       ],
-      "title": "Cert Expiry",
+      "title": "",
       "type": "stat",
       "description": "Days until the soonest-expiring certificate served by Traefik expires.",
       "gridPos": {
