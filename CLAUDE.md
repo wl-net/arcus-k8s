@@ -140,7 +140,7 @@ Run `./arcuscmd.sh configure` to set these interactively, or write the files dir
 
 ## Cassandra / Kafka / Zookeeper
 
-The `local-production` overlay includes manifests to run Cassandra, Kafka, and Zookeeper inside k3s with `CASSANDRA_SINGLE_NODE=true`, which is fine for development. For production, these should run externally on a dedicated 3-datacenter Cassandra cluster — a single k3s node provides no real redundancy. The `local-production-cluster` overlay sets `CASSANDRA_SINGLE_NODE=false`. Configure external hosts via `./arcuscmd.sh configure` or by setting `.config/cassandra-host`, `.config/kafka-host`, and `.config/zookeeper-host` directly.
+The `local-production` overlay includes manifests to run Cassandra, Kafka, and Zookeeper inside k3s with `CASSANDRA_SINGLE_NODE=true`, which is fine for development. For production, these should run externally on a dedicated 3-datacenter Cassandra cluster — a single k3s node provides no real redundancy. The `local-production-cluster` overlay sets `CASSANDRA_SINGLE_NODE=false`. Configure external hosts via `./arcuscmd.sh configure` or by setting `.config/cassandra-host`, `.config/kafka-host`, and `.config/zookeeper-host` directly. When `.config/kafka-host` points at an external broker, `apply` leaves `kafka.yaml` out of the generated overlay so no in-cluster Kafka is deployed.
 
 ## External Service Dependencies
 

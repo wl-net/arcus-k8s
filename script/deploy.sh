@@ -74,6 +74,10 @@ function apply() {
   fi
   if [[ -n "${ARCUS_KAFKA_HOST-}" ]]; then
     sed -i "s!kafka-service.default.svc.cluster.local:9092!${ARCUS_KAFKA_HOST}!g" "overlays/${ARCUS_OVERLAY_NAME}-local/cluster-config.yaml"
+    # Services talk to the external Kafka, so don't deploy the in-cluster broker.
+    if [[ "${ARCUS_KAFKA_HOST}" != kafka-service.* ]]; then
+      sed -i '/^- kafka\.yaml$/d' "overlays/${ARCUS_OVERLAY_NAME}-local/kustomization.yaml"
+    fi
   fi
 
   cp config/service/ui-service-ingress.yaml "overlays/${ARCUS_OVERLAY_NAME}-local/"ui-service-ingress.yaml
