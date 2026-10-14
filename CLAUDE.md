@@ -17,6 +17,7 @@ config/
   deployments/               # One YAML per microservice
   service/                   # Service and Ingress definitions
   stateful/                  # Prometheus & Grafana StatefulSets
+  monitoring/                # kube-state-metrics (pod restarts, CrashLoopBackOff for alerting)
   certprovider/              # Let's Encrypt issuers
   cronjob/                   # Scheduled jobs (hub-keystore renewal)
   jobs/                      # One-shot Kubernetes jobs

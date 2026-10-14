@@ -62,11 +62,13 @@ groups:
     data:
     - refId: A
       relativeTimeRange:
-        from: 900
+        from: 300
         to: 0
       datasourceUid: prometheus
       model:
-        expr: changes(up[15m]) > 2
+        # Containers flip between Running and waiting while backing off, so look across 5m.
+        # Keep this window shorter than `for` so a single crash (one short backoff) never fires.
+        expr: max by (namespace, pod, container) (max_over_time(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff"}[5m]))
         instant: true
         refId: A
     - refId: B
@@ -97,16 +99,116 @@ groups:
           reducer:
             type: last
         refId: C
-    for: 5m
+    for: 10m
     noDataState: OK
     execErrState: Alerting
     labels:
       severity: critical
     annotations:
       __dashboardUid__: arcus-overview
-      __panelId__: "1"
-      summary: '{{ $labels.job }} is crash looping'
-      description: '{{ $labels.job }} ({{ $labels.instance }}) has restarted multiple times in the last 15 minutes.'
+      __panelId__: "306"
+      summary: '{{ $labels.container }} in {{ $labels.pod }} is crash looping'
+      description: '{{ $labels.container }} ({{ $labels.namespace }}/{{ $labels.pod }}) keeps crashing and Kubernetes is backing off its restarts. Check the previous run with: kubectl logs -n {{ $labels.namespace }} {{ $labels.pod }} -c {{ $labels.container }} --previous'
+  - uid: image-pull-failing
+    title: Image Pull Failing
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 300
+        to: 0
+      datasourceUid: prometheus
+      model:
+        expr: max by (namespace, pod, container) (max_over_time(kube_pod_container_status_waiting_reason{reason=~"ErrImagePull|ImagePullBackOff|InvalidImageName"}[5m]))
+        instant: true
+        refId: A
+    - refId: B
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: reduce
+        expression: A
+        reducer: last
+        refId: B
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: threshold
+        expression: B
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0
+          operator:
+            type: and
+          reducer:
+            type: last
+        refId: C
+    for: 10m
+    noDataState: OK
+    execErrState: Alerting
+    labels:
+      severity: critical
+    annotations:
+      summary: '{{ $labels.container }} in {{ $labels.pod }} cannot pull its image'
+      description: '{{ $labels.container }} ({{ $labels.namespace }}/{{ $labels.pod }}) has been unable to pull its image for 10 minutes. Check the image name and tag exist in the registry: kubectl describe pod -n {{ $labels.namespace }} {{ $labels.pod }}'
+  # cert-manager renews at 2/3 of a certificate's lifetime, so an overdue renewal is the
+  # earliest sign that issuance is failing, whatever the certificate lifetime is.
+  - uid: cert-renewal-overdue
+    title: Certificate Renewal Overdue
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 300
+        to: 0
+      datasourceUid: prometheus
+      model:
+        expr: (time() - certmanager_certificate_renewal_timestamp_seconds) / 3600
+        instant: true
+        refId: A
+    - refId: B
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: reduce
+        expression: A
+        reducer: last
+        refId: B
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: threshold
+        expression: B
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 24
+          operator:
+            type: and
+          reducer:
+            type: last
+        refId: C
+    for: 15m
+    noDataState: OK
+    execErrState: Alerting
+    labels:
+      severity: critical
+    annotations:
+      summary: 'Certificate {{ $labels.name }} renewal is overdue'
+      description: '{{ $labels.name }} in namespace {{ $labels.namespace }} should have renewed {{ printf "%.0f" $values.B.Value }} hours ago. Check the Certificate and its CertificateRequests (arcuscmd certlogs).'
   - uid: cert-expiring-soon
     title: Certificate Expiring Soon
     condition: C
@@ -142,7 +244,7 @@ groups:
         - evaluator:
             type: lt
             params:
-            - 7
+            - 14
           operator:
             type: and
           reducer:
@@ -155,7 +257,7 @@ groups:
       severity: critical
     annotations:
       summary: 'Certificate {{ $labels.name }} expiring soon'
-      description: '{{ $labels.name }} in namespace {{ $labels.namespace }} expires in {{ $value }} days.'
+      description: '{{ $labels.name }} in namespace {{ $labels.namespace }} expires in {{ printf "%.0f" $values.B.Value }} days.'
   - uid: unexpected-hubs
     title: Unexpected Hub Connections
     condition: C

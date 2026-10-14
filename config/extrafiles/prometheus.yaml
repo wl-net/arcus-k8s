@@ -105,6 +105,14 @@ scrape_configs:
   static_configs:
   - targets: ['cert-manager.cert-manager.svc.cluster.local:9402']
 
+# Pod and workload state (restart counts, CrashLoopBackOff, replica availability).
+# honor_labels keeps the namespace/pod/container labels kube-state-metrics reports.
+- job_name: 'kube-state-metrics'
+  scrape_interval: 30s
+  honor_labels: true
+  static_configs:
+  - targets: ['kube-state-metrics.default.svc.cluster.local:8080']
+
 # Traefik (bundled with k3s) serves Prometheus metrics on its "metrics" port.
 - job_name: 'traefik'
   scrape_interval: 15s

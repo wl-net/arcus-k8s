@@ -433,7 +433,7 @@
       },
       "targets": [
         {
-          "expr": "sum(changes(container_start_time_seconds{namespace=\"default\"}[$__range])) or vector(0)",
+          "expr": "sum(round(increase(kube_pod_container_status_restarts_total[$__range]))) or vector(0)",
           "refId": "A",
           "legendFormat": "__auto",
           "instant": true,
@@ -442,7 +442,7 @@
       ],
       "title": "Restarts",
       "type": "stat",
-      "description": "Containers in the default namespace that restarted in place during the selected time range. Pods replaced by a rollout are not counted.",
+      "description": "Container restarts across all namespaces during the selected time range, from kube-state-metrics.",
       "gridPos": {
         "h": 4,
         "w": 3,

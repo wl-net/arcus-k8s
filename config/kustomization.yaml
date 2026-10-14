@@ -34,6 +34,7 @@ resources:
 - stateful/prometheus.yaml
 - stateful/loki.yaml
 - logging/alloy.yaml
+- monitoring/kube-state-metrics.yaml
 - service/grafana.yaml
 - service/prometheus.yaml
 
