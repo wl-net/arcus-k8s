@@ -30,6 +30,8 @@ spec:
           value: "-Xms384m -Xmx1024m -Dlogback.configurationFile=/config/logback.xml"
         - name: DRIVER_POOL_SIZE
           value: "10"
+        - name: DRIVER_LAZY_LOADING
+          value: "true"
         - name: BILLING_URL
           valueFrom:
             configMapKeyRef:
