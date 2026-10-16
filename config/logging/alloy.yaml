@@ -84,8 +84,6 @@ spec:
     metadata:
       labels:
         app: alloy
-      annotations:
-        sidecar.istio.io/inject: "false"
     spec:
       serviceAccountName: alloy
       containers:

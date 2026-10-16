@@ -117,3 +117,71 @@ function install() {
     esac
   done
 }
+
+# TEMPORARY: one-shot cleanup for clusters that still have Istio from before it
+# was dropped from install. Remove this function and its arcuscmd.sh entry once
+# dev, dc1, and dc2 have all run it.
+function uninstall_istio() {
+  # Removing istiod strands any proxy still running, so those pods must restart
+  # without a sidecar first.
+  local sidecars
+  sidecars=$($KUBECTL get pods -A -o jsonpath='{range .items[*]}{.metadata.namespace}/{.metadata.name}{" "}{.spec.initContainers[*].name}{" "}{.spec.containers[*].name}{"\n"}{end}' \
+    | awk '/ istio-proxy( |$)/ {print "  " $1}')
+
+  if [[ -n "$sidecars" ]]; then
+    echo "These pods still run an istio-proxy sidecar:"
+    echo "$sidecars"
+    echo "Sidecar injection will be turned off, but Istio stays installed until they restart."
+  else
+    echo "This removes Istio from the cluster: istiod, its CRDs and webhooks, the istio-system"
+    echo "namespace, and leftover Istio RBAC, CA configmaps, and certificate secrets."
+  fi
+  local confirm
+  prompt confirm "Are you sure you want to continue? [yes/no]:"
+  if [[ "$confirm" != "yes" ]]; then
+    echo "Aborted."
+    return 0
+  fi
+
+  $KUBECTL label namespace -l istio-injection istio-injection-
+
+  if [[ -n "$sidecars" ]]; then
+    echo "Restart those pods ('./arcuscmd.sh deploy' covers the Arcus services), then run this again."
+    return 1
+  fi
+
+  local release
+  for release in istiod istio-base; do
+    if helm status "$release" -n istio-system &>/dev/null; then
+      helm uninstall "$release" -n istio-system --wait
+    fi
+  done
+
+  # Helm only owns what the current chart installed. Sweep up the rest by name:
+  # Istio 1.4-era RBAC, plus webhooks and CRDs from non-Helm installs.
+  local leftovers=()
+  mapfile -t leftovers < <(
+    $KUBECTL get crd -o name | grep '\.istio\.io$'
+    $KUBECTL get clusterroles,clusterrolebindings,mutatingwebhookconfigurations,validatingwebhookconfigurations -o name | grep istio
+  )
+  if [[ ${#leftovers[@]} -gt 0 ]]; then
+    $KUBECTL delete --ignore-not-found "${leftovers[@]}"
+  fi
+
+  $KUBECTL delete namespace istio-system --ignore-not-found
+
+  # istiod creates these GatewayClasses at runtime and nothing else removes them.
+  # The Gateway API CRDs themselves belong to k3s's traefik-crd chart and stay.
+  if $KUBECTL get crd gatewayclasses.gateway.networking.k8s.io &>/dev/null; then
+    $KUBECTL delete gatewayclass istio istio-remote --ignore-not-found
+  fi
+
+  # istiod copies its root CA into every namespace, and Istio 1.4's Citadel left
+  # a key-and-cert secret for every service account.
+  $KUBECTL delete configmap -A --field-selector metadata.name=istio-ca-root-cert
+  $KUBECTL delete secret -A --field-selector type=istio.io/key-and-cert
+
+  helm repo remove istio &>/dev/null || true
+
+  echo "Istio removed."
+}

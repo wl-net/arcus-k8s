@@ -47,8 +47,6 @@ spec:
     metadata:
       labels:
         app: kube-state-metrics
-      annotations:
-        sidecar.istio.io/inject: "false"
     spec:
       serviceAccountName: kube-state-metrics
       containers:

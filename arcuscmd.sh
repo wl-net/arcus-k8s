@@ -50,6 +50,7 @@ Setup:
                         Installs all if none specified
   configure           Configure Arcus by answering a few questions
   shell-setup         Add 'arcuscmd' shortcut to your shell config
+  uninstall-istio     Remove a leftover Istio install (temporary, for the migration)
 
 Deploy:
   apply               Apply the current configuration to the cluster
@@ -147,6 +148,10 @@ k3s)
   ;;
 install)
   install "${@:2}"
+  ;;
+uninstall-istio)
+  _notify_start "Uninstalling Istio" "$_NOTIFY_COLOR_ORANGE"
+  uninstall_istio
   ;;
 configure)
   configure
