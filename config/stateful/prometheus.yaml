@@ -17,7 +17,7 @@ spec:
         app: prometheus
     spec:
       containers:
-      - image: prom/prometheus
+      - image: prom/prometheus:v3.15.0
         imagePullPolicy: IfNotPresent
         name: prometheus
         resources:

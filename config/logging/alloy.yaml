@@ -87,7 +87,7 @@ spec:
     spec:
       serviceAccountName: alloy
       containers:
-      - image: grafana/alloy
+      - image: grafana/alloy:v1.20.1
         imagePullPolicy: IfNotPresent
         name: alloy
         args:
