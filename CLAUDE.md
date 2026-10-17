@@ -61,6 +61,7 @@ Secrets are written to `secret/` and local overlay state to `overlays/<overlay>-
 ./arcuscmd.sh rollback       # Revert to a previous version
 ./arcuscmd.sh history        # Show recent update history with apply status
 ./arcuscmd.sh useprodcert    # Switch from staging to production Let's Encrypt cert
+./arcuscmd.sh renewcert      # Force re-issue of all certificates (or: renewcert <name>)
 ./arcuscmd.sh updatehubkeystore  # Convert PKCS#1 key to PKCS#8 for hub-bridge
 
 # Status

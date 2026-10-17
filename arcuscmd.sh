@@ -60,6 +60,7 @@ Deploy:
   rollback            Revert to a previous version
   history             Show recent update history
   useprodcert         Switch from Let's Encrypt staging to production certificate
+  renewcert [cert...] Force cert-manager to re-issue certificates (all if none specified)
   updatehubkeystore   Convert production TLS key to PKCS#8 for hub-bridge
   modelmanager        Run model manager jobs (provision database schemas)
 
@@ -172,6 +173,10 @@ shell-setup)
 useprodcert)
   _notify_start "Switching to production certificate"
   useprodcert
+  ;;
+renewcert)
+  _notify_start "Renewing certificates"
+  renewcert "${@:2}"
   ;;
 info)
   info

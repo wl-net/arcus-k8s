@@ -322,6 +322,80 @@ function useprodcert() {
   $KUBECTL apply -f "$ingress"
 }
 
+function renewcert() {
+  local certs=("$@")
+  if [[ ${#certs[@]} -eq 0 ]]; then
+    mapfile -t certs < <($KUBECTL get certificates -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}')
+  fi
+  if [[ ${#certs[@]} -eq 0 ]]; then
+    echo "Error: no certificates found."
+    exit 1
+  fi
+
+  local cert i op path now
+  local -a conditions
+  local -A revisions=()
+  now=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+  for cert in "${certs[@]}"; do
+    if ! revisions[$cert]=$($KUBECTL get certificate "$cert" -o jsonpath='{.status.revision}' 2>/dev/null); then
+      echo "Error: certificate $cert not found."
+      exit 1
+    fi
+
+    # Same mechanism as 'cmctl renew': cert-manager re-issues when the
+    # Issuing condition is set to True. Replace an existing (failed) Issuing
+    # condition in place, since conditions are keyed by type.
+    op=add
+    path=/status/conditions/-
+    mapfile -t conditions < <($KUBECTL get certificate "$cert" -o jsonpath='{range .status.conditions[*]}{.type}={.status}{"\n"}{end}')
+    for i in "${!conditions[@]}"; do
+      case "${conditions[$i]}" in
+      Issuing=True) op='' ;;
+      Issuing=*) op=replace path="/status/conditions/$i" ;;
+      esac
+    done
+    if [[ -z "$op" ]]; then
+      echo "$cert: issuance already in progress."
+      continue
+    fi
+
+    echo "$cert: triggering renewal..."
+    $KUBECTL patch certificate "$cert" --subresource status --type json -p "[{\"op\":\"$op\",\"path\":\"$path\",\"value\":{\"type\":\"Issuing\",\"status\":\"True\",\"reason\":\"ManuallyTriggered\",\"message\":\"Certificate re-issuance manually triggered by arcuscmd\",\"lastTransitionTime\":\"$now\"}}]" >/dev/null
+  done
+
+  echo "Waiting for cert-manager to issue new certificates (timeout 5m)..."
+  local deadline=$((SECONDS + 300)) revision ready
+  local -a pending
+  while true; do
+    pending=()
+    for cert in "${certs[@]}"; do
+      revision=$($KUBECTL get certificate "$cert" -o jsonpath='{.status.revision}')
+      ready=$($KUBECTL get certificate "$cert" -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}')
+      if [[ "$revision" == "${revisions[$cert]}" || "$ready" != "True" ]]; then
+        pending+=("$cert")
+      fi
+    done
+    if [[ ${#pending[@]} -eq 0 ]]; then
+      break
+    fi
+    if ((SECONDS >= deadline)); then
+      echo "Error: timed out waiting for: ${pending[*]}"
+      echo "Check progress with '$KUBECTL describe certificate <name>' or './arcuscmd.sh certlogs'."
+      exit 1
+    fi
+    sleep 5
+  done
+  echo "Certificates renewed: ${certs[*]}"
+
+  # hub-bridge serves its own copy of the production cert; refresh it now
+  # rather than waiting for the hub-keystore-renewal CronJob.
+  for cert in "${certs[@]}"; do
+    if [[ "$cert" == nginx-production-tls ]]; then
+      updatehubkeystore
+    fi
+  done
+}
+
 function updatehubkeystore() {
   echo "Creating hub-keystore..."
 
