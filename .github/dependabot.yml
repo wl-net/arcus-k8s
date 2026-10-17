@@ -1,0 +1,28 @@
+version: 2
+updates:
+  - package-ecosystem: "docker"
+    directories:
+      - "/config/stateful"
+      - "/config/logging"
+      - "/config/monitoring"
+      - "/config/cronjob"
+      - "/overlays/local-production"
+      - "/overlays/local-production-cluster"
+    schedule:
+      interval: "weekly"
+    groups:
+      # Grafana is pinned in the base and both overlays; bump all copies in one PR
+      images:
+        patterns: ["*"]
+        group-by: dependency-name
+    ignore:
+      # Our own images are private and released on our schedule
+      - dependency-name: "us-west1-docker.pkg.dev/arcus-238802/arcus-prod/*"
+      # kubectl must stay within one minor of the k3s server; bump with K3S_VERSION
+      - dependency-name: "alpine/k8s"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
