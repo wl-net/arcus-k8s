@@ -121,7 +121,7 @@ spec:
         app: grafana-renderer
     spec:
       containers:
-      - image: grafana/grafana-image-renderer:v5.12.6
+      - image: grafana/grafana-image-renderer:v5.12.7
         imagePullPolicy: IfNotPresent
         name: grafana-renderer
         resources:
