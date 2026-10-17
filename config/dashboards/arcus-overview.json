@@ -539,13 +539,13 @@
       },
       "targets": [
         {
-          "expr": "min((traefik_tls_certs_not_after - time()) / 86400)",
+          "expr": "min(max by (cn) ((traefik_tls_certs_not_after - time()) / 86400))",
           "refId": "A"
         }
       ],
       "title": "",
       "type": "stat",
-      "description": "Days until the soonest-expiring certificate served by Traefik expires.",
+      "description": "Days until the soonest-expiring certificate served by Traefik expires. Traefik keeps reporting a replaced certificate until it restarts, so only the newest certificate for each name counts.",
       "gridPos": {
         "h": 4,
         "w": 3,
@@ -1102,7 +1102,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "Days until the TLS certificate served by Traefik expires. cert-manager renews 30 days before expiry, so less than 28 days means a renewal has been missed.",
+      "description": "Days until the TLS certificate served by Traefik expires. cert-manager renews 30 days before expiry, so less than 28 days means a renewal has been missed. Traefik keeps reporting a replaced certificate until it restarts, so only the newest certificate for each name counts.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1154,7 +1154,7 @@
       },
       "targets": [
         {
-          "expr": "min by (cn) ((traefik_tls_certs_not_after - time()) / 86400)",
+          "expr": "max by (cn) ((traefik_tls_certs_not_after - time()) / 86400)",
           "legendFormat": "{{cn}}",
           "refId": "A"
         }
