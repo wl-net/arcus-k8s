@@ -123,14 +123,40 @@ function install() {
 # dev, dc1, and dc2 have all run it.
 function uninstall_istio() {
   # Removing istiod strands any proxy still running, so those pods must restart
-  # without a sidecar first.
-  local sidecars
-  sidecars=$($KUBECTL get pods -A -o jsonpath='{range .items[*]}{.metadata.namespace}/{.metadata.name}{" "}{.spec.initContainers[*].name}{" "}{.spec.containers[*].name}{"\n"}{end}' \
-    | awk '/ istio-proxy( |$)/ {print "  " $1}')
+  # without a sidecar first. Finished pods have no proxy left to strand.
+  local sidecars=() fixes=() deploy_arcus=0 pod owner hash containers ns
+  while IFS='|' read -r pod owner hash containers; do
+    [[ " $containers " == *" istio-proxy "* ]] || continue
+    sidecars+=("$pod")
+    ns=${pod%%/*}
+    # Name whatever recreates the pod. A ReplicaSet is named for its Deployment
+    # plus the pod-template-hash.
+    case "$owner" in
+      ReplicaSet/*)
+        owner=${owner#ReplicaSet/}
+        owner=${owner%-"$hash"}
+        if [[ "$ns" == default && " $APPS " == *" $owner "* ]]; then
+          deploy_arcus=1
+          continue
+        fi
+        fixes+=("$KUBECTL -n $ns rollout restart deployment/$owner")
+        ;;
+      StatefulSet/*|DaemonSet/*)
+        fixes+=("$KUBECTL -n $ns rollout restart ${owner,,}")
+        ;;
+      Job/*)
+        fixes+=("$KUBECTL -n $ns delete job/${owner#Job/}")
+        ;;
+      *)
+        fixes+=("$KUBECTL -n $ns delete pod/${pod#*/}")
+        ;;
+    esac
+  done < <($KUBECTL get pods -A --field-selector=status.phase!=Succeeded,status.phase!=Failed \
+    -o jsonpath='{range .items[*]}{.metadata.namespace}/{.metadata.name}{"|"}{.metadata.ownerReferences[0].kind}/{.metadata.ownerReferences[0].name}{"|"}{.metadata.labels.pod-template-hash}{"|"}{.spec.initContainers[*].name}{" "}{.spec.containers[*].name}{"\n"}{end}')
 
-  if [[ -n "$sidecars" ]]; then
+  if [[ ${#sidecars[@]} -gt 0 ]]; then
     echo "These pods still run an istio-proxy sidecar:"
-    echo "$sidecars"
+    printf '  %s\n' "${sidecars[@]}"
     echo "Sidecar injection will be turned off, but Istio stays installed until they restart."
   else
     echo "This removes Istio from the cluster: istiod, its CRDs and webhooks, the istio-system"
@@ -145,8 +171,14 @@ function uninstall_istio() {
 
   $KUBECTL label namespace -l istio-injection istio-injection-
 
-  if [[ -n "$sidecars" ]]; then
-    echo "Restart those pods ('./arcuscmd.sh deploy' covers the Arcus services), then run this again."
+  if [[ ${#sidecars[@]} -gt 0 ]]; then
+    echo "Restart them, then run this again:"
+    if [[ $deploy_arcus -eq 1 ]]; then
+      echo "  ./arcuscmd.sh deploy"
+    fi
+    if [[ ${#fixes[@]} -gt 0 ]]; then
+      printf '  %s\n' "${fixes[@]}" | sort -u
+    fi
     return 1
   fi
 
