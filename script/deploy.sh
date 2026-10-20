@@ -1,6 +1,26 @@
 # shellcheck shell=bash
 # Deployment and application management functions
 
+# True if any of the comma-separated hosts in $2 (port optional) names the
+# in-cluster Service $1: e.g. cassandra, cassandra:9042,
+# cassandra.default.svc.cluster.local, or a pod behind it like cassandra-0.cassandra.
+function _is_in_cluster_host() {
+  local svc=$1 host
+  local -a hosts
+  IFS=',' read -ra hosts <<< "$2"
+  for host in "${hosts[@]}"; do
+    host=${host// /}
+    host=${host%:*}
+    host=${host%.svc.cluster.local}
+    host=${host%.svc}
+    host=${host%.default}
+    if [[ "$host" == "$svc" || "$host" == *."$svc" ]]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
 function apply() {
   # Apply the configuration
   load
@@ -69,7 +89,7 @@ function apply() {
   if [[ -n "${ARCUS_CASSANDRA_HOST-}" ]]; then
     sed -i "s!cassandra.default.svc.cluster.local!${ARCUS_CASSANDRA_HOST}!g" "overlays/${ARCUS_OVERLAY_NAME}-local/cluster-config.yaml"
     # Services talk to the external Cassandra, so don't deploy the in-cluster node.
-    if [[ "${ARCUS_CASSANDRA_HOST}" != cassandra && "${ARCUS_CASSANDRA_HOST}" != cassandra.default* ]]; then
+    if ! _is_in_cluster_host cassandra "${ARCUS_CASSANDRA_HOST}"; then
       sed -i '/^- cassandra\.yaml$/d' "overlays/${ARCUS_OVERLAY_NAME}-local/kustomization.yaml"
     fi
   fi
@@ -79,13 +99,13 @@ function apply() {
   if [[ -n "${ARCUS_KAFKA_HOST-}" ]]; then
     sed -i "s!kafka-service.default.svc.cluster.local:9092!${ARCUS_KAFKA_HOST}!g" "overlays/${ARCUS_OVERLAY_NAME}-local/cluster-config.yaml"
     # Services talk to the external Kafka, so don't deploy the in-cluster broker.
-    if [[ "${ARCUS_KAFKA_HOST}" != kafka-service && "${ARCUS_KAFKA_HOST}" != kafka-service[.:]* ]]; then
+    if ! _is_in_cluster_host kafka-service "${ARCUS_KAFKA_HOST}"; then
       sed -i '/^- kafka\.yaml$/d' "overlays/${ARCUS_OVERLAY_NAME}-local/kustomization.yaml"
     fi
   fi
   # Likewise for ZooKeeper, unless an in-cluster Kafka is still deployed: it
   # reads ZOOKEEPER from arcus-config, which always names the in-cluster service.
-  if [[ -n "${ARCUS_ZOOKEEPER_HOST-}" && "${ARCUS_ZOOKEEPER_HOST}" != zookeeper-service && "${ARCUS_ZOOKEEPER_HOST}" != zookeeper-service[.:]* ]] \
+  if [[ -n "${ARCUS_ZOOKEEPER_HOST-}" ]] && ! _is_in_cluster_host zookeeper-service "${ARCUS_ZOOKEEPER_HOST}" \
     && ! grep -qx -- '- kafka.yaml' "overlays/${ARCUS_OVERLAY_NAME}-local/kustomization.yaml"; then
     sed -i '/^- zookeeper\.yaml$/d' "overlays/${ARCUS_OVERLAY_NAME}-local/kustomization.yaml"
   fi
