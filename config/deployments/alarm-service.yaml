@@ -71,6 +71,13 @@ spec:
             name: config
           - mountPath: /tmp
             name: tmp
+        resources:
+          limits:
+            cpu: "1"
+            memory: "640Mi"
+          requests:
+            cpu: "250m"
+            memory: "320Mi"
         readinessProbe:
           tcpSocket:
             port: 9008

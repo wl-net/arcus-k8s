@@ -30,7 +30,13 @@ spec:
           capabilities:
             drop:
               - ALL
-        resources: {}
+        resources:
+          limits:
+            cpu: "1"
+            memory: "128Mi"
+          requests:
+            cpu: "10m"
+            memory: "16Mi"
         readinessProbe:
           tcpSocket:
             port: 8097
