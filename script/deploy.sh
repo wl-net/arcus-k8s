@@ -68,6 +68,10 @@ function apply() {
 
   if [[ -n "${ARCUS_CASSANDRA_HOST-}" ]]; then
     sed -i "s!cassandra.default.svc.cluster.local!${ARCUS_CASSANDRA_HOST}!g" "overlays/${ARCUS_OVERLAY_NAME}-local/cluster-config.yaml"
+    # Services talk to the external Cassandra, so don't deploy the in-cluster node.
+    if [[ "${ARCUS_CASSANDRA_HOST}" != cassandra && "${ARCUS_CASSANDRA_HOST}" != cassandra.default* ]]; then
+      sed -i '/^- cassandra\.yaml$/d' "overlays/${ARCUS_OVERLAY_NAME}-local/kustomization.yaml"
+    fi
   fi
   if [[ -n "${ARCUS_ZOOKEEPER_HOST-}" ]]; then
     sed -i "s!zookeeper-service.default.svc.cluster.local:2181!${ARCUS_ZOOKEEPER_HOST}!g" "overlays/${ARCUS_OVERLAY_NAME}-local/cluster-config.yaml"
@@ -75,9 +79,15 @@ function apply() {
   if [[ -n "${ARCUS_KAFKA_HOST-}" ]]; then
     sed -i "s!kafka-service.default.svc.cluster.local:9092!${ARCUS_KAFKA_HOST}!g" "overlays/${ARCUS_OVERLAY_NAME}-local/cluster-config.yaml"
     # Services talk to the external Kafka, so don't deploy the in-cluster broker.
-    if [[ "${ARCUS_KAFKA_HOST}" != kafka-service.* ]]; then
+    if [[ "${ARCUS_KAFKA_HOST}" != kafka-service && "${ARCUS_KAFKA_HOST}" != kafka-service[.:]* ]]; then
       sed -i '/^- kafka\.yaml$/d' "overlays/${ARCUS_OVERLAY_NAME}-local/kustomization.yaml"
     fi
+  fi
+  # Likewise for ZooKeeper, unless an in-cluster Kafka is still deployed: it
+  # reads ZOOKEEPER from arcus-config, which always names the in-cluster service.
+  if [[ -n "${ARCUS_ZOOKEEPER_HOST-}" && "${ARCUS_ZOOKEEPER_HOST}" != zookeeper-service && "${ARCUS_ZOOKEEPER_HOST}" != zookeeper-service[.:]* ]] \
+    && ! grep -qx -- '- kafka.yaml' "overlays/${ARCUS_OVERLAY_NAME}-local/kustomization.yaml"; then
+    sed -i '/^- zookeeper\.yaml$/d' "overlays/${ARCUS_OVERLAY_NAME}-local/kustomization.yaml"
   fi
 
   cp config/service/ui-service-ingress.yaml "overlays/${ARCUS_OVERLAY_NAME}-local/"ui-service-ingress.yaml
