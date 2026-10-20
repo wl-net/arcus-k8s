@@ -9,14 +9,20 @@
 ```
 arcuscmd.sh                  # Main CLI — entry point for all operations
 script/
-  funcs.sh                   # Core deployment functions
-  common.sh                  # Shared utilities (retry, prompts)
+  common.sh                  # Shared utilities (retry, prompts, APPS list, .config loading)
+  funcs.sh                   # Sources the function modules below
+  install.sh config.sh deploy.sh status.sh update.sh backup.sh
+  route53.sh validate.sh grafana.sh node.sh notify.sh  # One module per command area
 config/
   kustomization.yaml         # Root Kustomize manifest (image tags live here)
   configmaps/arcus-config.yaml # Global app config (domains, Cassandra, Kafka)
+  configmaps/cluster-config.yaml # Datastore hosts (rewritten by apply from .config/)
   deployments/               # One YAML per microservice
   service/                   # Service and Ingress definitions
-  stateful/                  # Prometheus & Grafana StatefulSets
+  stateful/                  # Prometheus, Loki & Grafana StatefulSets
+  grafana/ dashboards/       # Grafana provisioning (datasources, alerting, dashboards)
+  extrafiles/                # firmware.xml, logback.xml, Prometheus and Loki config
+  logging/                   # Alloy log collector
   monitoring/                # kube-state-metrics (pod restarts, CrashLoopBackOff for alerting)
   certprovider/              # Let's Encrypt issuers
   cronjob/                   # Scheduled jobs (hub-keystore renewal)
@@ -70,6 +76,7 @@ Secrets are written to `secret/` and local overlay state to `overlays/<overlay>-
 ./arcuscmd.sh info           # Show DNS to IP/port mappings
 ./arcuscmd.sh check          # Test public connectivity to Arcus services
 ./arcuscmd.sh verifyconfig   # Verify all configuration and secrets are present
+./arcuscmd.sh validate       # YAML syntax, kustomize build, and kubeconform schema checks (same as CI)
 
 # Operations
 ./arcuscmd.sh backupdb       # Backup Cassandra database
@@ -81,6 +88,9 @@ Secrets are written to `secret/` and local overlay state to `overlays/<overlay>-
 ./arcuscmd.sh dbshell        # Open Cassandra CQL shell
 ./arcuscmd.sh modelmanager   # Run model manager jobs (provision database schemas)
 ./arcuscmd.sh deletepod <app>  # Delete pods matching an application
+./arcuscmd.sh silence [2h]   # Silence Grafana alerts (unsilence to remove)
+./arcuscmd.sh upgrade-node   # apt dist-upgrade this host
+./arcuscmd.sh reboot-node    # Drain, silence alerts, disconnect bridges, reboot
 ./arcuscmd.sh help           # List all commands
 ```
 
@@ -106,6 +116,7 @@ Secrets are written to `secret/` and local overlay state to `overlays/<overlay>-
 3. Reference both in `config/kustomization.yaml` under `resources`.
 4. Add any required config keys to `config/configmaps/arcus-config.yaml`.
 5. Add readiness and liveness probes (TCP socket on the metrics port).
+6. Set resource requests and limits. For JVM services keep the memory limit well above `-Xmx`: the existing services run at roughly 3× their `-Xmx` in total (e.g. 128m heap, ~390Mi working set).
 
 ## Infrastructure Notes
 
@@ -170,8 +181,9 @@ Cassandra is the only stateful component that needs backup:
 ## CI
 
 GitHub Actions runs on push and PRs to master:
-- **shellcheck** — lints `arcuscmd.sh`, `script/common.sh`, and `script/funcs.sh`
-- **kustomize** — validates `config/` base manifests build cleanly
+- **shellcheck** — lints `arcuscmd.sh` and `script/*.sh` with a pinned shellcheck (0.11.0) at the default `style` severity; run `shellcheck -x arcuscmd.sh script/*.sh` locally
+- **cli** — smoke tests: `help` works without kubectl, kubectl-dependent commands fail early without it, the root guard, and unknown subcommands exit non-zero
+- **manifests** — `./arcuscmd.sh validate`: YAML syntax for `config/` and `overlays/`, `config/` kustomize build, and kubeconform schemas for the Kubernetes version in `K3S_VERSION`. The overlays aren't built, since they need files `apply` generates.
 
 ## Hardware Requirements
 
