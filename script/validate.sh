@@ -29,12 +29,14 @@ function validate_manifests() {
   echo ""
   echo "=== Kubernetes Schema ==="
   if command -v kubeconform &>/dev/null; then
-    local kc_output
+    # Validate against the Kubernetes version k3s installs (v1.36.5+k3s1 -> 1.36.5)
+    local k8s_version=${K3S_VERSION#v}
+    k8s_version=${k8s_version%%+*}
+    local kc_output kc_exit=0
     kc_output=$($KUBECTL kustomize config 2>/dev/null \
       | kubeconform -summary -strict \
           -ignore-missing-schemas \
-          -kubernetes-version 1.32.0 2>&1)
-    local kc_exit=$?
+          -kubernetes-version "$k8s_version" 2>&1) || kc_exit=$?
     # shellcheck disable=SC2001
     echo "$kc_output" | sed 's/^/  /'
     if [[ $kc_exit -ne 0 ]]; then
