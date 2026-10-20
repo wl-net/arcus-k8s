@@ -23,18 +23,18 @@ spec:
         - name: cassandra_history_contactPoints
           valueFrom:
             configMapKeyRef:
-              key: CASSANDRA_CONTACTPOINTS
-              name: arcus-config
+              key: cassandra_history_contactPoints
+              name: cluster-config
         - name: BOOTSTRAP_SERVERS
           valueFrom:
             configMapKeyRef:
               key: BOOTSTRAP_SERVERS
-              name: arcus-config
+              name: cluster-config
         - name: OPS_BOOTSTRAP_SERVERS
           valueFrom:
             configMapKeyRef:
-              key: OPS_BOOTSTRAP_SERVERS
-              name: arcus-config
+              key: BOOTSTRAP_SERVERS
+              name: cluster-config
         image: ghcr.io/wl-net/arcusplatform/arcus-modelmanager:2019.10.0
         imagePullPolicy: IfNotPresent
         command: ["/modelmanager-2019.10.0/bin/modelmanager"]

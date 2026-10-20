@@ -31,12 +31,12 @@ spec:
           valueFrom:
             configMapKeyRef:
               key: BOOTSTRAP_SERVERS
-              name: arcus-config
+              name: cluster-config
         - name: OPS_BOOTSTRAP_SERVERS
           valueFrom:
             configMapKeyRef:
-              key: OPS_BOOTSTRAP_SERVERS
-              name: arcus-config
+              key: BOOTSTRAP_SERVERS
+              name: cluster-config
         - name: PARTITION_COUNT
           valueFrom:
             configMapKeyRef:

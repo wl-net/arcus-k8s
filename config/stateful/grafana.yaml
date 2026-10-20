@@ -23,7 +23,7 @@ spec:
           valueFrom:
             configMapKeyRef:
               key: CASSANDRA_CONTACTPOINTS
-              name: arcus-config
+              name: cluster-config
         - name: CASSANDRA_KEYSPACE
           valueFrom:
             configMapKeyRef:
