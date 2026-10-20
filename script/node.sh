@@ -41,7 +41,7 @@ reboot_node() {
   local _reboot_drained=false
   local _reboot_silenced=false
 
-  # shellcheck disable=SC2317 # invoked indirectly via trap
+  # shellcheck disable=SC2317,SC2329 # invoked indirectly via trap
   _reboot_cleanup() {
     echo ""
     echo "Interrupted. Rolling back..."
