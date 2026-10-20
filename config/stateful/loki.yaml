@@ -29,6 +29,22 @@ spec:
           requests:
             cpu: "0.05"
             memory: 128Mi
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 3100
+          initialDelaySeconds: 15
+          periodSeconds: 10
+        livenessProbe:
+          # /ready reports ingester ring state and is 503 during WAL replay;
+          # buildinfo only needs the HTTP server to be up.
+          httpGet:
+            path: /loki/api/v1/status/buildinfo
+            port: 3100
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 6
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
         volumeMounts:
