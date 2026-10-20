@@ -288,10 +288,10 @@ function verify_config() {
   for file in domain.name admin.email cert-issuer; do
     if [[ ! -f "$ARCUS_CONFIGDIR/$file" ]]; then
       echo "  MISSING: .config/$file (required)"
-      ((errors++))
+      errors=$((errors + 1))
     elif [[ ! -s "$ARCUS_CONFIGDIR/$file" ]]; then
       echo "  EMPTY:   .config/$file (required)"
-      ((errors++))
+      errors=$((errors + 1))
     else
       echo "  OK:      .config/$file = $(cat "$ARCUS_CONFIGDIR/$file")"
     fi
@@ -308,10 +308,10 @@ function verify_config() {
   if [[ "${ARCUS_METALLB:-}" == "yes" ]]; then
     if [[ ! -f "$ARCUS_CONFIGDIR/subnet" ]]; then
       echo "  MISSING: .config/subnet (required when MetalLB is enabled)"
-      ((errors++))
+      errors=$((errors + 1))
     elif [[ ! -s "$ARCUS_CONFIGDIR/subnet" ]]; then
       echo "  EMPTY:   .config/subnet (required when MetalLB is enabled)"
-      ((errors++))
+      errors=$((errors + 1))
     else
       echo "  OK:      .config/subnet = $(cat "$ARCUS_CONFIGDIR/subnet")"
     fi
@@ -336,10 +336,10 @@ function verify_config() {
     for file in route53-hosted-zone-id route53-region; do
       if [[ ! -f "$ARCUS_CONFIGDIR/$file" ]]; then
         echo "  MISSING: .config/$file (required when cert-solver=dns)"
-        ((errors++))
+        errors=$((errors + 1))
       elif [[ ! -s "$ARCUS_CONFIGDIR/$file" ]]; then
         echo "  EMPTY:   .config/$file (required when cert-solver=dns)"
-        ((errors++))
+        errors=$((errors + 1))
       else
         echo "  OK:      .config/$file = $(cat "$ARCUS_CONFIGDIR/$file")"
       fi
@@ -357,14 +357,14 @@ function verify_config() {
 
   if [[ "${ARCUS_DOMAIN_NAME:-}" == "example.com" ]]; then
     echo "  ERROR:   domain.name is still the placeholder (example.com)"
-    ((errors++))
+    errors=$((errors + 1))
   elif [[ -n "${ARCUS_DOMAIN_NAME:-}" ]]; then
     echo "  OK:      domain.name looks valid"
   fi
 
   if [[ "${ARCUS_ADMIN_EMAIL:-}" == "me@example.com" ]]; then
     echo "  ERROR:   admin.email is still the placeholder (me@example.com)"
-    ((errors++))
+    errors=$((errors + 1))
   elif [[ -n "${ARCUS_ADMIN_EMAIL:-}" ]]; then
     echo "  OK:      admin.email looks valid"
   fi
@@ -372,7 +372,7 @@ function verify_config() {
   if [[ -n "${ARCUS_CERT_TYPE:-}" ]]; then
     if [[ "$ARCUS_CERT_TYPE" != "staging" && "$ARCUS_CERT_TYPE" != "production" ]]; then
       echo "  ERROR:   cert-issuer has invalid value '$ARCUS_CERT_TYPE' (must be staging or production)"
-      ((errors++))
+      errors=$((errors + 1))
     else
       echo "  OK:      cert-issuer = $ARCUS_CERT_TYPE"
     fi
@@ -381,7 +381,7 @@ function verify_config() {
   # Check that the overlay directory exists
   if [[ ! -d "overlays/${ARCUS_OVERLAY_NAME}" ]]; then
     echo "  ERROR:   overlay directory overlays/${ARCUS_OVERLAY_NAME} does not exist"
-    ((errors++))
+    errors=$((errors + 1))
   else
     echo "  OK:      overlay directory overlays/${ARCUS_OVERLAY_NAME} exists"
   fi
@@ -417,10 +417,10 @@ function verify_config() {
     for s in "${required_secrets[@]}"; do
       if [[ ! -f "secret/$s" ]]; then
         echo "  MISSING: secret/$s"
-        ((errors++))
+        errors=$((errors + 1))
       elif [[ ! -s "secret/$s" ]]; then
         echo "  EMPTY:   secret/$s"
-        ((errors++))
+        errors=$((errors + 1))
       else
         echo "  OK:      secret/$s"
       fi
@@ -432,10 +432,10 @@ function verify_config() {
     for s in route53-access-key-id route53-secret-access-key; do
       if [[ ! -f "secret/$s" ]]; then
         echo "  MISSING: secret/$s (required when cert-solver=dns)"
-        ((errors++))
+        errors=$((errors + 1))
       elif [[ ! -s "secret/$s" ]]; then
         echo "  EMPTY:   secret/$s (required when cert-solver=dns)"
-        ((errors++))
+        errors=$((errors + 1))
       else
         echo "  OK:      secret/$s"
       fi
@@ -446,7 +446,7 @@ function verify_config() {
   for s in smarty.auth.id smarty.auth.token billing.api.key billing.public.api.key; do
     if [[ -f "secret/$s" ]] && [[ "$(cat "secret/$s")" == "12345" ]]; then
       echo "  WARNING: secret/$s still has the default placeholder value"
-      ((warnings++))
+      warnings=$((warnings + 1))
     fi
   done
 

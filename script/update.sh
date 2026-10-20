@@ -137,7 +137,7 @@ function rollback() {
     revs+=("$prev_rev")
     timestamps+=("$ts")
     echo "  $((i + 1))) $ts  ${prev_rev:0:7} -> ${new_rev:0:7}"
-    ((i++))
+    i=$((i + 1))
   done < <(tail -10 "$history_file" | tac)
 
   echo ""

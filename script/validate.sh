@@ -12,7 +12,7 @@ function validate_manifests() {
     else
       echo "  FAIL: $f"
       while IFS= read -r line; do echo "        $line"; done <<< "$err"
-      ((errors++))
+      errors=$((errors + 1))
     fi
   done < <(find config/ overlays/ -name '*.yaml' | sort)
 
@@ -23,7 +23,7 @@ function validate_manifests() {
   else
     echo "  FAIL: config/ kustomize build failed"
     $KUBECTL kustomize config 2>&1 | sed 's/^/  /'
-    ((errors++))
+    errors=$((errors + 1))
   fi
 
   echo ""
@@ -38,7 +38,7 @@ function validate_manifests() {
     # shellcheck disable=SC2001
     echo "$kc_output" | sed 's/^/  /'
     if [[ $kc_exit -ne 0 ]]; then
-      ((errors++))
+      errors=$((errors + 1))
     fi
   else
     echo "  SKIP: kubeconform not installed (install from https://github.com/yannh/kubeconform)"

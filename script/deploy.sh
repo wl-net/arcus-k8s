@@ -252,8 +252,8 @@ function deploy_platform() {
           if kill -0 "$pid" 2>/dev/null; then
             new_pids+=("$pid")
           else
-            wait "$pid" || ((failed++))
-            ((running--))
+            wait "$pid" || failed=$((failed + 1))
+            running=$((running - 1))
           fi
         done
         pids=("${new_pids[@]}")
@@ -267,12 +267,12 @@ function deploy_platform() {
         echo "${app} ready."
       ) &
       pids+=($!)
-      ((running++))
+      running=$((running + 1))
     done
 
     # Wait for remaining workers
     for pid in "${pids[@]}"; do
-      wait "$pid" || ((failed++))
+      wait "$pid" || failed=$((failed + 1))
     done
 
     if [[ $failed -gt 0 ]]; then
