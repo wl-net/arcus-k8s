@@ -241,9 +241,10 @@ function connectivity_check() {
   for url in "${domains[@]}"; do
     local host="${url#https://}"
     local resolved
-    resolved=$(dig +short "$host" 2>/dev/null | tail -1)
+    # Under pipefail a missing dig, or getent finding nothing, would exit the script
+    resolved=$(dig +short "$host" 2>/dev/null | tail -1) || true
     if [[ -z "$resolved" ]]; then
-      resolved=$(getent hosts "$host" 2>/dev/null | awk '{print $1}')
+      resolved=$(getent hosts "$host" 2>/dev/null | awk '{print $1}') || true
     fi
     if [[ -z "$resolved" ]]; then
       printf "  %-50s [FAIL] not resolved\n" "$host"
