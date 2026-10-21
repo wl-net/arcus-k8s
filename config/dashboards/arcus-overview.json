@@ -19,7 +19,7 @@
           "uid": "prometheus"
         },
         "enable": true,
-        "expr": "max by (container) (time() - container_start_time_seconds{namespace=\"default\"}) < 120",
+        "expr": "min by (container) (time() - container_start_time_seconds{namespace=\"default\"}) < 120",
         "iconColor": "blue",
         "name": "Container starts",
         "step": "60s",
@@ -95,13 +95,15 @@
       },
       "targets": [
         {
-          "expr": "count(min by (job) (last_over_time(up[5m])) == 0) or vector(0)",
-          "refId": "A"
+          "expr": "count(min by (job) (up{job!~\"blackbox-.*\", svcup!=\"false\"} or probe_success or up{job=~\"blackbox-.*\"} == 0 or label_replace(kube_deployment_status_replicas_available == 0 and on (namespace, deployment) kube_deployment_spec_replicas > 0, \"job\", \"$1\", \"deployment\", \"(.+)\")) == 0) or vector(0)",
+          "refId": "A",
+          "instant": true,
+          "range": false
         }
       ],
       "title": "",
       "type": "stat",
-      "description": "Scrape targets that have been down for the whole of the last 5 minutes. The tiles below show which.",
+      "description": "Services down right now: a scrape target that is failing, a blackbox check (datastores, hub TLS, peer datacenters) that is failing, or a deployment with no ready pod. The tiles below show which.",
       "gridPos": {
         "h": 4,
         "w": 3,
@@ -344,13 +346,13 @@
       },
       "targets": [
         {
-          "expr": "sum(rate(traefik_service_requests_total{code=~\"5..\"}[5m])) / sum(rate(traefik_service_requests_total[5m]))",
+          "expr": "(sum(rate(traefik_entrypoint_requests_total{entrypoint=~\"web|websecure\", code=~\"5..\"}[5m])) or vector(0)) / (sum(rate(traefik_entrypoint_requests_total{entrypoint=~\"web|websecure\"}[5m])) > 0)",
           "refId": "A"
         }
       ],
       "title": "",
       "type": "stat",
-      "description": "Share of Traefik responses that were 5xx over the last 5 minutes.",
+      "description": "Share of the responses Traefik sent on ports 80/443 over the last 5 minutes that were 5xx, including errors for requests that never reached a service. n/a means no traffic.",
       "gridPos": {
         "h": 4,
         "w": 3,
@@ -406,7 +408,8 @@
       "targets": [
         {
           "expr": "sum(count_over_time({app=~\".+\"} |~ \"ERROR|Exception\" [5m]))",
-          "refId": "A"
+          "refId": "A",
+          "queryType": "instant"
         }
       ],
       "title": "",
@@ -539,13 +542,13 @@
       },
       "targets": [
         {
-          "expr": "min(max by (cn) ((traefik_tls_certs_not_after - time()) / 86400))",
+          "expr": "min(max by (cn) ((traefik_tls_certs_not_after - time()) / 86400 or label_replace((probe_ssl_earliest_cert_expiry{job=\"blackbox-hub-tls\"} - time()) / 86400, \"cn\", \"hub-bridge (8082)\", \"job\", \".*\")))",
           "refId": "A"
         }
       ],
       "title": "",
       "type": "stat",
-      "description": "Days until the soonest-expiring certificate served by Traefik expires. Traefik keeps reporting a replaced certificate until it restarts, so only the newest certificate for each name counts.",
+      "description": "Days until the soonest-expiring certificate served by Traefik, or by hub-bridge on 8082, expires. Traefik keeps reporting a replaced certificate until it restarts, so only the newest certificate for each name counts.",
       "gridPos": {
         "h": 4,
         "w": 3,
@@ -620,13 +623,16 @@
       },
       "targets": [
         {
-          "expr": "min(last_over_time(up[5m])) by (job)",
+          "expr": "min by (job) (up{job!~\"blackbox-.*\", svcup!=\"false\"} or probe_success or up{job=~\"blackbox-.*\"} == 0 or label_replace(kube_deployment_status_replicas_available == 0 and on (namespace, deployment) kube_deployment_spec_replicas > 0, \"job\", \"$1\", \"deployment\", \"(.+)\"))",
           "legendFormat": "{{job}}",
-          "refId": "A"
+          "refId": "A",
+          "instant": true,
+          "range": false
         }
       ],
       "title": "Service Up/Down",
-      "type": "stat"
+      "type": "stat",
+      "description": "UP or DOWN per scrape job right now. A pod that isn't ready yet, such as a new one starting during a rollout, doesn't count. A blackbox job is DOWN when one of its checks fails, and a deployment with no ready pod (Pending, or failing its readiness probe) shows as DOWN under its own name."
     },
     {
       "collapsed": false,
@@ -669,7 +675,7 @@
       "id": 60,
       "targets": [
         {
-          "expr": "sum by (app) (count_over_time({app=~\"$service\"}[1m]))",
+          "expr": "sum by (app) (rate({app=~\"$service\"}[$__auto])) * 60",
           "refId": "A",
           "legendFormat": "{{app}}"
         }
@@ -693,7 +699,8 @@
           "sortBy": "Max",
           "sortDesc": true
         }
-      }
+      },
+      "description": "Log lines per minute, averaged over each point's interval."
     },
     {
       "datasource": {
@@ -725,14 +732,14 @@
       "id": 61,
       "targets": [
         {
-          "expr": "sum by (app) (count_over_time({app=~\"$service\"} |~ \"ERROR|Exception\" [1m]))",
+          "expr": "sum by (app) (rate({app=~\"$service\"} |~ \"ERROR|Exception\" [$__auto])) * 60",
           "refId": "A",
           "legendFormat": "{{app}}"
         }
       ],
       "title": "Error Logs",
       "type": "timeseries",
-      "description": "Log lines matching ERROR or Exception, per minute.",
+      "description": "Log lines matching ERROR or Exception, per minute, averaged over each point's interval.",
       "options": {
         "tooltip": {
           "mode": "multi",
@@ -771,7 +778,7 @@
       },
       "targets": [
         {
-          "expr": "{app=~\"$service\"} |~ \"(?i)$search\"",
+          "expr": "{app=~\"$service\"} |~ `(?i)$search`",
           "refId": "A",
           "maxLines": 500
         }
@@ -823,7 +830,7 @@
       "id": 200,
       "targets": [
         {
-          "expr": "sum by (svc) (label_replace(label_replace(sum by (service) (rate(traefik_service_requests_total[5m])), \"svc\", \"$1\", \"service\", \"(.+)\"), \"svc\", \"$1\", \"service\", \"default-(.+?)(?:-service)?-[0-9]+@kubernetes\"))",
+          "expr": "sum by (svc) (label_replace(sum by (service) (rate(traefik_service_requests_total[5m])), \"svc\", \"$1\", \"service\", \"$traefik_svc\"))",
           "legendFormat": "{{svc}}",
           "refId": "A"
         }
@@ -933,14 +940,14 @@
       "id": 201,
       "targets": [
         {
-          "expr": "sum by (class) (label_replace(rate(traefik_entrypoint_requests_total{entrypoint=~\"web|websecure\", code=~\"[1-5]..\"}[5m]), \"class\", \"${1}xx\", \"code\", \"([1-5])..\"))",
+          "expr": "sum by (class) (label_replace(label_replace(rate(traefik_entrypoint_requests_total{entrypoint=~\"web|websecure\", code=~\"[1-5]..|0\"}[5m]), \"class\", \"${1}xx\", \"code\", \"([1-5])..\"), \"class\", \"websocket\", \"code\", \"0\"))",
           "legendFormat": "{{class}}",
           "refId": "A"
         }
       ],
       "title": "Responses by Status Class (/s)",
       "type": "timeseries",
-      "description": "All requests arriving at Traefik on ports 80/443, including ones that matched no route.",
+      "description": "All requests arriving at Traefik on ports 80/443, including ones that matched no route. Traefik records WebSocket requests without a status code, so they are their own class.",
       "options": {
         "tooltip": {
           "mode": "multi",
@@ -980,7 +987,7 @@
       "id": 202,
       "targets": [
         {
-          "expr": "sum by (svc) (label_replace(label_replace(sum by (service) (rate(traefik_service_requests_total{code=~\"5..\"}[5m])) / sum by (service) (rate(traefik_service_requests_total[5m])), \"svc\", \"$1\", \"service\", \"(.+)\"), \"svc\", \"$1\", \"service\", \"default-(.+?)(?:-service)?-[0-9]+@kubernetes\"))",
+          "expr": "sum by (svc) (label_replace((sum by (service) (rate(traefik_service_requests_total{code=~\"5..\"}[5m])) or sum by (service) (rate(traefik_service_requests_total[5m])) * 0) / (sum by (service) (rate(traefik_service_requests_total[5m])) > 0), \"svc\", \"$1\", \"service\", \"$traefik_svc\"))",
           "legendFormat": "{{svc}}",
           "refId": "A"
         }
@@ -1026,7 +1033,7 @@
       "id": 203,
       "targets": [
         {
-          "expr": "sum by (svc) (label_replace(label_replace(sum by (service) (rate(traefik_service_request_duration_seconds_sum{protocol!=\"websocket\"}[5m])) / sum by (service) (rate(traefik_service_request_duration_seconds_count{protocol!=\"websocket\"}[5m])), \"svc\", \"$1\", \"service\", \"(.+)\"), \"svc\", \"$1\", \"service\", \"default-(.+?)(?:-service)?-[0-9]+@kubernetes\"))",
+          "expr": "sum by (svc) (label_replace(sum by (service) (rate(traefik_service_request_duration_seconds_sum{protocol!=\"websocket\"}[5m])) / sum by (service) (rate(traefik_service_request_duration_seconds_count{protocol!=\"websocket\"}[5m])), \"svc\", \"$1\", \"service\", \"$traefik_svc\"))",
           "legendFormat": "{{svc}} avg",
           "refId": "A"
         },
@@ -1102,7 +1109,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "Days until the TLS certificate served by Traefik expires. cert-manager renews 30 days before expiry, so less than 28 days means a renewal has been missed. Traefik keeps reporting a replaced certificate until it restarts, so only the newest certificate for each name counts.",
+      "description": "Days until the TLS certificate served by Traefik, or by hub-bridge on 8082, expires. cert-manager renews 30 days before expiry, so less than 28 days means a renewal has been missed. Traefik keeps reporting a replaced certificate until it restarts, so only the newest certificate for each name counts.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1154,7 +1161,7 @@
       },
       "targets": [
         {
-          "expr": "max by (cn) ((traefik_tls_certs_not_after - time()) / 86400)",
+          "expr": "max by (cn) ((traefik_tls_certs_not_after - time()) / 86400 or label_replace((probe_ssl_earliest_cert_expiry{job=\"blackbox-hub-tls\"} - time()) / 86400, \"cn\", \"hub-bridge (8082)\", \"job\", \".*\"))",
           "legendFormat": "{{cn}}",
           "refId": "A"
         }
@@ -1256,7 +1263,7 @@
           "refId": "A"
         },
         {
-          "expr": "sum by (job) (rate({__name__=~\"com_iris_bridge_metrics_bridge_metrics_bridge_(client|api)_http_bad_request_sent\"}[5m])) + sum by (job) (rate({__name__=~\"com_iris_bridge_metrics_bridge_metrics_bridge_(client|api)_http_forbidden_sent\"}[5m])) + sum by (job) (rate({__name__=~\"com_iris_bridge_metrics_bridge_metrics_bridge_(client|api)_http_notfound_sent\"}[5m]))",
+          "expr": "sum by (job) (rate(label_replace({__name__=~\"com_iris_bridge_metrics_bridge_metrics_bridge_(client|api)_http_(bad_request|forbidden|notfound)_sent\"}, \"kind\", \"$2\", \"__name__\", \"com_iris_bridge_metrics_bridge_metrics_bridge_(client|api)_http_(.+)_sent\")[5m:15s]))",
           "legendFormat": "{{job}} 4xx (400/403/404)",
           "refId": "B"
         }
@@ -1433,8 +1440,8 @@
           "refId": "B"
         },
         {
-          "expr": "sum by (bridge) (rate(bridge_http_requests{handler=\"sessionauth\", status=\"401\"}[5m]))",
-          "legendFormat": "{{bridge}} session rejected (401)",
+          "expr": "sum by (bridge) (rate(bridge_http_requests{bridge=~\"client|api\", status=\"401\"}[5m]) or rate(bridge_http_requests{bridge=~\"client|api\", handler=\"basewebsocketserverhandler\", status=\"403\"}[5m]))",
+          "legendFormat": "{{bridge}} session rejected (401, WebSocket 403)",
           "refId": "C"
         },
         {
@@ -1483,12 +1490,12 @@
       "id": 215,
       "targets": [
         {
-          "expr": "sum by (job) (increase({__name__=~\"com_iris_bridge_metrics_bridge_metrics_bridge_(client|api)_session_created\"}[5m]))",
+          "expr": "sum by (job) (rate({__name__=~\"com_iris_bridge_metrics_bridge_metrics_bridge_(client|api)_session_created\"}[$__rate_interval])) * 300",
           "legendFormat": "{{job}} opened",
           "refId": "A"
         },
         {
-          "expr": "sum by (job) (increase({__name__=~\"com_iris_bridge_metrics_bridge_metrics_bridge_(client|api)_session_destroyed\"}[5m]))",
+          "expr": "sum by (job) (rate({__name__=~\"com_iris_bridge_metrics_bridge_metrics_bridge_(client|api)_session_destroyed\"}[$__rate_interval])) * 300",
           "legendFormat": "{{job}} closed",
           "refId": "B"
         }
@@ -1506,7 +1513,8 @@
           "placement": "bottom",
           "showLegend": true
         }
-      }
+      },
+      "description": "Per 5 minutes, averaged over each point's interval."
     },
     {
       "datasource": {
@@ -1731,6 +1739,36 @@
           "expr": "max(bridge_sessions_hub_unauth_orphaned) by (job)",
           "legendFormat": "Orphaned",
           "refId": "D"
+        },
+        {
+          "expr": "max(bridge_sessions_hub_unauth_invalid_cert) by (job)",
+          "legendFormat": "Invalid Cert",
+          "refId": "E"
+        },
+        {
+          "expr": "max(bridge_sessions_hub_unauth_below_min_fw) by (job)",
+          "legendFormat": "Below Min Firmware",
+          "refId": "F"
+        },
+        {
+          "expr": "max(bridge_sessions_hub_unauth_unregistered) by (job)",
+          "legendFormat": "Unregistered",
+          "refId": "G"
+        },
+        {
+          "expr": "max(bridge_sessions_hub_unauth_invalid_account) by (job)",
+          "legendFormat": "Invalid Account",
+          "refId": "H"
+        },
+        {
+          "expr": "max(bridge_sessions_hub_unauth_banned_cell) by (job)",
+          "legendFormat": "Banned Cell",
+          "refId": "I"
+        },
+        {
+          "expr": "max(bridge_sessions_hub_invalid) by (job)",
+          "legendFormat": "Invalid",
+          "refId": "J"
         }
       ],
       "title": "Hub Sessions (Detail)",
@@ -1903,6 +1941,16 @@
           "expr": "sum(rate(bridge_authz_unauthorized_wrongplace[5m])) by (job)",
           "legendFormat": "Unauth: Wrong Place",
           "refId": "D"
+        },
+        {
+          "expr": "sum(rate(bridge_authz_unauthorized_notowner[5m])) by (job)",
+          "legendFormat": "Unauth: Not Owner",
+          "refId": "E"
+        },
+        {
+          "expr": "sum(rate(bridge_authz_unauthorized_supportrequest[5m])) by (job)",
+          "legendFormat": "Unauth: Support Request",
+          "refId": "F"
         }
       ],
       "title": "Authorization",
@@ -1991,19 +2039,19 @@
       "id": 8,
       "targets": [
         {
-          "expr": "max(increase(messages_platform_recv_type_hub_hubconnected[5m]))",
+          "expr": "max(rate(messages_platform_recv_type_hub_hubconnected[$__rate_interval])) * 300",
           "refId": "A",
           "legendFormat": "connected"
         },
         {
-          "expr": "max(increase(messages_platform_recv_type_hub_hubdisconnected[5m]))",
+          "expr": "max(rate(messages_platform_recv_type_hub_hubdisconnected[$__rate_interval])) * 300",
           "refId": "B",
           "legendFormat": "disconnected"
         }
       ],
       "title": "Hub Connect / Disconnect Events (per 5m)",
       "type": "timeseries",
-      "description": "HubConnected / HubDisconnected messages seen on the platform bus.",
+      "description": "HubConnected / HubDisconnected messages seen on the platform bus, per 5 minutes, averaged over each point's interval.",
       "options": {
         "tooltip": {
           "mode": "multi",
@@ -2616,7 +2664,7 @@
           "refId": "B"
         },
         {
-          "expr": "sum(rate(notifications_email_error_count[5m])) by (job) + sum(rate(notifications_sms_error_count[5m])) by (job) + sum(rate(notifications_push_error_count[5m])) by (job) + sum(rate(notifications_apns_error_count[5m])) by (job) + sum(rate(notifications_gcm_error_count[5m])) by (job) + sum(rate(notifications_ivr_error_count[5m])) by (job) + sum(rate(notifications_webhook_error_count[5m])) by (job) + sum(rate(notifications_log_error_count[5m])) by (job)",
+          "expr": "sum by (job) (rate(label_replace({__name__=~\"notifications_(email|sms|push|apns|gcm|ivr|webhook|log)_error_count\"}, \"channel\", \"$1\", \"__name__\", \"notifications_(.+)_error_count\")[5m:15s]))",
           "legendFormat": "Errors",
           "refId": "C"
         }
@@ -3278,6 +3326,15 @@
         ],
         "query": "",
         "type": "textbox"
+      },
+      {
+        "description": "Turns a Traefik service name (default-ui-server-service-80@kubernetes) into the short name (ui-server) the Ingress panels group by.",
+        "hide": 2,
+        "label": "Traefik service name pattern",
+        "name": "traefik_svc",
+        "query": "(?:default-)?(.+?)(?:-service)?(?:-[0-9]+@kubernetes)?",
+        "skipUrlSync": true,
+        "type": "constant"
       }
     ]
   },
