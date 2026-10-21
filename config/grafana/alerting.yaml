@@ -212,6 +212,60 @@ groups:
       __panelId__: "306"
       summary: '{{ $labels.container }} in {{ $labels.pod }} is crash looping'
       description: '{{ $labels.container }} ({{ $labels.namespace }}/{{ $labels.pod }}) keeps crashing and Kubernetes is backing off its restarts. First steps: kubectl logs -n {{ $labels.namespace }} {{ $labels.pod }} -c {{ $labels.container }} --previous for the crash, and kubectl describe pod -n {{ $labels.namespace }} {{ $labels.pod }} for Last State; OOMKilled means the memory limit in config/deployments/ is too low.'
+  # One kill is enough: Kubernetes restarts the container at once, so Pod Crash Looping only
+  # fires if it keeps happening. Fires for 10 minutes after each kill.
+  - uid: container-oom-killed
+    title: Container OOM Killed
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        expr: >-
+          max by (namespace, pod, container) (
+          increase(kube_pod_container_status_restarts_total[10m]) > 0
+          and on (namespace, pod, container) kube_pod_container_status_last_terminated_reason{reason="OOMKilled"} == 1)
+        instant: true
+        refId: A
+    - refId: B
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: reduce
+        expression: A
+        reducer: last
+        refId: B
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: threshold
+        expression: B
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0
+          operator:
+            type: and
+          reducer:
+            type: last
+        refId: C
+    for: 0s
+    noDataState: OK
+    execErrState: Error
+    labels:
+      severity: critical
+    annotations:
+      summary: '{{ $labels.container }} in {{ $labels.pod }} was killed for running out of memory'
+      description: '{{ $labels.container }} ({{ $labels.namespace }}/{{ $labels.pod }}) went over its memory limit and the kernel killed it (OOMKilled). Kubernetes restarted it, but whatever it was doing was lost. First steps: kubectl describe pod -n {{ $labels.namespace }} {{ $labels.pod }} for Last State and the limit. For an Arcus service, compare the memory limit in config/deployments/ with its -Xmx (the services use about 3 times their heap), and check Old Gen After GC on the overview dashboard for a leak.'
   - uid: image-pull-failing
     title: Image Pull Failing
     condition: C
