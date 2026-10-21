@@ -103,6 +103,106 @@ groups:
     annotations:
       summary: 'Disk {{ $labels.mountpoint }} on {{ $labels.node }} is {{ printf "%.0f" $values.B.Value }}% full'
       description: 'The kubelet deletes unused images above 75% (85% on a node without /etc/rancher/k3s/config.yaml.d/arcus-image-gc.yaml, which ./arcuscmd.sh k3s writes), so the disk is filling faster than it can clean up, and at 95% it evicts pods. First steps: free space now on {{ $labels.node }} with sudo k3s crictl rmi --prune and sudo journalctl --vacuum-size=200M, then find what grew with sudo du -xh --max-depth=2 {{ $labels.mountpoint }} | sort -h | tail (old backups, tarballs, container logs, the volumes under /var/lib/rancher/k3s/storage).'
+  - uid: node-memory-low
+    title: Node Memory Low
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 300
+        to: 0
+      datasourceUid: prometheus
+      model:
+        expr: 100 * min by (node) (node_memory_MemAvailable_bytes{job="node-exporter"} / node_memory_MemTotal_bytes{job="node-exporter"})
+        instant: true
+        refId: A
+    - refId: B
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: reduce
+        expression: A
+        reducer: last
+        refId: B
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: threshold
+        expression: B
+        conditions:
+        - evaluator:
+            type: lt
+            params:
+            - 10
+          operator:
+            type: and
+          reducer:
+            type: last
+        refId: C
+    for: 10m
+    noDataState: OK
+    execErrState: Error
+    labels:
+      severity: critical
+    annotations:
+      summary: 'Only {{ printf "%.0f" $values.B.Value }}% of the memory on {{ $labels.node }} is available'
+      description: 'Less than 10% of the memory on {{ $labels.node }} has been available for 10 minutes, so the kernel is swapping or dropping cache, and once less than 100Mi is left the kubelet evicts pods. First steps: kubectl top pods -A --sort-by=memory to see what grew, and free -m on {{ $labels.node }} for anything outside Kubernetes (Cassandra, Kafka or ZooKeeper if they run on this host). The Arcus JVMs use about 3 times their -Xmx, so a raised heap or memory limit in config/deployments/ is a common cause.'
+  # Pressure stall information: the share of time at least one runnable process was waiting
+  # for a CPU. Unlike utilization it stays near 0 while the CPUs keep up, however busy they are.
+  - uid: node-cpu-saturated
+    title: Node CPU Saturated
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 300
+        to: 0
+      datasourceUid: prometheus
+      model:
+        expr: 100 * max by (node) (rate(node_pressure_cpu_waiting_seconds_total{job="node-exporter"}[5m]))
+        instant: true
+        refId: A
+    - refId: B
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: reduce
+        expression: A
+        reducer: last
+        refId: B
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: threshold
+        expression: B
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 25
+          operator:
+            type: and
+          reducer:
+            type: last
+        refId: C
+    for: 15m
+    noDataState: OK
+    execErrState: Error
+    labels:
+      severity: info
+    annotations:
+      summary: 'Processes on {{ $labels.node }} are waiting for a CPU {{ printf "%.0f" $values.B.Value }}% of the time'
+      description: 'For 15 minutes, something runnable on {{ $labels.node }} has been kept waiting for a CPU more than 25% of the time (/proc/pressure/cpu), so services there are slowed by a shortage of CPU. A healthy node stays near 0%. First steps: kubectl top pods -A --sort-by=cpu, and top on {{ $labels.node }} for anything outside Kubernetes (Cassandra, Kafka or ZooKeeper if they run on this host).'
 - orgId: 1
   name: Service Health
   folder: Provisioned

@@ -1,6 +1,7 @@
 # node-exporter reports each node's filesystem space for the disk alerts, matching df
-# and the kubelet's eviction thresholds (cAdvisor counts ext4's reserved blocks as free).
-# Only the filesystem collector runs, reading the host's mounts through a read-only /host.
+# and the kubelet's eviction thresholds (cAdvisor counts ext4's reserved blocks as free),
+# and its CPU, load, memory and pressure stall (PSI) figures for the CPU and memory alerts.
+# Only those collectors run, reading the host's /proc, /sys and mounts through a read-only /host.
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -33,6 +34,10 @@ spec:
         - --collector.filesystem
         - --collector.filesystem.mount-points-exclude=^/(dev|proc|run|sys|var/lib/kubelet/.+|var/lib/rancher/k3s/agent/containerd/.+)($|/)
         - --collector.filesystem.fs-types-exclude=^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|erofs|fusectl|hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tmpfs|tracefs)$
+        - --collector.cpu
+        - --collector.loadavg
+        - --collector.meminfo
+        - --collector.pressure
         ports:
         - containerPort: 9100
           name: metrics
