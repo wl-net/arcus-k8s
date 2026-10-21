@@ -191,6 +191,8 @@ Where notifications go is also provisioned by `apply`, from `.config/alert-disco
 
 `./arcuscmd.sh status` lists alert rules created by hand in Grafana, which `alerting.yaml` doesn't manage, and `./arcuscmd.sh validate` starts a Grafana against the provisioning files (it needs Docker) so a broken rule or template is caught before `apply` takes Grafana down with it.
 
+Every rule has a runbook in [`docs/runbooks/`](docs/runbooks/README.md) (what it means, how to confirm it, how to fix it), linked from the notification and from the rule in Grafana, and a panel on the Arcus Overview or Arcus Cluster dashboard that the notification links to and screenshots. The Alerts panel at the top of Arcus Overview shows what is firing now, and Grafana keeps the alert state history in Loki (Alerting → History, or `{from="state-history"}` in Explore). `validate` checks that every rule has a runbook and a panel that exist, and every runbook a rule.
+
 ## Setting up the Hub Trust Store
 
 Unfortunately, the hub-bridge doesn't work out of the box because it expects a Java Key Store, something we can't provide with cert-manager. Arcusplatform now supports PKCS#8 keys as well (via netty's internal support for PKCS#8), but the private key that cert-manager generates is in PKCS#1 format. As a result, you'll have to manually convert the private key to PKCS#8.

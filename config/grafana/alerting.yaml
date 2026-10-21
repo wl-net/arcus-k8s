@@ -59,8 +59,11 @@ groups:
     labels:
       severity: warning
     annotations:
+      __dashboardUid__: arcus-cluster
+      __panelId__: "1"
       summary: 'Disk {{ $labels.mountpoint }} on {{ $labels.node }} is {{ printf "%.0f" $values.B.Value }}% full'
       description: 'The kubelet deletes unused images once the disk passes 75%, so on a node with /etc/rancher/k3s/config.yaml.d/arcus-image-gc.yaml something else is growing; without that file (./arcuscmd.sh k3s writes it) the kubelet waits until 85% and old release images are the usual cause (sudo k3s crictl rmi --prune). At 95% it evicts pods. First steps: on {{ $labels.node }}, sudo du -xh --max-depth=2 {{ $labels.mountpoint }} | sort -h | tail to see what grew. The usual causes are container logs under /var/log/pods and the Loki, Prometheus and Grafana volumes under /var/lib/rancher/k3s/storage (kubectl get pvc).'
+      runbook_url: https://github.com/wl-net/arcus-k8s/blob/master/docs/runbooks/node-disk-filling.md
   - uid: node-disk-critical
     title: Node Disk Critical
     condition: C
@@ -108,8 +111,11 @@ groups:
     labels:
       severity: critical
     annotations:
+      __dashboardUid__: arcus-cluster
+      __panelId__: "1"
       summary: 'Disk {{ $labels.mountpoint }} on {{ $labels.node }} is {{ printf "%.0f" $values.B.Value }}% full'
       description: 'The kubelet deletes unused images above 75% (85% on a node without /etc/rancher/k3s/config.yaml.d/arcus-image-gc.yaml, which ./arcuscmd.sh k3s writes), so the disk is filling faster than it can clean up, and at 95% it evicts pods. First steps: free space now on {{ $labels.node }} with sudo k3s crictl rmi --prune and sudo journalctl --vacuum-size=200M, then find what grew with sudo du -xh --max-depth=2 {{ $labels.mountpoint }} | sort -h | tail (old backups, tarballs, container logs, the volumes under /var/lib/rancher/k3s/storage).'
+      runbook_url: https://github.com/wl-net/arcus-k8s/blob/master/docs/runbooks/node-disk-critical.md
   - uid: node-memory-low
     title: Node Memory Low
     condition: C
@@ -157,8 +163,11 @@ groups:
     labels:
       severity: critical
     annotations:
+      __dashboardUid__: arcus-cluster
+      __panelId__: "2"
       summary: 'Only {{ printf "%.0f" $values.B.Value }}% of the memory on {{ $labels.node }} is available'
       description: 'Less than 10% of the memory on {{ $labels.node }} has been available for 10 minutes, so the kernel is swapping or dropping cache, and once less than 100Mi is left the kubelet evicts pods. First steps: kubectl top pods -A --sort-by=memory to see what grew, and free -m on {{ $labels.node }} for anything outside Kubernetes (Cassandra, Kafka or ZooKeeper if they run on this host). The Arcus JVMs use about 3 times their -Xmx, so a raised heap or memory limit in config/deployments/ is a common cause.'
+      runbook_url: https://github.com/wl-net/arcus-k8s/blob/master/docs/runbooks/node-memory-low.md
   # Pressure stall information: the share of time at least one runnable process was waiting
   # for a CPU. Unlike utilization it stays near 0 while the CPUs keep up, however busy they are.
   - uid: node-cpu-saturated
@@ -208,8 +217,11 @@ groups:
     labels:
       severity: warning
     annotations:
+      __dashboardUid__: arcus-cluster
+      __panelId__: "3"
       summary: 'Processes on {{ $labels.node }} are waiting for a CPU {{ printf "%.0f" $values.B.Value }}% of the time'
       description: 'For 15 minutes, something runnable on {{ $labels.node }} has been kept waiting for a CPU more than 25% of the time (/proc/pressure/cpu), so services there are slowed by a shortage of CPU. A healthy node stays near 0%. First steps: kubectl top pods -A --sort-by=cpu, and top on {{ $labels.node }} for anything outside Kubernetes (Cassandra, Kafka or ZooKeeper if they run on this host).'
+      runbook_url: https://github.com/wl-net/arcus-k8s/blob/master/docs/runbooks/node-cpu-saturated.md
   - uid: node-swapping
     title: Node Swapping
     condition: C
@@ -257,8 +269,11 @@ groups:
     labels:
       severity: warning
     annotations:
+      __dashboardUid__: arcus-cluster
+      __panelId__: "4"
       summary: '{{ $labels.node }} has been swapping {{ printf "%.1f" $values.B.Value }} MiB/s for 15 minutes'
       description: 'Pages are moving to and from swap continuously, so the node is short of memory and everything on it is slower; the JVMs are the usual cause. First steps: kubectl top pods --sort-by=memory against each services limit in config/deployments/, free -m and ps -eo rss,comm --sort=-rss | head on {{ $labels.node }} for what is using it outside the pods (k3s itself is several hundred MB). Lower a services -Xmx and limit, or add memory.'
+      runbook_url: https://github.com/wl-net/arcus-k8s/blob/master/docs/runbooks/node-swapping.md
   - uid: node-not-ready
     title: Node Not Ready
     condition: C
@@ -306,8 +321,11 @@ groups:
     labels:
       severity: critical
     annotations:
+      __dashboardUid__: arcus-cluster
+      __panelId__: "5"
       summary: '{{ $labels.node }} is not Ready'
       description: 'The kubelet on {{ $labels.node }} has not reported Ready for 5 minutes; its pods are not being scheduled and, after a few more minutes, are evicted. First steps: kubectl describe node {{ $labels.node }} (Conditions), then on the node: systemctl status k3s, journalctl -u k3s -n 200, df -h and free -m.'
+      runbook_url: https://github.com/wl-net/arcus-k8s/blob/master/docs/runbooks/node-not-ready.md
   - uid: node-pressure
     title: Node Under Pressure
     condition: C
@@ -355,8 +373,11 @@ groups:
     labels:
       severity: critical
     annotations:
+      __dashboardUid__: arcus-cluster
+      __panelId__: "5"
       summary: '{{ $labels.node }} reports {{ $labels.condition }}'
       description: 'The kubelet on {{ $labels.node }} has had {{ $labels.condition }} for 5 minutes, so it is evicting pods and refusing new ones. First steps: kubectl describe node {{ $labels.node }} (Conditions and Events) and kubectl get pods -A --field-selector=status.phase=Failed for what was evicted; then free -m, df -h or ps -e | wc -l on the node depending on the condition.'
+      runbook_url: https://github.com/wl-net/arcus-k8s/blob/master/docs/runbooks/node-pressure.md
 - orgId: 1
   name: Service Health
   folder: Provisioned
@@ -413,6 +434,7 @@ groups:
       __panelId__: "1"
       summary: '{{ $labels.job }} is down'
       description: '{{ $labels.job }} ({{ $labels.instance }}) has been down for more than 5 minutes. First steps: ./arcuscmd.sh status to see which pods are not ready, then kubectl describe pod and ./arcuscmd.sh logs <app> for the service behind {{ $labels.job }}; for a blackbox-* job, check the blackbox-exporter pod first.'
+      runbook_url: https://github.com/wl-net/arcus-k8s/blob/master/docs/runbooks/service-down.md
   - uid: pod-crash-looping
     title: Pod Crash Looping
     condition: C
@@ -462,10 +484,11 @@ groups:
     labels:
       severity: critical
     annotations:
-      __dashboardUid__: arcus-overview
-      __panelId__: "306"
+      __dashboardUid__: arcus-cluster
+      __panelId__: "11"
       summary: '{{ $labels.container }} in {{ $labels.pod }} is crash looping'
       description: '{{ $labels.container }} ({{ $labels.namespace }}/{{ $labels.pod }}) keeps crashing and Kubernetes is backing off its restarts. First steps: kubectl logs -n {{ $labels.namespace }} {{ $labels.pod }} -c {{ $labels.container }} --previous for the crash, and kubectl describe pod -n {{ $labels.namespace }} {{ $labels.pod }} for Last State; OOMKilled means the memory limit in config/deployments/ is too low.'
+      runbook_url: https://github.com/wl-net/arcus-k8s/blob/master/docs/runbooks/pod-crash-looping.md
   # One kill is enough: Kubernetes restarts the container at once, so Pod Crash Looping only
   # fires if it keeps happening. Fires for 10 minutes after each kill.
   - uid: container-oom-killed
@@ -518,8 +541,11 @@ groups:
     labels:
       severity: warning
     annotations:
+      __dashboardUid__: arcus-cluster
+      __panelId__: "10"
       summary: '{{ $labels.container }} in {{ $labels.pod }} was killed for running out of memory'
       description: '{{ $labels.container }} ({{ $labels.namespace }}/{{ $labels.pod }}) went over its memory limit and the kernel killed it (OOMKilled). Kubernetes restarted it, but whatever it was doing was lost. First steps: kubectl describe pod -n {{ $labels.namespace }} {{ $labels.pod }} for Last State and the limit. For an Arcus service, compare the memory limit in config/deployments/ with its -Xmx (the services use about 3 times their heap), and check Old Gen After GC on the overview dashboard for a leak.'
+      runbook_url: https://github.com/wl-net/arcus-k8s/blob/master/docs/runbooks/container-oom-killed.md
   - uid: image-pull-failing
     title: Image Pull Failing
     condition: C
@@ -567,8 +593,11 @@ groups:
     labels:
       severity: warning
     annotations:
+      __dashboardUid__: arcus-cluster
+      __panelId__: "11"
       summary: '{{ $labels.container }} in {{ $labels.pod }} cannot pull its image'
       description: '{{ $labels.container }} ({{ $labels.namespace }}/{{ $labels.pod }}) has been unable to pull its image for 10 minutes. First steps: kubectl describe pod -n {{ $labels.namespace }} {{ $labels.pod }} and read the Events for the exact pull error, then check the tag (newTag in config/kustomization.yaml) exists in the registry.'
+      runbook_url: https://github.com/wl-net/arcus-k8s/blob/master/docs/runbooks/image-pull-failing.md
   # Service Down only sees pods Prometheus can scrape: a Pending pod has no target, and
   # one failing its readiness probe still answers scrapes. Rollouts don't trip this,
   # since the deployments surge a new pod before taking the old one away.
@@ -624,8 +653,11 @@ groups:
     labels:
       severity: critical
     annotations:
+      __dashboardUid__: arcus-cluster
+      __panelId__: "12"
       summary: '{{ or $labels.deployment $labels.statefulset $labels.daemonset }} has {{ $values.B.Value }} unavailable pod(s)'
       description: '{{ or $labels.deployment $labels.statefulset $labels.daemonset }} ({{ $labels.namespace }}) has had fewer ready pods than it should for 10 minutes. First steps: kubectl get pods -n {{ $labels.namespace }} -o wide | grep {{ or $labels.deployment $labels.statefulset $labels.daemonset }}, then kubectl describe pod on the one that is not Ready. Pending with FailedScheduling means the node has no room for its resource requests; Running but not Ready means its readiness probe is failing, so read its logs. If Pod Crash Looping or Image Pull Failing is firing for it too, start there.'
+      runbook_url: https://github.com/wl-net/arcus-k8s/blob/master/docs/runbooks/workload-unavailable.md
   # cert-manager renews at 2/3 of a certificate's lifetime, so an overdue renewal is the
   # earliest sign that issuance is failing, whatever the certificate lifetime is.
   - uid: cert-renewal-overdue
@@ -675,8 +707,11 @@ groups:
     labels:
       severity: warning
     annotations:
+      __dashboardUid__: arcus-cluster
+      __panelId__: "21"
       summary: 'Certificate {{ $labels.name }} renewal is overdue'
       description: '{{ $labels.name }} in namespace {{ $labels.namespace }} should have renewed {{ printf "%.0f" $values.B.Value }} hours ago. First steps: kubectl describe certificate -n {{ $labels.namespace }} {{ $labels.name }}, then kubectl get certificaterequest,order,challenge -n {{ $labels.namespace }} and ./arcuscmd.sh certlogs for why issuance is stuck; once fixed, ./arcuscmd.sh renewcert {{ $labels.name }} forces a re-issue.'
+      runbook_url: https://github.com/wl-net/arcus-k8s/blob/master/docs/runbooks/cert-renewal-overdue.md
   - uid: cert-expiring-soon
     title: Certificate Expiring Soon
     condition: C
@@ -724,8 +759,11 @@ groups:
     labels:
       severity: critical
     annotations:
+      __dashboardUid__: arcus-cluster
+      __panelId__: "20"
       summary: 'Certificate {{ $labels.name }} expiring soon'
       description: '{{ $labels.name }} in namespace {{ $labels.namespace }} expires in {{ printf "%.0f" $values.B.Value }} days, so cert-manager has not renewed it on schedule (about 30 days before expiry). First steps: kubectl describe certificate -n {{ $labels.namespace }} {{ $labels.name }} and ./arcuscmd.sh certlogs, then ./arcuscmd.sh renewcert {{ $labels.name }}; after nginx-production-tls renews, hub-keystore follows within 6 hours.'
+      runbook_url: https://github.com/wl-net/arcus-k8s/blob/master/docs/runbooks/cert-expiring-soon.md
   - uid: unexpected-hubs
     title: Unexpected Hub Connections
     condition: C
@@ -777,6 +815,7 @@ groups:
       __panelId__: "2"
       summary: 'Unexpected hub connections detected'
       description: '{{ $value }} hubs connected (expected PLACEHOLDER_EXPECTED_HUBS or fewer; .config/expected-hubs sets this). Possible unauthorized hub connection. First steps: find the hub IDs and source addresses of recent connections in ./arcuscmd.sh logs hub-bridge and compare them with the hubs you expect; an unknown hub should be checked against the place it is registered to.'
+      runbook_url: https://github.com/wl-net/arcus-k8s/blob/master/docs/runbooks/unexpected-hubs.md
   # The counter only exists once a pod has seen its first password change, and
   # increase() reads a series that appears at 1 as no increase. The second half
   # catches that first change: a series with samples in the last 5 minutes but
@@ -833,6 +872,7 @@ groups:
     annotations:
       summary: 'Password changed'
       description: 'A password change was detected on the platform. First steps: confirm it was expected by finding the person and time in ./arcuscmd.sh logs platform-services, and the session and source address that made it in ./arcuscmd.sh logs client-bridge; if nobody expected it, treat the account as compromised and review its places for recent changes.'
+      runbook_url: https://github.com/wl-net/arcus-k8s/blob/master/docs/runbooks/password-changed.md
   - uid: unauthorized-access
     title: Unauthorized Access Attempt
     condition: C
@@ -889,6 +929,7 @@ groups:
       __panelId__: "6"
       summary: 'Unauthorized access attempt detected'
       description: '{{ $labels.job }} received unauthorized access attempts in the last 5 minutes. First steps: ./arcuscmd.sh logs client-bridge (or the bridge behind {{ $labels.job }}) and look at the authorization failures: which person, which place and which source address. Many places tried from one source points to probing; one person hitting the wrong place is more often a stale app session.'
+      runbook_url: https://github.com/wl-net/arcus-k8s/blob/master/docs/runbooks/unauthorized-access.md
   - uid: notification-email-errors
     title: Email Notification Errors
     condition: C
@@ -940,6 +981,7 @@ groups:
       __panelId__: "42"
       summary: 'Email notification errors'
       description: 'Email notifications are failing to send. First steps: ./arcuscmd.sh logs notification-services | grep -i email for the provider error; a rejected or out-of-credit key (email.provider.apikey in secret/) is the usual cause, and ./arcuscmd.sh verifyconfig confirms the key is present.'
+      runbook_url: https://github.com/wl-net/arcus-k8s/blob/master/docs/runbooks/notification-email-errors.md
   - uid: scheduler-errors
     title: Scheduler Errors
     condition: C
@@ -991,6 +1033,7 @@ groups:
       __panelId__: "30"
       summary: 'Scheduler command errors'
       description: 'Scheduler service is experiencing command errors. First steps: ./arcuscmd.sh logs scheduler-service for the failing command and place; errors that start with a Cassandra or Kafka problem usually clear when it recovers, so check for a Datastore Unreachable alert too.'
+      runbook_url: https://github.com/wl-net/arcus-k8s/blob/master/docs/runbooks/scheduler-errors.md
   - uid: datastore-unreachable
     title: Datastore Unreachable
     condition: C
@@ -1038,8 +1081,11 @@ groups:
     labels:
       severity: critical
     annotations:
+      __dashboardUid__: arcus-cluster
+      __panelId__: "22"
       summary: '{{ $labels.datastore }} at {{ $labels.instance }} is not accepting connections'
       description: 'The blackbox exporter has not been able to open a TCP connection to {{ $labels.datastore }} at {{ $labels.instance }} for 2 minutes. Cassandra, Kafka and ZooKeeper run outside the cluster. First steps: ./arcuscmd.sh status (External Services pings each host), then check the {{ $labels.datastore }} service on that host; services that depend on it will be logging connection errors (./arcuscmd.sh logs platform-services).'
+      runbook_url: https://github.com/wl-net/arcus-k8s/blob/master/docs/runbooks/datastore-unreachable.md
   - uid: keystore-renewal-stale
     title: Hub Keystore Renewal Stale
     condition: C
@@ -1087,8 +1133,11 @@ groups:
     labels:
       severity: warning
     annotations:
+      __dashboardUid__: arcus-cluster
+      __panelId__: "23"
       summary: 'hub-keystore-renewal has not succeeded for {{ printf "%.0f" $values.B.Value }} hours'
       description: 'The CronJob runs every 6 hours to copy cert-manager''s renewed certificate into hub-keystore, and a stuck run blocks the ones after it (concurrencyPolicy: Forbid). First steps: kubectl get jobs,pods | grep hub-keystore-renewal and kubectl logs job/<name> for the last run; delete a stuck job or pod, then test a run with kubectl create job --from=cronjob/hub-keystore-renewal hub-keystore-test.'
+      runbook_url: https://github.com/wl-net/arcus-k8s/blob/master/docs/runbooks/keystore-renewal-stale.md
   - uid: hub-tls-failing
     title: Hub TLS Failing
     condition: C
@@ -1136,8 +1185,11 @@ groups:
     labels:
       severity: critical
     annotations:
+      __dashboardUid__: arcus-cluster
+      __panelId__: "22"
       summary: 'hub-bridge is not completing TLS handshakes on 8082'
       description: 'hub-bridge has stopped completing TLS handshakes on 8082, where it serves the certificate in the hub-keystore secret. First steps: kubectl get pods -l app=hub-bridge and ./arcuscmd.sh logs hub-bridge for keystore or TLS errors, and kubectl get secret hub-keystore; ./arcuscmd.sh updatehubkeystore recreates the secret from nginx-production-tls and restarts hub-bridge.'
+      runbook_url: https://github.com/wl-net/arcus-k8s/blob/master/docs/runbooks/hub-tls-failing.md
   - uid: hub-cert-expiring
     title: Hub Certificate Expiring
     condition: C
@@ -1185,8 +1237,11 @@ groups:
     labels:
       severity: critical
     annotations:
+      __dashboardUid__: arcus-cluster
+      __panelId__: "20"
       summary: 'Hub certificate on 8082 expires in {{ printf "%.0f" $values.B.Value }} days'
       description: 'cert-manager renews the certificate about 30 days before it expires, and hub-keystore-renewal copies it into hub-keystore within 6 hours, so a certificate this close to expiry on 8082 means hub-bridge missed the renewal. First steps: compare kubectl get secret nginx-production-tls -o jsonpath={.metadata.resourceVersion} with the arcus.io/source-resource-version annotation on hub-keystore, and check the CronJob''s last job (kubectl get jobs | grep hub-keystore-renewal); ./arcuscmd.sh updatehubkeystore fixes it immediately.'
+      runbook_url: https://github.com/wl-net/arcus-k8s/blob/master/docs/runbooks/hub-cert-expiring.md
   # Every failed hub firmware upgrade (the resolver can't upgrade the hub's version,
   # or the hub reports a download or install error) goes through
   # HubRegistrationRegistry.firmwareUpgradeFailed, which logs this WARN line with the
@@ -1246,6 +1301,7 @@ groups:
     annotations:
       summary: 'Hub {{ $labels.hub }} has failed its firmware upgrade {{ printf "%.0f" $values.B.Value }} times in 6 hours'
       description: 'Hub {{ $labels.hub }} has been failing its firmware upgrade for more than 2 hours and failed again within the last 2, so it is stuck rather than retrying its way through: each time it reconnects, hub-bridge finds it needs an upgrade and the upgrade fails again. First steps: in Grafana Explore run {app="hub-bridge"} |= "{{ $labels.hub }}" for the "firmware upgrade failed, reason - [code] - [message]" lines; then on a Cassandra host run cqlsh -e "SELECT state, firmwareversion, targetversion, upgradeerrorcode, upgradeerrormessage, upgradeerrortime, lastconnected FROM production.hub_registration WHERE id = ''{{ $labels.hub }}''" and compare the hub''s firmwareversion with the min, max and target of the entry for its model in firmware.xml (kubectl get configmap extrafiles -o jsonpath=''{.data.firmware\.xml}''). A targetversion that never changes while upgradeerrortime keeps moving is the stuck pattern.'
+      runbook_url: https://github.com/wl-net/arcus-k8s/blob/master/docs/runbooks/hub-firmware-upgrade-stuck.md
   - uid: alloy-inotify-errors
     title: Alloy Inotify Errors
     condition: C
@@ -1297,6 +1353,7 @@ groups:
       __panelId__: "60"
       summary: 'Alloy hitting an inotify or open-file limit'
       description: 'Alloy is logging "too many open files": the node is out of inotify instances (fs.inotify.max_user_instances) or open files, so some logs are not being collected. First steps: kubectl logs ds/alloy --since=10m | grep "too many open files" for the exact error, then on the node compare cat /proc/sys/fs/inotify/max_user_instances with find /proc/[0-9]*/fd -lname anon_inode:inotify | wc -l, and raise fs.inotify.max_user_instances (persist it in /etc/sysctl.d/99-inotify.conf). A failed Loki query raises a separate DatasourceError alert, not this one.'
+      runbook_url: https://github.com/wl-net/arcus-k8s/blob/master/docs/runbooks/alloy-inotify-errors.md
   - uid: log-ingestion-stopped
     title: Log Ingestion Stopped
     condition: C
@@ -1348,6 +1405,7 @@ groups:
       __panelId__: "60"
       summary: 'No logs being ingested into Loki'
       description: 'Loki has received no log entries for at least 15 minutes. Alloy may be down or unable to collect logs. First steps: kubectl get pods -l app=alloy and kubectl get pod loki-0, then kubectl logs ds/alloy --since=15m and kubectl logs loki-0 --since=15m for push or ingester errors; a 503 from Loki /ready for about 15 seconds after it starts is normal.'
+      runbook_url: https://github.com/wl-net/arcus-k8s/blob/master/docs/runbooks/log-ingestion-stopped.md
   - uid: peer-datacenter-unreachable
     title: Peer Datacenter Unreachable
     condition: C
@@ -1395,8 +1453,11 @@ groups:
     labels:
       severity: critical
     annotations:
+      __dashboardUid__: arcus-cluster
+      __panelId__: "22"
       summary: 'Datacenter {{ $labels.peer }}: {{ $labels.instance }} is unreachable from here'
       description: '{{ $labels.instance }} at datacenter {{ $labels.peer }} has failed for 5 minutes: unreachable, an unexpected status, an invalid certificate, or (for /api/health) Grafana''s database not ok. The public hostnames are checked at that datacenter''s own address, so this is independent of where the weighted public record points. If only /api/health fails, that datacenter''s monitoring is down and it may not be able to alert on its own. First steps: open https://{{ $labels.peer }}/, run ./arcuscmd.sh status and ./arcuscmd.sh check on that cluster, and check its Route 53 health check.'
+      runbook_url: https://github.com/wl-net/arcus-k8s/blob/master/docs/runbooks/peer-datacenter-unreachable.md
   - uid: monitoring-service-down
     title: Monitoring Service Down
     condition: C
@@ -1444,8 +1505,11 @@ groups:
     labels:
       severity: warning
     annotations:
+      __dashboardUid__: arcus-cluster
+      __panelId__: "30"
       summary: '{{ $labels.job }} is down'
       description: 'Prometheus has not been able to scrape {{ $labels.job }} ({{ $labels.instance }}) for 5 minutes. Users are not affected, but the alerts that read from it are blind: with Loki or Alloy down the log alerts stop, with Grafana down nothing alerts at all (the other datacenters notice through Peer Datacenter Unreachable). First steps: kubectl get pods -l app={{ $labels.job }}, kubectl describe pod and kubectl logs for it; for kubelet-cadvisor, kubectl get --raw /api/v1/nodes/{{ $labels.instance }}/proxy/metrics/cadvisor.'
+      runbook_url: https://github.com/wl-net/arcus-k8s/blob/master/docs/runbooks/monitoring-service-down.md
   - uid: pod-pending
     title: Pod Stuck Pending
     condition: C
@@ -1495,8 +1559,11 @@ groups:
     labels:
       severity: warning
     annotations:
+      __dashboardUid__: arcus-cluster
+      __panelId__: "13"
       summary: '{{ $labels.pod }} has been Pending for 10 minutes'
       description: '{{ $labels.pod }} in namespace {{ $labels.namespace }} has not started. Either it cannot be scheduled (the node has less free CPU or memory than its requests, see Allocated resources in kubectl describe node) or a volume, Secret or ConfigMap it mounts is missing. During a rollout the old pod keeps serving, so the service runs the previous version until this is fixed. First steps: kubectl describe pod -n {{ $labels.namespace }} {{ $labels.pod }} and read the Events at the end.'
+      runbook_url: https://github.com/wl-net/arcus-k8s/blob/master/docs/runbooks/pod-pending.md
   - uid: rollout-stuck
     title: Deployment Rollout Stuck
     condition: C
@@ -1544,8 +1611,11 @@ groups:
     labels:
       severity: warning
     annotations:
+      __dashboardUid__: arcus-cluster
+      __panelId__: "12"
       summary: 'Rollout of {{ $labels.deployment }} is stuck'
       description: 'The new pods of {{ $labels.deployment }} did not become ready within the 10 minute progress deadline, so the Deployment has given up. The old pod keeps serving (maxUnavailable is 0), so the service runs the previous version. Workload Unavailable does not fire in this case. First steps: kubectl rollout status deployment/{{ $labels.deployment }}, kubectl get pods -l app={{ $labels.deployment }} and ./arcuscmd.sh logs {{ $labels.deployment }} on the new pod; kubectl rollout undo deployment/{{ $labels.deployment }} goes back to the previous version.'
+      runbook_url: https://github.com/wl-net/arcus-k8s/blob/master/docs/runbooks/rollout-stuck.md
   - uid: job-failed
     title: Job Failed
     condition: C
@@ -1595,8 +1665,11 @@ groups:
     labels:
       severity: warning
     annotations:
+      __dashboardUid__: arcus-cluster
+      __panelId__: "14"
       summary: 'Job {{ $labels.job_name }} failed'
       description: '{{ $labels.job_name }} in namespace {{ $labels.namespace }} failed in the last 6 hours (its retries are used up). For a modelmanager-* job the schema migration did not run; for a hub-keystore-renewal-* job the hub certificate was not refreshed (Hub Certificate Expiring fires if that goes on). First steps: kubectl logs job/{{ $labels.job_name }} -n {{ $labels.namespace }} and kubectl describe job/{{ $labels.job_name }} -n {{ $labels.namespace }}. ./arcuscmd.sh modelmanager re-runs the modelmanager jobs. The alert clears 6 hours after the failure, or when the job is deleted.'
+      runbook_url: https://github.com/wl-net/arcus-k8s/blob/master/docs/runbooks/job-failed.md
   - uid: public-endpoint-unreachable
     title: Public Endpoint Unreachable
     condition: C
@@ -1644,8 +1717,11 @@ groups:
     labels:
       severity: critical
     annotations:
+      __dashboardUid__: arcus-cluster
+      __panelId__: "22"
       summary: '{{ $labels.instance }} is not answering from the internet side'
       description: 'The probe resolves the public name and connects like a user or hub would, and has failed for 5 minutes (unreachable, not a 2xx/3xx answer, or an invalid certificate). DNS, the Route 53 record, port forwarding, Traefik or the certificate can be at fault; the in-cluster services may well be fine. A drained cluster still passes, because the name then points at the other datacenter. First steps: ./arcuscmd.sh check and ./arcuscmd.sh info, then curl -v {{ $labels.instance }} from outside the LAN; for hub.<domain>:8082, openssl s_client -connect against it.'
+      runbook_url: https://github.com/wl-net/arcus-k8s/blob/master/docs/runbooks/public-endpoint-unreachable.md
 - orgId: 1
   name: Monitoring Health
   folder: Provisioned
@@ -1698,8 +1774,11 @@ groups:
     labels:
       severity: critical
     annotations:
+      __dashboardUid__: arcus-cluster
+      __panelId__: "31"
       summary: 'Grafana could not deliver {{ $labels.integration }} notifications'
       description: 'Grafanas {{ $labels.integration }} contact point failed to send in the last 15 minutes, so alerts are firing without reaching anyone (this one included, unless another integration works). First steps: Alerting > Contact points > Test in Grafana and ./arcuscmd.sh logs grafana for the HTTP error. A rotated Discord webhook or Pushover token goes in .config/alert-discord-webhook or .config/alert-pushover-*, then ./arcuscmd.sh apply.'
+      runbook_url: https://github.com/wl-net/arcus-k8s/blob/master/docs/runbooks/grafana-notifications-failing.md
   - uid: prometheus-storage-errors
     title: Prometheus Storage Errors
     condition: C
@@ -1747,8 +1826,11 @@ groups:
     labels:
       severity: warning
     annotations:
+      __dashboardUid__: arcus-cluster
+      __panelId__: "32"
       summary: 'Prometheus storage errors'
       description: 'Prometheus failed a compaction or found a corrupt WAL segment in the last 2 hours; metrics may be missing and the next restart may be slow or fail. The volume being full is the usual cause. First steps: kubectl exec prometheus-0 -- df -h /prometheus-data and ./arcuscmd.sh logs prometheus. Retention is capped at 4GB and 30 days in config/stateful/prometheus.yaml.'
+      runbook_url: https://github.com/wl-net/arcus-k8s/blob/master/docs/runbooks/prometheus-storage-errors.md
   - uid: alloy-dropping-logs
     title: Log Shipping Dropping Entries
     condition: C
@@ -1796,8 +1878,11 @@ groups:
     labels:
       severity: warning
     annotations:
+      __dashboardUid__: arcus-cluster
+      __panelId__: "33"
       summary: 'Alloy on {{ $labels.pod }} dropped {{ printf "%.0f" $values.B.Value }} log entries ({{ $labels.reason }})'
       description: 'Alloy gave up sending log entries to Loki in the last 10 minutes ({{ $labels.reason }}); those lines are lost. Loki refusing them (Loki Discarding Logs says why) or being down (Monitoring Service Down) are the usual causes. First steps: kubectl logs {{ $labels.pod }} and ./arcuscmd.sh logs loki.'
+      runbook_url: https://github.com/wl-net/arcus-k8s/blob/master/docs/runbooks/alloy-dropping-logs.md
   - uid: loki-discarding-logs
     title: Loki Discarding Logs
     condition: C
@@ -1845,8 +1930,11 @@ groups:
     labels:
       severity: warning
     annotations:
+      __dashboardUid__: arcus-cluster
+      __panelId__: "33"
       summary: 'Loki discarded {{ printf "%.0f" $values.B.Value }} log lines in 10 minutes ({{ $labels.reason }})'
       description: 'Loki refused log lines in the last 10 minutes with reason {{ $labels.reason }}: rate_limited means a pod is logging faster than the ingestion limits in config/extrafiles/loki.yaml allow (the Log Volume panel shows which), line_too_long a line over the limit, and the others a label or timestamp problem from the Alloy pipeline in config/logging/alloy.yaml. Those lines are lost. First steps: ./arcuscmd.sh logs loki and the Log Volume by Service panel.'
+      runbook_url: https://github.com/wl-net/arcus-k8s/blob/master/docs/runbooks/loki-discarding-logs.md
 
 # How alert notifications read. Grafana's default message lists the raw query
 # values (A=1, B=1, C=0) and every label, with the summary and description
@@ -1866,7 +1954,7 @@ templates:
     {{ if not .Alerts.Firing }}Resolved: {{ end }}{{ or .CommonLabels.alertname "Grafana alerts" }} · {{ reReplaceAll `^https?://(admin\.)?([^/:]+).*$` "$2" .ExternalURL }}
     {{- end }}
 
-    {{ define "arcus.text" -}}
+    {{ define "arcus.body" -}}
     {{ range $i, $a := .Alerts.Firing }}{{ if lt $i 5 -}}
     🔴 {{ or $a.Annotations.summary $a.Labels.alertname }}
     {{ end }}{{ end -}}
@@ -1884,10 +1972,18 @@ templates:
     {{ end -}}
     {{ end }}
 
+    {{ define "arcus.text" -}}
+    {{ template "arcus.body" . -}}
+    {{ with .Alerts.Firing }}{{ with (index . 0).Annotations.runbook_url -}}
+    Runbook: {{ . }}
+    {{ end }}{{ end -}}
+    {{ end }}
+
     {{ define "arcus.message" -}}
-    {{ template "arcus.text" . -}}
+    {{ template "arcus.body" . -}}
     -# {{ or .CommonLabels.severity "alert" }}
     {{- with index .Alerts 0 }}{{ with .GeneratorURL }} · [Rule](<{{ . }}>){{ end }}
-    {{- if .PanelURL }} · [Panel](<{{ .PanelURL }}>){{ else if .DashboardURL }} · [Dashboard](<{{ .DashboardURL }}>){{ end }}{{ end }}
+    {{- if .PanelURL }} · [Panel](<{{ .PanelURL }}>){{ else if .DashboardURL }} · [Dashboard](<{{ .DashboardURL }}>){{ end }}
+    {{- with .Annotations.runbook_url }} · [Runbook](<{{ . }}>){{ end }}{{ end }}
     {{- if eq (len .Alerts.Firing) 1 }} · [Silence](<{{ (index .Alerts.Firing 0).SilenceURL }}>){{ end }}
     {{- end }}

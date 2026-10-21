@@ -42,6 +42,13 @@ spec:
               name: shared
         - name: GF_UNIFIED_ALERTING_SCREENSHOTS_CAPTURE
           value: "true"
+        # Alert state changes are written to Loki (stream {from="state-history"})
+        # instead of Grafana's database, so a rule's History tab and Alerting >
+        # History show every transition and they can be queried next to the logs
+        - name: GF_UNIFIED_ALERTING_STATE_HISTORY_BACKEND
+          value: loki
+        - name: GF_UNIFIED_ALERTING_STATE_HISTORY_LOKI_REMOTE_URL
+          value: http://loki-service.default.svc.cluster.local:3100
           #ports:
           #- containerPort: 3000
           #name: tcp-3000

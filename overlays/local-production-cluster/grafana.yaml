@@ -42,6 +42,13 @@ spec:
               name: shared
         - name: GF_UNIFIED_ALERTING_SCREENSHOTS_CAPTURE
           value: "true"
+        # Alert state changes are written to Loki (stream {from="state-history"})
+        # instead of Grafana's database, so a rule's History tab and Alerting >
+        # History show every transition and they can be queried next to the logs
+        - name: GF_UNIFIED_ALERTING_STATE_HISTORY_BACKEND
+          value: loki
+        - name: GF_UNIFIED_ALERTING_STATE_HISTORY_LOKI_REMOTE_URL
+          value: http://loki-service.default.svc.cluster.local:3100
           #ports:
           #- containerPort: 3000
           #name: tcp-3000
@@ -90,9 +97,18 @@ spec:
       - name: datasources
         configMap:
           name: grafana-datasources
+      # Alert rules from config/grafana/alerting.yaml (rendered by apply) and, when
+      # .config/alert-* is set, the contact points and notification policy apply
+      # writes to the grafana-notifications Secret. Optional so Grafana starts
+      # before the first apply.
       - name: alerting
-        configMap:
-          name: grafana-alerting
+        projected:
+          sources:
+          - configMap:
+              name: grafana-alerting
+          - secret:
+              name: grafana-notifications
+              optional: true
       - name: dashboards-provider
         configMap:
           name: grafana-dashboards-provider

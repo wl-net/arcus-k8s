@@ -47,6 +47,10 @@ function validate_manifests() {
   fi
 
   echo ""
+  echo "=== Alert Rules ==="
+  _validate_alert_rules || errors=$((errors + 1))
+
+  echo ""
   echo "=== Monitoring Config ==="
   if command -v docker &>/dev/null && docker info &>/dev/null; then
     _validate_monitoring || errors=$((errors + 1))
@@ -61,6 +65,74 @@ function validate_manifests() {
     echo "$errors check(s) failed."
     return 1
   fi
+}
+
+# Every rule in alerting.yaml needs a runbook in docs/runbooks/<uid>.md (with the
+# four sections the README asks for) that its runbook_url annotation points to,
+# every runbook needs a rule and an entry in the README's index, and a rule's
+# __dashboardUid__/__panelId__ must name a panel in config/dashboards/. This is
+# what the notification's Runbook and Panel links rely on.
+function _validate_alert_rules() {
+  local output
+  if output=$(python3 - "$ROOT" <<'PY'
+import glob, json, os, re, sys, yaml
+root = sys.argv[1]
+base = "https://github.com/wl-net/arcus-k8s/blob/master/docs/runbooks/"
+sections = ["What it means", "Confirm", "Fix", "Related alerts"]
+problems, rules = [], 0
+panels = {}
+for f in glob.glob(f"{root}/config/dashboards/*.json"):
+    d = json.load(open(f))
+    ids = set()
+    def walk(ps):
+        for p in ps:
+            ids.add(str(p.get("id")))
+            walk(p.get("panels") or [])
+    walk(d["panels"])
+    panels[d["uid"]] = ids
+readme = open(f"{root}/docs/runbooks/README.md").read()
+seen = set()
+for g in yaml.safe_load(open(f"{root}/config/grafana/alerting.yaml"))["groups"]:
+    for r in g["rules"]:
+        rules += 1
+        uid, a = r["uid"], r.get("annotations", {})
+        seen.add(uid)
+        path = f"{root}/docs/runbooks/{uid}.md"
+        if a.get("runbook_url") != f"{base}{uid}.md":
+            problems.append(f"{uid}: runbook_url should be {base}{uid}.md")
+        if not os.path.exists(path):
+            problems.append(f"{uid}: docs/runbooks/{uid}.md is missing")
+        else:
+            text = open(path).read()
+            if not text.startswith(f"# {r['title']}\n"):
+                problems.append(f"{uid}: docs/runbooks/{uid}.md should start with '# {r['title']}'")
+            for sec in sections:
+                if f"\n## {sec}\n" not in text:
+                    problems.append(f"{uid}: docs/runbooks/{uid}.md has no '## {sec}' section")
+            if f"]({uid}.md)" not in readme:
+                problems.append(f"{uid}: not in the docs/runbooks/README.md index")
+        dash, panel = a.get("__dashboardUid__"), a.get("__panelId__")
+        if dash or panel:
+            if dash not in panels:
+                problems.append(f"{uid}: __dashboardUid__ {dash} is not a dashboard in config/dashboards/")
+            elif str(panel) not in panels[dash]:
+                problems.append(f"{uid}: panel {panel} is not in dashboard {dash}")
+for f in glob.glob(f"{root}/docs/runbooks/*.md"):
+    name = os.path.basename(f)[:-3]
+    if name != "README" and name not in seen:
+        problems.append(f"docs/runbooks/{name}.md has no rule with that uid")
+for pr in problems:
+    print(pr)
+print(f"{rules} rules")
+sys.exit(1 if problems else 0)
+PY
+  ); then
+    echo "  OK:   alerting.yaml: every rule has a runbook and a panel that exist (${output##*$'\n'})"
+    return 0
+  fi
+  echo "  FAIL: alerting.yaml: rules, runbooks and panel links do not match up"
+  sed '$d' <<< "$output" | sed 's/^/        /'
+  return 1
 }
 
 # The image config/$1 runs (its first image: line), so the checks use the versions
