@@ -47,6 +47,8 @@ spec:
           name: prometheus-storage
         - mountPath: /etc/prometheus
           name: config
+        - mountPath: /etc/prometheus-targets
+          name: targets
         args: ['--web.listen-address=0.0.0.0:9080', '--config.file=/etc/prometheus/prometheus.yaml', '--storage.tsdb.path=/prometheus-data/data']
       dnsPolicy: ClusterFirst
       restartPolicy: Always
@@ -60,6 +62,12 @@ spec:
           items:
           - key: prometheus.yaml
             path: prometheus.yaml
+      # Probe targets written by apply from .config/; optional so Prometheus
+      # still starts before the first apply creates it
+      - name: targets
+        configMap:
+          name: prometheus-targets
+          optional: true
   volumeClaimTemplates:
   - metadata:
       name: prometheus-storage

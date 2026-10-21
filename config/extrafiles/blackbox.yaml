@@ -1,0 +1,14 @@
+modules:
+  # Cassandra, Kafka and ZooKeeper: the port accepts a TCP connection
+  tcp_connect:
+    prober: tcp
+    timeout: 5s
+  # hub-bridge on 8082: completes a TLS handshake. Verification is skipped because
+  # the probe connects by Service name; the alert rules check the certificate's expiry.
+  tls_connect:
+    prober: tcp
+    timeout: 5s
+    tcp:
+      tls: true
+      tls_config:
+        insecure_skip_verify: true

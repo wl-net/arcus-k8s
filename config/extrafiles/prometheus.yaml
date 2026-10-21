@@ -158,3 +158,21 @@ scrape_configs:
   - source_labels: [namespace, container]
     regex: default;.+
     action: keep
+
+# TCP checks of the external Cassandra, Kafka and ZooKeeper hosts, made by the
+# blackbox exporter. apply writes the hosts from .config/ into the
+# prometheus-targets ConfigMap, labeled with which datastore each one is.
+- job_name: 'blackbox-datastores'
+  scrape_interval: 30s
+  metrics_path: /probe
+  params:
+    module: [tcp_connect]
+  file_sd_configs:
+  - files: ['/etc/prometheus-targets/datastores.json']
+  relabel_configs:
+  - source_labels: [__address__]
+    target_label: __param_target
+  - source_labels: [__param_target]
+    target_label: instance
+  - target_label: __address__
+    replacement: blackbox-exporter.default.svc.cluster.local:9115

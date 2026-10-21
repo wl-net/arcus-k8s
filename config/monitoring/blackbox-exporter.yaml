@@ -1,0 +1,79 @@
+# The blackbox exporter makes TCP and TLS checks for Prometheus: that the external
+# Cassandra, Kafka and ZooKeeper hosts accept connections, and which certificate
+# hub-bridge serves on 8082. Modules are in config/extrafiles/blackbox.yaml.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: blackbox-exporter
+  name: blackbox-exporter
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: blackbox-exporter
+  template:
+    metadata:
+      labels:
+        app: blackbox-exporter
+    spec:
+      containers:
+      - image: prom/blackbox-exporter:v0.29.0
+        imagePullPolicy: IfNotPresent
+        name: blackbox-exporter
+        args:
+        - --config.file=/etc/blackbox/blackbox.yaml
+        ports:
+        - containerPort: 9115
+          name: http
+        livenessProbe:
+          httpGet:
+            path: /-/healthy
+            port: http
+          initialDelaySeconds: 5
+          timeoutSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /-/healthy
+            port: http
+          initialDelaySeconds: 5
+          timeoutSeconds: 5
+        resources:
+          limits:
+            cpu: 200m
+            memory: 64Mi
+          requests:
+            cpu: "0.01"
+            memory: 16Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 65534
+          capabilities:
+            drop: ["ALL"]
+        volumeMounts:
+        - mountPath: /etc/blackbox
+          name: config
+      volumes:
+      - name: config
+        configMap:
+          name: blackbox-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: blackbox-exporter
+  name: blackbox-exporter
+  namespace: default
+spec:
+  ports:
+  - name: http
+    port: 9115
+    protocol: TCP
+    targetPort: http
+  selector:
+    app: blackbox-exporter
+  type: ClusterIP

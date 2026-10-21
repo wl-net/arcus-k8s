@@ -516,6 +516,55 @@ groups:
       __panelId__: "30"
       summary: 'Scheduler command errors'
       description: 'Scheduler service is experiencing command errors.'
+  - uid: datastore-unreachable
+    title: Datastore Unreachable
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 300
+        to: 0
+      datasourceUid: prometheus
+      model:
+        expr: probe_success{job="blackbox-datastores"}
+        instant: true
+        refId: A
+    - refId: B
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: reduce
+        expression: A
+        reducer: last
+        refId: B
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: threshold
+        expression: B
+        conditions:
+        - evaluator:
+            type: lt
+            params:
+            - 1
+          operator:
+            type: and
+          reducer:
+            type: last
+        refId: C
+    for: 2m
+    noDataState: OK
+    execErrState: Error
+    labels:
+      severity: critical
+    annotations:
+      summary: '{{ $labels.datastore }} at {{ $labels.instance }} is not accepting connections'
+      description: 'The blackbox exporter has not been able to open a TCP connection to {{ $labels.datastore }} at {{ $labels.instance }} for 2 minutes. Cassandra, Kafka and ZooKeeper run outside the cluster: check the host and the service on it.'
   - uid: alloy-inotify-errors
     title: Alloy Inotify Errors
     condition: C

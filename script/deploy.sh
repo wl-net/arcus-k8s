@@ -1,6 +1,21 @@
 # shellcheck shell=bash
 # Deployment and application management functions
 
+# Print a Prometheus file_sd target group labeled datastore=$1 for the
+# comma-separated hosts in $3, adding the default port $2 to any host without one.
+function _datastore_targets() {
+  local name=$1 port=$2 host targets=""
+  local -a hosts
+  IFS=',' read -ra hosts <<< "$3"
+  for host in "${hosts[@]}"; do
+    host=${host// /}
+    [[ -n "$host" ]] || continue
+    [[ "$host" == *:* ]] || host="$host:$port"
+    targets+="${targets:+, }\"$host\""
+  done
+  printf '{"targets": [%s], "labels": {"datastore": "%s"}}' "$targets" "$name"
+}
+
 function apply() {
   # Apply the configuration
   load
@@ -127,6 +142,16 @@ function apply() {
   $KUBECTL create configmap extrafiles \
     --from-file=firmware.xml=config/extrafiles/firmware.xml \
     --from-file=logback.xml=config/extrafiles/logback.xml > /dev/null
+
+  # TCP check targets for the blackbox-datastores Prometheus job. ZooKeeper's
+  # connect string may end in a chroot (host:2181/arcus), which isn't part of a host.
+  local targets="overlays/${ARCUS_OVERLAY_NAME}-local/datastores.json"
+  printf '[%s,\n %s,\n %s]\n' \
+    "$(_datastore_targets cassandra 9042 "$ARCUS_CASSANDRA_HOST")" \
+    "$(_datastore_targets kafka 9092 "$ARCUS_KAFKA_HOST")" \
+    "$(_datastore_targets zookeeper 2181 "${ARCUS_ZOOKEEPER_HOST%%/*}")" > "$targets"
+  $KUBECTL create configmap prometheus-targets --from-file=datastores.json="$targets" \
+    --dry-run=client -o yaml | $KUBECTL apply -f - > /dev/null
 
   ensure_grafana_renderer_token
   $KUBECTL create secret generic shared --from-file secret/ --dry-run=client -o yaml | $KUBECTL apply -f - > /dev/null

@@ -21,9 +21,9 @@ config/
   service/                   # Service and Ingress definitions
   stateful/                  # Prometheus, Loki & Grafana StatefulSets
   grafana/ dashboards/       # Grafana provisioning (datasources, alerting, dashboards)
-  extrafiles/                # firmware.xml, logback.xml, Prometheus and Loki config
+  extrafiles/                # firmware.xml, logback.xml, Prometheus, Loki and blackbox exporter config
   logging/                   # Alloy log collector
-  monitoring/                # kube-state-metrics (pod restarts, CrashLoopBackOff for alerting)
+  monitoring/                # kube-state-metrics (pod restarts, CrashLoopBackOff) and the blackbox exporter (TCP/TLS checks)
   certprovider/              # Let's Encrypt issuers
   cronjob/                   # Scheduled jobs (hub-keystore renewal)
   jobs/                      # One-shot Kubernetes jobs
@@ -151,7 +151,7 @@ Run `./arcuscmd.sh configure` to set these interactively, or write the files dir
 
 ## Cassandra / Kafka / Zookeeper
 
-Cassandra, Kafka and Zookeeper always run outside the cluster (production uses a dedicated 3-datacenter Cassandra cluster); this repo has no in-cluster copies. `.config/cassandra-host`, `.config/kafka-host` and `.config/zookeeper-host` are required: `configure` asks for them, and `apply` stops if one is missing. `apply` writes them into the generated `cluster-config.yaml` in place of the `PLACEHOLDER_*` hosts in `config/configmaps/cluster-config.yaml`; both overlays apply that file. A node's `-local` `cluster-config-tunable.yaml` is applied after it, so any host keys left in that file override `.config/`.
+Cassandra, Kafka and Zookeeper always run outside the cluster (production uses a dedicated 3-datacenter Cassandra cluster); this repo has no in-cluster copies. `.config/cassandra-host`, `.config/kafka-host` and `.config/zookeeper-host` are required: `configure` asks for them, and `apply` stops if one is missing. `apply` writes them into the generated `cluster-config.yaml` in place of the `PLACEHOLDER_*` hosts in `config/configmaps/cluster-config.yaml`; both overlays apply that file. A node's `-local` `cluster-config-tunable.yaml` is applied after it, so any host keys left in that file override `.config/`. `apply` also writes every host to the `prometheus-targets` ConfigMap, and the blackbox exporter checks each one accepts TCP connections (the Datastore Unreachable alert); ports default to 9042, 9092 and 2181.
 
 ## External Service Dependencies
 

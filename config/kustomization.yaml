@@ -32,6 +32,7 @@ resources:
 - stateful/loki.yaml
 - logging/alloy.yaml
 - monitoring/kube-state-metrics.yaml
+- monitoring/blackbox-exporter.yaml
 - service/grafana.yaml
 - service/prometheus.yaml
 
@@ -54,6 +55,9 @@ configMapGenerator:
 - name: loki-config
   files:
   - extrafiles/loki.yaml
+- name: blackbox-config
+  files:
+  - extrafiles/blackbox.yaml
 
 images:
 - name: ghcr.io/wl-net/arcusplatform/arcus-api-bridge
