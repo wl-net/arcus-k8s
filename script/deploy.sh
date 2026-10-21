@@ -30,6 +30,76 @@ function _peer_targets() {
   printf '[%s]\n' "$groups"
 }
 
+# Print the image, without its tag, that config/deployments/$1.yaml runs.
+function _app_image() {
+  local image
+  image=$(awk '$1 == "image:" { print $2; exit } $1 == "-" && $2 == "image:" { print $3; exit }' \
+    "$ROOT/config/deployments/$1.yaml" 2>/dev/null) || true
+  echo "${image%:*}"
+}
+
+# Print the newTag config/kustomization.yaml sets for image $1, if it sets one.
+function _configured_tag() {
+  awk -v image="$1" '
+    $1 == "-" && $2 == "name:" { found = ($3 == image); next }
+    found && $1 == "newTag:" { gsub(/["\047]/, "", $2); print $2; exit }
+  ' "$ROOT/config/kustomization.yaml"
+}
+
+# True if version $1 sorts after version $2.
+function _version_newer() {
+  [[ "$1" != "$2" && "$(printf '%s\n%s\n' "$1" "$2" | sort -V | tail -n 1)" == "$1" ]]
+}
+
+# Remember that 'deploy --version' put service $1 on tag $2, so apply keeps it
+# there for as long as config/kustomization.yaml is behind it.
+function _record_version() {
+  local app=$1 version=$2 configured
+  configured=$(_configured_tag "$(_app_image "$app")")
+  if _version_newer "$version" "$configured"; then
+    mkdir -p "$ARCUS_CONFIGDIR/image-version"
+    echo "$version" > "$ARCUS_CONFIGDIR/image-version/$app"
+  else
+    rm -f "$ARCUS_CONFIGDIR/image-version/$app"
+  fi
+}
+
+# Add an images entry to the kustomization $1 for each service 'deploy --version'
+# moved ahead of config/kustomization.yaml, so apply doesn't move it back. Once
+# config/kustomization.yaml reaches that version the service follows it again.
+function _keep_deployed_versions() {
+  local kustomization=$1 pin app version image configured entries="" line out=""
+  for pin in "$ARCUS_CONFIGDIR"/image-version/*; do
+    [[ -f "$pin" ]] || continue
+    app=${pin##*/}
+    version=$(cat "$pin")
+    image=$(_app_image "$app")
+    configured=$(_configured_tag "$image")
+    if [[ -z "$configured" ]]; then
+      echo "${app}: no image tag in config/kustomization.yaml any more, dropping its deployed version ${version}."
+      rm -f "$pin"
+    elif ! _version_newer "$version" "$configured"; then
+      echo "${app}: config/kustomization.yaml is at ${configured}, which has caught up with ${version}; following it again."
+      rm -f "$pin"
+    else
+      echo "${app}: keeping ${version} from 'deploy --version' (config/kustomization.yaml has ${configured})."
+      entries+="- name: ${image}"$'\n'"  newTag: ${version}"$'\n'
+    fi
+  done
+  [[ -n "$entries" ]] || return 0
+
+  if grep -q '^images:' "$kustomization"; then
+    # Ahead of the overlay's own entries, which match the same name and may rename it
+    while IFS= read -r line || [[ -n "$line" ]]; do
+      out+="$line"$'\n'
+      [[ "$line" == 'images:' ]] && out+="$entries"
+    done < "$kustomization"
+    printf '%s' "$out" > "$kustomization"
+  else
+    printf 'images:\n%s' "$entries" >> "$kustomization"
+  fi
+}
+
 function apply() {
   # Apply the configuration
   load
@@ -72,6 +142,8 @@ function apply() {
   # Restore tunable files if user had customized them
   [[ -n "$saved_arcus_tunable" ]] && echo "$saved_arcus_tunable" > "$arcus_tunable"
   [[ -n "$saved_cluster_tunable" ]] && echo "$saved_cluster_tunable" > "$cluster_tunable"
+
+  _keep_deployed_versions "overlays/${ARCUS_OVERLAY_NAME}-local/kustomization.yaml"
 
   # Clean up old .yml tunables after migration
   rm -f "overlays/${ARCUS_OVERLAY_NAME}-local/arcus-config-tunable.yml" \
@@ -190,6 +262,28 @@ function apply() {
   git -C "$ROOT" rev-parse HEAD > "$ROOT/.cache/last-applied-rev"
 }
 
+# Move deployment $1 onto image tag $2 if one is given, or restart it, and wait
+# for the rollout to finish.
+function _rollout_app() {
+  local app=$1 version=$2 container image
+  if [[ -z "$version" ]]; then
+    echo "Restarting ${app}..."
+    $KUBECTL rollout restart deployment/"$app"
+  else
+    container=$($KUBECTL get deployment/"$app" -o jsonpath='{.spec.template.spec.containers[0].name}')
+    image=$($KUBECTL get deployment/"$app" -o jsonpath='{.spec.template.spec.containers[0].image}')
+    if [[ "${image##*:}" == "$version" ]]; then
+      echo "${app} is already on ${version}."
+    else
+      echo "Updating ${app} to ${version}..."
+      $KUBECTL set image deployment/"$app" "${container}=${image%:*}:${version}"
+    fi
+  fi
+  $KUBECTL rollout status deployment/"$app" --timeout=120s
+  [[ -z "$version" ]] || _record_version "$app" "$version"
+  echo "${app} ready."
+}
+
 # Deploy the platform in a way that causes minimal downtime
 function deploy_platform() {
   local verify_output
@@ -208,11 +302,20 @@ function deploy_platform() {
 
   local pull=0
   local workers=1
+  local version=""
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --pull)
         pull=1
         shift
+        ;;
+      --version)
+        if [[ -z "${2:-}" || "$2" == -* ]]; then
+          echo "Error: --version requires an image tag (e.g. 2026.10.3)"
+          return 1
+        fi
+        version="$2"
+        shift 2
         ;;
       -w|--workers)
         if [[ -z "${2:-}" ]] || ! [[ "$2" =~ ^[0-9]+$ ]] || [[ "$2" -lt 1 ]]; then
@@ -242,14 +345,42 @@ function deploy_platform() {
     targets="$APPS"
   fi
 
+  if [[ -n "$version" ]]; then
+    # Only services whose image tag config/kustomization.yaml sets have versions
+    local versioned="" behind="" configured
+    for app in $targets; do
+      configured=$(_configured_tag "$(_app_image "$app")")
+      if [[ -z "$configured" ]]; then
+        if [[ $# -gt 0 ]]; then
+          echo "Error: ${app} has no image tag in config/kustomization.yaml to change"
+          return 1
+        fi
+        echo "Skipping ${app} (no image tag in config/kustomization.yaml)."
+        continue
+      fi
+      versioned+="${versioned:+ }$app"
+      if _version_newer "$configured" "$version"; then
+        behind+="${behind:+ }$app"
+      fi
+    done
+    targets=$versioned
+    if [[ -n "$behind" ]]; then
+      echo "Note: config/kustomization.yaml has a newer version than ${version} for: ${behind}."
+      echo "The next apply moves these back to it."
+    fi
+  fi
+
   local mode="Rolling restart"
   [[ $pull -eq 1 ]] && mode="Pull and restart"
+  [[ -n "$version" ]] && mode="Rolling update to ${version}"
   _notify_start "$mode: $targets"
 
   local _deploy_current_app=""
   trap 'echo ""; [[ -n "$_deploy_current_app" ]] && echo "Interrupted during: ${_deploy_current_app}"; _notify_failure "$mode interrupted"; trap - INT; kill -INT $$' INT
 
-  if [[ $pull -eq 1 ]]; then
+  # A new version is pulled before any service changes, so a tag that doesn't
+  # exist stops the deploy here instead of leaving a service in ImagePullBackOff
+  if [[ $pull -eq 1 || -n "$version" ]]; then
     for app in $targets; do
       _deploy_current_app="pulling $app"
       local image
@@ -258,9 +389,15 @@ function deploy_platform() {
         echo "Warning: could not determine image for ${app}, skipping pull"
         continue
       fi
+      [[ -z "$version" ]] || image="${image%:*}:${version}"
       echo "Pulling ${image}..."
       if sudo crictl pull "$image" 2>/dev/null; then
         echo "Pulled ${image}."
+      elif [[ -n "$version" ]]; then
+        echo "Error: could not pull ${image}. No services were changed."
+        trap - INT
+        _notify_failure "$mode failed: could not pull ${image}"
+        return 1
       else
         echo "Failed to pull ${image}, continuing with cached image."
       fi
@@ -273,11 +410,8 @@ function deploy_platform() {
         echo "Skipping ${app} (not deployed)."
         continue
       fi
-      _deploy_current_app="restarting $app"
-      echo "Restarting ${app}..."
-      $KUBECTL rollout restart deployment/"$app"
-      $KUBECTL rollout status deployment/"$app" --timeout=120s
-      echo "${app} ready."
+      _deploy_current_app="rolling out $app"
+      _rollout_app "$app" "$version"
     done
   else
     echo "Deploying with ${workers} workers..."
@@ -306,12 +440,7 @@ function deploy_platform() {
         [[ $running -ge $workers ]] && sleep 1
       done
 
-      (
-        echo "Restarting ${app}..."
-        $KUBECTL rollout restart deployment/"$app"
-        $KUBECTL rollout status deployment/"$app" --timeout=120s
-        echo "${app} ready."
-      ) &
+      _rollout_app "$app" "$version" &
       pids+=($!)
       running=$((running + 1))
     done

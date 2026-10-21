@@ -63,6 +63,7 @@ Secrets are written to `secret/` and local overlay state to `overlays/<overlay>-
 # Deploy
 ./arcuscmd.sh apply          # Deploy/update Arcus configuration
 ./arcuscmd.sh deploy         # Rolling restart of all services, one at a time
+./arcuscmd.sh deploy --version 2026.10.3  # Move services to a release one at a time (or: deploy --version <tag> <svc...>)
 ./arcuscmd.sh update         # Pull latest changes, show what changed
 ./arcuscmd.sh rollback       # Revert to a previous version
 ./arcuscmd.sh history        # Show recent update history with apply status
@@ -101,6 +102,7 @@ Secrets are written to `secret/` and local overlay state to `overlays/<overlay>-
 
 ### Image versions
 - Image tags are centrally managed in `config/kustomization.yaml`.
+- When `apply` changes the tags it updates every service at once. `./arcuscmd.sh deploy --version <tag>` moves services one at a time instead (it pulls the tag first, so one that doesn't exist changes nothing). A tag ahead of `config/kustomization.yaml` is recorded in `.config/image-version/<service>`, and `apply` keeps the service on it until `config/kustomization.yaml` reaches that version, then drops the record. A tag behind it lasts until the next `apply`. `status` lists the services held ahead.
 
 ### Secrets
 - Secrets are generated once by `configure` and stored in `secret/`. Re-running configure will not overwrite existing secrets.
@@ -148,6 +150,7 @@ Each node stores its local configuration in `.config/` (git-ignored). These file
 | `route53-set-identifier` | Optional | Route 53 set identifier for weighted record (used by `drain`/`resume`) |
 | `discord-webhook` | Optional | Discord webhook URL for notifications on state-changing commands |
 | `discord-silent` | Optional | If present, suppresses Discord notifications (`notify-off`/`notify-on`) |
+| `image-version/<service>` | Written by `deploy --version` | Image tag a service was moved to ahead of `config/kustomization.yaml`; removed by `apply` once the configured tag catches up |
 
 Run `./arcuscmd.sh configure` to set these interactively, or write the files directly.
 

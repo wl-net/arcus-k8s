@@ -58,6 +58,17 @@ function arcus_status() {
   echo "Arcus Builds:"
   _arcus_builds
 
+  local pin header="Ahead of config/kustomization.yaml (deploy --version):"
+  for pin in "$ARCUS_CONFIGDIR"/image-version/*; do
+    [[ -f "$pin" ]] || continue
+    if [[ -n "$header" ]]; then
+      printf '\n%s\n' "$header"
+      header=""
+    fi
+    printf "  %-24s %s (configured: %s)\n" "${pin##*/}" "$(cat "$pin")" \
+      "$(_configured_tag "$(_app_image "${pin##*/}")")"
+  done
+
   # Show pods that are not fully healthy
   local unhealthy
   unhealthy=$($KUBECTL get pods -l '!job-name' -o wide --no-headers 2>/dev/null | awk '

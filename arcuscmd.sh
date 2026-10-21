@@ -55,6 +55,9 @@ Deploy:
   apply               Apply the current configuration to the cluster
   deploy [svc...]     Rolling restart of services (all if none specified)
                         --pull        Force re-pull images before restarting
+                        --version TAG Move services to image TAG one at a time; apply
+                                        keeps them there until config/kustomization.yaml
+                                        reaches TAG
                         -w, --workers N  Restart N services concurrently (default: 1)
   update [--apply]    Pull latest changes and show what changed
   rollback            Revert to a previous version
