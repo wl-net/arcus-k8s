@@ -442,30 +442,32 @@ function updatehubkeystore() {
     exit 1
   fi
 
-  mkdir -p converted
-  $KUBECTL get secret nginx-production-tls -o jsonpath='{.data.tls\.key}' | base64 -d > converted/orig.key
-  $KUBECTL get secret nginx-production-tls -o jsonpath='{.data.tls\.crt}' | base64 -d > converted/tls.crt
+  # Read the resourceVersion before the data, so a certificate rotated mid-run
+  # leaves an older annotation and the renewal CronJob picks it up
+  local source_rv
+  source_rv=$($KUBECTL get secret nginx-production-tls -o jsonpath='{.metadata.resourceVersion}')
 
-  if ! openssl x509 -in converted/tls.crt -checkend 0 -noout &>/dev/null; then
+  # Keep the certificate and key in memory so the private key never touches disk
+  local cert key
+  cert=$($KUBECTL get secret nginx-production-tls -o jsonpath='{.data.tls\.crt}' | base64 -d)
+
+  if ! printf '%s\n' "$cert" | openssl x509 -checkend 0 -noout &>/dev/null; then
     echo "Error: certificate has expired. Renew it before updating the hub keystore."
-    rm -rf converted
     exit 1
   fi
 
-  openssl pkcs8 -in converted/orig.key -topk8 -nocrypt -out converted/tls.key
-  rm converted/orig.key
+  key=$($KUBECTL get secret nginx-production-tls -o jsonpath='{.data.tls\.key}' | base64 -d | openssl pkcs8 -topk8 -nocrypt)
 
-  $KUBECTL delete secret hub-keystore --ignore-not-found
+  # Apply over the existing secret rather than delete and recreate, so
+  # hub-keystore never goes missing while hub-bridge might mount it
   $KUBECTL create secret generic truststore --from-file util/truststore.jks --dry-run=client -o yaml | $KUBECTL apply -f -
-  $KUBECTL create secret tls hub-keystore --cert converted/tls.crt --key converted/tls.key
+  $KUBECTL create secret tls hub-keystore --cert <(printf '%s\n' "$cert") --key <(printf '%s\n' "$key") \
+    --dry-run=client -o yaml | $KUBECTL apply -f -
 
   # Annotate hub-keystore with source resourceVersion so the renewal CronJob
   # can detect when the certificate has been rotated.
-  local source_rv
-  source_rv=$($KUBECTL get secret nginx-production-tls -o jsonpath='{.metadata.resourceVersion}')
   $KUBECTL annotate secret hub-keystore "arcus.io/source-resource-version=${source_rv}" --overwrite
 
-  rm -rf converted
   echo "Hub keystore created with production certificate and trust store."
 
   echo "Restarting hub-bridge..."
