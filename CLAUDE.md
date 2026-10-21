@@ -79,13 +79,11 @@ Secrets are written to `secret/` and local overlay state to `overlays/<overlay>-
 ./arcuscmd.sh validate       # YAML syntax, kustomize build, and kubeconform schema checks (same as CI)
 
 # Operations
-./arcuscmd.sh backupdb       # Backup Cassandra database
 ./arcuscmd.sh backupconfig   # Backup local configuration (.config, secrets, overlays) to a tarball
 ./arcuscmd.sh drain          # Set Route 53 weighted record to 0 (drain traffic from this cluster)
 ./arcuscmd.sh resume         # Restore Route 53 weighted record to its previous value
 ./arcuscmd.sh logs <app>     # Get logs for a service (targets running pods only)
 ./arcuscmd.sh shell <app>    # Get an interactive shell on a pod
-./arcuscmd.sh dbshell        # Open Cassandra CQL shell
 ./arcuscmd.sh modelmanager   # Run model manager jobs (provision database schemas)
 ./arcuscmd.sh deletepod <app>  # Delete pods matching an application
 ./arcuscmd.sh silence [2h]   # Silence Grafana alerts (unsilence to remove)
@@ -165,18 +163,11 @@ Arcus requires accounts with:
 
 ## Backups
 
-### Configuration
 ```bash
 ./arcuscmd.sh backupconfig   # Creates a timestamped tarball of .config, secrets, and local overlays
 ```
 
-### Database
-Cassandra is the only stateful component that needs backup:
-```bash
-./arcuscmd.sh backupdb               # Snapshot-based backup
-./arcuscmd.sh restoredb <file>       # Restore from snapshot backup
-./arcuscmd.sh restoredb-full <file>  # Full restore (destructive, replaces data dir)
-```
+Cassandra is the only stateful component that needs backup. It runs outside the cluster, so back it up where it runs; this repo doesn't manage it.
 
 ## CI
 

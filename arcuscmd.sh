@@ -72,10 +72,7 @@ Status:
   validate            Validate YAML syntax, kustomize build, and Kubernetes schemas
   verifyconfig        Verify that all configuration and secrets are present
 
-Backup & Restore:
-  backupdb            Snapshot and backup Cassandra database
-  restoredb <file>    Restore Cassandra from a snapshot backup
-  restoredb-full <f>  Full Cassandra restore (destructive, replaces data dir)
+Backup:
   backupconfig        Backup local configuration to a tarball
 
 Monitoring:
@@ -98,7 +95,6 @@ Troubleshooting:
   certlogs [part]     Get logs for cert-manager (optionally: webhook, cainjector)
   httplogs            Get logs for the Traefik ingress controller
   shell <app>         Get an interactive shell on a pod
-  dbshell             Open a Cassandra CQL shell
   deletepod <app>     Delete pods matching an application
   killall             Delete all Arcus pods, triggering a full reschedule
 ENDOFDOC
@@ -206,24 +202,9 @@ httplogs)
 shell)
   shell_exec "${@:2}"
   ;;
-dbshell)
-  shell_exec cassandra /opt/cassandra/bin/cqlsh localhost
-  ;;
 deletepod)
   _notify_start "Deleting pods: ${*:2}"
   delete "${@:2}"
-  ;;
-backupdb)
-  _notify_start "Backing up Cassandra"
-  backup_cassandra
-  ;;
-restoredb)
-  _notify_start "Restoring Cassandra from snapshot" "$_NOTIFY_COLOR_ORANGE"
-  restore_cassandra_snapshot "${@:2}"
-  ;;
-restoredb-full)
-  _notify_start "Full Cassandra restore" "$_NOTIFY_COLOR_ORANGE"
-  restore_cassandra_full "${@:2}"
   ;;
 backupconfig)
   backup_config

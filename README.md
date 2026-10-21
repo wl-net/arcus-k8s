@@ -192,9 +192,9 @@ This can be accomplished by running `./arcuscmd.sh updatehubkeystore` once you h
 
 ## Backups
 
-The only critical persistent system is Cassandra. For development, Cassandra can be run inside k3s using the manifests in the `local-production` overlay. For production, Cassandra should run on a dedicated 3-datacenter cluster external to Kubernetes — a single k3s node provides no real redundancy. Kafka and Zookeeper follow the same model.
+`./arcuscmd.sh backupconfig` saves `.config/`, `secret/` and the generated overlays to a timestamped tarball.
 
-Utility scripts have been provided to assist with backing up and restoring Cassandra. Typically you'd want to use snapshots to backup Cassandra, however in low-activity use cases like Arcus, you can also just make a tarball of the working directory and restore it.
+The only critical persistent system is Cassandra. It runs outside Kubernetes, so back it up where it runs; this repository doesn't manage it.
 
 ## Troubleshooting
 
