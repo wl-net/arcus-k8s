@@ -54,6 +54,10 @@ function arcus_status() {
   $KUBECTL get deployments $APPS --ignore-not-found
   set -e
 
+  echo ""
+  echo "Arcus Builds:"
+  _arcus_builds
+
   # Show pods that are not fully healthy
   local unhealthy
   unhealthy=$($KUBECTL get pods -l '!job-name' -o wide --no-headers 2>/dev/null | awk '
@@ -124,6 +128,35 @@ function arcus_status() {
 
   echo ""
   infra_versions
+}
+
+# Print the build each service runs, grouped so a mixed rollout stands out.
+# The build (version, commit and build time) comes from the banner a service
+# logs at startup. Once that has rotated out of the log, and for the nginx
+# images, which log none, fall back to the image tag.
+function _arcus_builds() {
+  local -A apps_by_build=()
+  local -a builds=()
+  local app image build
+  while read -r app image; do
+    build=$($KUBECTL logs "deploy/$app" --limit-bytes=4194304 2>/dev/null | grep -m1 -F '[built: ' \
+      | sed -E 's/^[[:space:]]*[^ ]+ v([^ ]+) \(([^)]*)\) \[built: ([^]]*)\].*/v\1 (\2), built \3/') || true
+    [[ -n "$build" ]] || build="image tag ${image##*:} (build not in log)"
+    [[ -n "${apps_by_build[$build]+x}" ]] || builds+=("$build")
+    apps_by_build[$build]+="${apps_by_build[$build]:+, }$app"
+  done < <(
+    # shellcheck disable=SC2086
+    $KUBECTL get deployments $APPS static-server --ignore-not-found \
+      -o jsonpath='{range .items[*]}{.metadata.name}{" "}{.spec.template.spec.containers[0].image}{"\n"}{end}' 2>/dev/null
+  )
+  if [[ ${#builds[@]} -eq 0 ]]; then
+    echo "  No Arcus deployments found"
+    return
+  fi
+  for build in "${builds[@]}"; do
+    echo "  $build"
+    fold -s -w 92 <<< "${apps_by_build[$build]}" | sed 's/ *$//; s/^/    /'
+  done
 }
 
 function infra_versions() {

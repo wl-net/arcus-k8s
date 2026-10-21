@@ -21,7 +21,7 @@ Kubernetes deployment infrastructure for [Arcus Smart Home](https://github.com/a
 ./arcuscmd.sh update             # Pull latest changes and see what changed
 ./arcuscmd.sh apply              # Deploy updated configuration
 ./arcuscmd.sh deploy             # Rolling restart of services
-./arcuscmd.sh status             # Show services, certs, and infrastructure versions
+./arcuscmd.sh status             # Show services, builds, certs, and infrastructure versions
 ./arcuscmd.sh help               # List all commands
 ```
 

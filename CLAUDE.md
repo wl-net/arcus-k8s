@@ -71,7 +71,7 @@ Secrets are written to `secret/` and local overlay state to `overlays/<overlay>-
 ./arcuscmd.sh updatehubkeystore  # Convert PKCS#1 key to PKCS#8 for hub-bridge
 
 # Status
-./arcuscmd.sh status         # Show services, certificates, and infrastructure versions
+./arcuscmd.sh status         # Show services, their builds, certificates, and infrastructure versions
 ./arcuscmd.sh versions       # Show installed vs configured infrastructure versions
 ./arcuscmd.sh info           # Show DNS to IP/port mappings
 ./arcuscmd.sh check          # Test public connectivity to Arcus services

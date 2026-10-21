@@ -65,7 +65,7 @@ Deploy:
   modelmanager        Run model manager jobs (provision database schemas)
 
 Status:
-  status              Show services, certificates, and infrastructure versions
+  status              Show services, their builds, certificates, and infrastructure versions
   versions            Show installed vs configured infrastructure versions
   info                Show DNS to IP/port mappings
   check               Test public connectivity to Arcus services
