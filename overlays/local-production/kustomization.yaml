@@ -1,8 +1,5 @@
 resources:
 - ../../config
-- cassandra.yaml
-- kafka.yaml
-- zookeeper.yaml
 - grafana.yaml
 patches:
 - path: cert-provider.yaml

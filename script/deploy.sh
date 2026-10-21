@@ -1,26 +1,6 @@
 # shellcheck shell=bash
 # Deployment and application management functions
 
-# True if any of the comma-separated hosts in $2 (port optional) names the
-# in-cluster Service $1: e.g. cassandra, cassandra:9042,
-# cassandra.default.svc.cluster.local, or a pod behind it like cassandra-0.cassandra.
-function _is_in_cluster_host() {
-  local svc=$1 host
-  local -a hosts
-  IFS=',' read -ra hosts <<< "$2"
-  for host in "${hosts[@]}"; do
-    host=${host// /}
-    host=${host%:*}
-    host=${host%.svc.cluster.local}
-    host=${host%.svc}
-    host=${host%.default}
-    if [[ "$host" == "$svc" || "$host" == *."$svc" ]]; then
-      return 0
-    fi
-  done
-  return 1
-}
-
 function apply() {
   # Apply the configuration
   load
@@ -71,6 +51,10 @@ function apply() {
   # Clean up stale ingress-nginx overlay from the Traefik migration
   rm -f "overlays/${ARCUS_OVERLAY_NAME}-local/nginx-proxy.yaml"
 
+  # Clean up the in-cluster datastore manifests, which were removed from the overlay
+  rm -f "overlays/${ARCUS_OVERLAY_NAME}-local/"{cassandra,kafka,zookeeper}.yaml \
+        "overlays/${ARCUS_OVERLAY_NAME}-local/zookeeper.yml"
+
   # Apply Cassandra DC overrides from .config/ into the cluster tunable
   if [[ -n "${ARCUS_CASSANDRA_DC-}" ]]; then
     sed -i "s/CASSANDRA_LOADBALANCINGPOLICY: roundrobin$/CASSANDRA_LOADBALANCINGPOLICY: roundrobindc/" "$cluster_tunable"
@@ -95,30 +79,10 @@ function apply() {
   sed -i "s/arcussmarthome.com/$ARCUS_DOMAIN_NAME/g" "overlays/${ARCUS_OVERLAY_NAME}-local/shared-config.yaml"
 
   cp config/configmaps/cluster-config.yaml "overlays/${ARCUS_OVERLAY_NAME}-local/cluster-config.yaml"
-
-  if [[ -n "${ARCUS_CASSANDRA_HOST-}" ]]; then
-    sed -i "s!PLACEHOLDER_CASSANDRA_HOST!${ARCUS_CASSANDRA_HOST}!g" "overlays/${ARCUS_OVERLAY_NAME}-local/cluster-config.yaml"
-    # Services talk to the external Cassandra, so don't deploy the in-cluster node.
-    if ! _is_in_cluster_host cassandra "${ARCUS_CASSANDRA_HOST}"; then
-      sed -i '/^- cassandra\.yaml$/d' "overlays/${ARCUS_OVERLAY_NAME}-local/kustomization.yaml"
-    fi
-  fi
-  if [[ -n "${ARCUS_ZOOKEEPER_HOST-}" ]]; then
-    sed -i "s!PLACEHOLDER_ZOOKEEPER_HOST!${ARCUS_ZOOKEEPER_HOST}!g" "overlays/${ARCUS_OVERLAY_NAME}-local/cluster-config.yaml"
-  fi
-  if [[ -n "${ARCUS_KAFKA_HOST-}" ]]; then
-    sed -i "s!PLACEHOLDER_KAFKA_HOST!${ARCUS_KAFKA_HOST}!g" "overlays/${ARCUS_OVERLAY_NAME}-local/cluster-config.yaml"
-    # Services talk to the external Kafka, so don't deploy the in-cluster broker.
-    if ! _is_in_cluster_host kafka-service "${ARCUS_KAFKA_HOST}"; then
-      sed -i '/^- kafka\.yaml$/d' "overlays/${ARCUS_OVERLAY_NAME}-local/kustomization.yaml"
-    fi
-  fi
-  # Likewise for ZooKeeper, unless an in-cluster Kafka is still deployed: it
-  # reads ZOOKEEPER from arcus-config, which always names the in-cluster service.
-  if [[ -n "${ARCUS_ZOOKEEPER_HOST-}" ]] && ! _is_in_cluster_host zookeeper-service "${ARCUS_ZOOKEEPER_HOST}" \
-    && ! grep -qx -- '- kafka.yaml' "overlays/${ARCUS_OVERLAY_NAME}-local/kustomization.yaml"; then
-    sed -i '/^- zookeeper\.yaml$/d' "overlays/${ARCUS_OVERLAY_NAME}-local/kustomization.yaml"
-  fi
+  sed -i -e "s!PLACEHOLDER_CASSANDRA_HOST!${ARCUS_CASSANDRA_HOST}!g" \
+         -e "s!PLACEHOLDER_KAFKA_HOST!${ARCUS_KAFKA_HOST}!g" \
+         -e "s!PLACEHOLDER_ZOOKEEPER_HOST!${ARCUS_ZOOKEEPER_HOST}!g" \
+         "overlays/${ARCUS_OVERLAY_NAME}-local/cluster-config.yaml"
 
   cp config/service/ui-service-ingress.yaml "overlays/${ARCUS_OVERLAY_NAME}-local/"ui-service-ingress.yaml
   sed -i "s/arcussmarthome.com/$ARCUS_DOMAIN_NAME/" "overlays/${ARCUS_OVERLAY_NAME}-local/ui-service-ingress.yaml"
@@ -329,7 +293,7 @@ function deploy_platform() {
 function killallpods() {
   load
   if [[ "${ARCUS_OVERLAY_NAME:-}" == *cluster* ]]; then
-    echo "WARNING: This will delete ALL pods including stateful services (Cassandra, Kafka, Zookeeper)."
+    echo "WARNING: This will delete every Arcus pod at once, taking all services down until they restart."
     echo "Consider using './arcuscmd.sh deploy' for a safe rolling restart instead."
     echo ""
     local confirm
@@ -339,15 +303,14 @@ function killallpods() {
       return 0
     fi
   fi
-  # Datastores, then bridges, then the core services, then everything else
-  # in APPS (so new services are included without editing this list)
+  # Bridges, then the core services, then everything else in APPS (so new
+  # services are included without editing this list)
   local bridges="hub-bridge api-bridge client-bridge"
   local core="driver-services rule-service scheduler-service"
   local rest="" app
   for app in $APPS static-server; do
     [[ " $bridges $core " == *" $app "* ]] || rest+="$app "
   done
-  echo "cassandra zookeeper kafka" | tr ' ' '\n' | xargs -P 2 -I{} "$KUBECTL" delete pod -l app={} --ignore-not-found 2>/dev/null
   echo "$bridges" | tr ' ' '\n' | xargs -P 2 -I{} "$KUBECTL" delete pod -l app={} --ignore-not-found 2>/dev/null
   echo "$core" | tr ' ' '\n' | xargs -P 2 -I{} "$KUBECTL" delete pod -l app={} --ignore-not-found 2>/dev/null
   echo "${rest% }" | tr ' ' '\n' | xargs -P 3 -I{} "$KUBECTL" delete pod -l app={} --ignore-not-found 2>/dev/null

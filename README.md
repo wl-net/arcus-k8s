@@ -29,6 +29,8 @@ Kubernetes deployment infrastructure for [Arcus Smart Home](https://github.com/a
 
 You either need access to a Kubernetes environment, or suitable bare metal to run one on. You should have 12GB or more of RAM, and at least 20GB of disk space. In order to obtain browser-trusted certificates, you will need to have Arcus publicly accessible, on a well known port (80/443). Using self-signed certificates is not recommended, and will not be supported by the iOS or Android applications (outside of modifying the trust store yourself).
 
+Arcus needs a Cassandra cluster, Kafka and ZooKeeper running outside Kubernetes. `./arcuscmd.sh configure` asks for their addresses.
+
 In order to create an account, you will need to have a SmartyStreets account (for address verification).
 
 For notifications, you must create a Twilio and Sendgrid account. APNS and GCM support is disabled by default and must be configured if desired. Typically this also requires that you distribute and side-load the app onto your device.
@@ -79,13 +81,10 @@ Alternatively:
 ```
 $ kubectl get service
 NAME                    TYPE           CLUSTER-IP       EXTERNAL-IP   PORT(S)                                                                      AGE
-cassandra-service       NodePort       10.152.183.225   <none>        7000:31287/TCP,7001:31914/TCP,7199:32251/TCP,9042:32178/TCP,9160:31262/TCP   27h
 client-bridge-service   NodePort       10.152.183.68    <none>        80:31803/TCP                                                                 27h
 hub-bridge-service      LoadBalancer   10.152.183.14    172.16.6.2    8082:31804/TCP                                                               6h1m
-kafka-service           NodePort       10.152.183.250   <none>        9092:30997/TCP                                                               27h
 kubernetes              ClusterIP      10.152.183.1     <none>        443/TCP                                                                      27h
 ui-server-service       NodePort       10.152.183.88    <none>        80:30787/TCP                                                                 27h
-zookeeper-service       NodePort       10.152.183.132   <none>        2181:30849/TCP                                                               27h
 ```
 
 This shows that 172.16.6.2 is the IP address of our hub-bridge service (listening on port 8082).
@@ -200,9 +199,9 @@ The only critical persistent system is Cassandra. It runs outside Kubernetes, so
 
 ### View pod log
 
-`./arcuscmd.sh logs kafka`
+`./arcuscmd.sh logs hub-bridge`
 
-`./arcuscmd.sh logs cassandra`
+`./arcuscmd.sh logs platform-services`
 
 ## Adjusting configuration
 

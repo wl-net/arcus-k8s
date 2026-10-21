@@ -17,16 +17,13 @@ resources:
 - deployments/static-server.yaml
 - deployments/subsystem-service.yaml
 - deployments/ui-server.yaml
-- service/cassandra.yaml
 - service/api-bridge.yaml
 - service/client-bridge.yaml
 - service/hub-bridge.yaml
 - service/ivr-callback-server.yaml
-- service/kafka.yaml
 - service/static-service.yaml
 - service/ui-service-ingress.yaml
 - service/ui-service.yaml
-- service/zookeeper.yaml
 - configmaps/arcus-config.yaml
 - configmaps/cluster-config.yaml
 - clusterrole.yaml
@@ -75,9 +72,6 @@ images:
   newTag: 2026.10.2
 - name: ghcr.io/wl-net/arcusplatform/arcus-platform-services
   newTag: 2026.10.2
-
-- name: ghcr.io/wl-net/arcusplatform/arcus-zookeeper
-  newTag: latest
 
 - name: ghcr.io/wl-net/arcusplatform/arcus-rule-service
   newTag: 2026.10.2

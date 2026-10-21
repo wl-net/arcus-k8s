@@ -80,19 +80,6 @@ function arcus_status() {
     echo "$restarting"
   fi
 
-  local found_stateful=()
-  for svc in cassandra kafka zookeeper; do
-    if $KUBECTL get statefulset "$svc" &>/dev/null; then
-      found_stateful+=("$svc")
-    fi
-  done
-
-  if [[ ${#found_stateful[@]} -gt 0 ]]; then
-    echo ""
-    echo "Stateful Services:"
-    $KUBECTL get statefulset "${found_stateful[@]}"
-  fi
-
   local external_hosts=()
   [[ -n "${ARCUS_CASSANDRA_HOST-}" ]] && external_hosts+=("cassandra:${ARCUS_CASSANDRA_HOST%%:*}")
   [[ -n "${ARCUS_KAFKA_HOST-}" ]]     && external_hosts+=("kafka:${ARCUS_KAFKA_HOST%%:*}")

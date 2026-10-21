@@ -15,7 +15,7 @@ script/
   route53.sh validate.sh grafana.sh node.sh notify.sh  # One module per command area
 config/
   kustomization.yaml         # Root Kustomize manifest (image tags live here)
-  configmaps/arcus-config.yaml # Global app config (domains, Cassandra, Kafka)
+  configmaps/arcus-config.yaml # Global app config (domains, URLs, feature flags)
   configmaps/cluster-config.yaml # Datastore hosts (rewritten by apply from .config/)
   deployments/               # One YAML per microservice
   service/                   # Service and Ingress definitions
@@ -45,8 +45,8 @@ Secrets are written to `secret/` and local overlay state to `overlays/<overlay>-
 | Ingress | Traefik v3.7.13 (bundled with k3s) |
 | Load balancer | MetalLB v0.16.1 (opt-in) |
 | Certificates | cert-manager v1.21.2 + Let's Encrypt |
-| Database | Apache Cassandra |
-| Messaging | Apache Kafka + Zookeeper |
+| Database | Apache Cassandra (external) |
+| Messaging | Apache Kafka + Zookeeper (external) |
 | Monitoring | Prometheus + Grafana (optional) |
 
 ## Common Commands
@@ -151,7 +151,7 @@ Run `./arcuscmd.sh configure` to set these interactively, or write the files dir
 
 ## Cassandra / Kafka / Zookeeper
 
-The `local-production` overlay includes manifests to run Cassandra, Kafka, and Zookeeper inside k3s with `CASSANDRA_SINGLE_NODE=true`, which is fine for development. For production, these should run externally on a dedicated 3-datacenter Cassandra cluster — a single k3s node provides no real redundancy. The `local-production-cluster` overlay sets `CASSANDRA_SINGLE_NODE=false`. Configure external hosts via `./arcuscmd.sh configure` or by setting `.config/cassandra-host`, `.config/kafka-host`, and `.config/zookeeper-host` directly. When `.config/cassandra-host` or `.config/kafka-host` points at an external host, `apply` leaves `cassandra.yaml` or `kafka.yaml` out of the generated overlay so the in-cluster copy isn't deployed. The same applies to `zookeeper.yaml` and `.config/zookeeper-host`, except while an in-cluster Kafka is still deployed (it always uses the in-cluster ZooKeeper). `apply` doesn't prune, so a StatefulSet left over from before the external host was configured keeps running until you `kubectl delete statefulset <name>` (its PVC is kept).
+Cassandra, Kafka and Zookeeper always run outside the cluster (production uses a dedicated 3-datacenter Cassandra cluster); this repo has no in-cluster copies. `.config/cassandra-host`, `.config/kafka-host` and `.config/zookeeper-host` are required: `configure` asks for them, and `apply` stops if one is missing. `apply` writes them into the generated `cluster-config.yaml` in place of the `PLACEHOLDER_*` hosts in `config/configmaps/cluster-config.yaml`; both overlays apply that file. A node's `-local` `cluster-config-tunable.yaml` is applied after it, so any host keys left in that file override `.config/`.
 
 ## External Service Dependencies
 
