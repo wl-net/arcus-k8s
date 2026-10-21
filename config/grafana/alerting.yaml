@@ -412,6 +412,10 @@ groups:
       __panelId__: "2"
       summary: 'Unexpected hub connections detected'
       description: '{{ $value }} hubs connected (expected 4 or fewer). Possible unauthorized hub connection. First steps: find the hub IDs and source addresses of recent connections in ./arcuscmd.sh logs hub-bridge and compare them with the hubs you expect; an unknown hub should be checked against the place it is registered to.'
+  # The counter only exists once a pod has seen its first password change, and
+  # increase() reads a series that appears at 1 as no increase. The second half
+  # catches that first change: a series with samples in the last 5 minutes but
+  # none in the hour before (range selectors, so a scrape gap doesn't look new).
   - uid: password-changed
     title: Password Changed
     condition: C
@@ -422,7 +426,10 @@ groups:
         to: 0
       datasourceUid: prometheus
       model:
-        expr: increase(messages_platform_recv_type_person_passwordchanged[5m])
+        expr: >-
+          (increase(messages_platform_recv_type_person_passwordchanged[5m]) > 0)
+          or (max_over_time(messages_platform_recv_type_person_passwordchanged[5m])
+          unless max_over_time(messages_platform_recv_type_person_passwordchanged[1h] offset 5m))
         instant: true
         refId: A
     - refId: B
