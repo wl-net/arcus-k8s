@@ -90,9 +90,18 @@ spec:
       - name: datasources
         configMap:
           name: grafana-datasources
+      # Alert rules from config/grafana/alerting.yaml (rendered by apply) and, when
+      # .config/alert-* is set, the contact points and notification policy apply
+      # writes to the grafana-notifications Secret. Optional so Grafana starts
+      # before the first apply.
       - name: alerting
-        configMap:
-          name: grafana-alerting
+        projected:
+          sources:
+          - configMap:
+              name: grafana-alerting
+          - secret:
+              name: grafana-notifications
+              optional: true
       - name: dashboards-provider
         configMap:
           name: grafana-dashboards-provider

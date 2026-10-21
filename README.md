@@ -183,6 +183,14 @@ If you run multiple Arcus clusters behind Route 53 weighted records, you can use
 3. Perform maintenance (upgrades, restarts, etc.)
 4. `./arcuscmd.sh resume` — restore traffic
 
+## Alerting
+
+Grafana evaluates the rules in `config/grafana/alerting.yaml`; `apply` provisions them with this node's thresholds from `.config/`. Each rule has a severity: `critical` means users or hubs are affected now, or will be without action today; `warning` needs attention in working hours; `info` is for the record.
+
+Where notifications go is also provisioned by `apply`, from `.config/alert-discord-webhook` and `.config/alert-pushover-user-key` + `alert-pushover-api-token` (`configure` asks for them). Every alert goes to Discord, critical ones to Pushover as well; with only Pushover configured the rest arrive there quietly. With neither set, `apply` provisions no policy and whatever is set up by hand in Grafana stays in charge.
+
+`./arcuscmd.sh status` lists alert rules created by hand in Grafana, which `alerting.yaml` doesn't manage, and `./arcuscmd.sh validate` starts a Grafana against the provisioning files (it needs Docker) so a broken rule or template is caught before `apply` takes Grafana down with it.
+
 ## Setting up the Hub Trust Store
 
 Unfortunately, the hub-bridge doesn't work out of the box because it expects a Java Key Store, something we can't provide with cert-manager. Arcusplatform now supports PKCS#8 keys as well (via netty's internal support for PKCS#8), but the private key that cert-manager generates is in PKCS#1 format. As a result, you'll have to manually convert the private key to PKCS#8.
@@ -228,11 +236,15 @@ You can also write the files directly:
 | `zookeeper-host` | Yes | ZooKeeper `host:port` (e.g. `10.0.0.30:2181`) |
 | `kafka-host` | Yes | Kafka bootstrap server `host:port` (e.g. `10.0.0.20:9092`) |
 | `admin-domain` | Optional | Grafana admin domain (e.g. `admin.arcus-dc1.example.com`) |
-| `peer-admin-domains` | Optional | Admin domains of the other datacenters, comma-separated (e.g. `admin.arcus-dc2.example.com`); this node alerts when their Grafana stops answering |
+| `peer-admin-domains` | Optional | Admin domains of the other datacenters, comma-separated (e.g. `admin.arcus-dc2.example.com`); this node alerts when their Grafana or public services stop answering |
 | `cert-solver` | Optional | `http` (default) or `dns` — use DNS-01 challenges via Route 53 |
 | `route53-hosted-zone-id` | If DNS solver | Route 53 hosted zone ID |
 | `route53-region` | If DNS solver | AWS region for Route 53 (e.g. `us-east-1`) |
 | `route53-set-identifier` | Optional | Route 53 set identifier for weighted record (used by `drain`/`resume`) |
+| `alert-discord-webhook` | Optional | Discord webhook Grafana sends every alert to; with this or the Pushover keys set, `apply` provisions Grafana's contact points and notification policy |
+| `alert-pushover-user-key` | Optional | Pushover user key Grafana sends critical alerts to (quiet delivery of the rest when no Discord webhook is set) |
+| `alert-pushover-api-token` | With the user key | Pushover application API token |
+| `expected-hubs` | Optional | Most hubs that may be connected before the Unexpected Hub Connections alert fires (default `4`) |
 
 You can also adjust the configuration in overlays/local-production-local/, however your changes will be lost if you run `./arcuscmd.sh apply`.
 

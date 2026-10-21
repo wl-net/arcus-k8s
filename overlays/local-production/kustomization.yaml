@@ -1,6 +1,18 @@
 resources:
 - ../../config
 - grafana.yaml
+# apply renders config/grafana/alerting.yaml (its PLACEHOLDER_* thresholds come
+# from .config/) to alerting.yaml here, replacing the copy config/ generates
+configMapGenerator:
+- name: grafana-alerting
+  behavior: replace
+  files:
+  - alerting.yaml
+# Contact points and notification policy apply writes from .config/alert-*
+secretGenerator:
+- name: grafana-notifications
+  files:
+  - notifications.yaml=grafana-notifications.yaml
 patches:
 - path: cert-provider.yaml
 - path: shared-config.yaml

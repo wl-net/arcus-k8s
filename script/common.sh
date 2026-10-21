@@ -59,6 +59,10 @@ function load() {
     _load_config ARCUS_ROUTE53_REGION  route53-region
     _load_config ARCUS_ROUTE53_SET_ID  route53-set-identifier
     _load_config ARCUS_DISCORD_WEBHOOK discord-webhook
+    _load_config ARCUS_EXPECTED_HUBS   expected-hubs
+    _load_config ARCUS_ALERT_DISCORD_WEBHOOK    alert-discord-webhook
+    _load_config ARCUS_ALERT_PUSHOVER_USER_KEY  alert-pushover-user-key
+    _load_config ARCUS_ALERT_PUSHOVER_API_TOKEN alert-pushover-api-token
     _load_config ARCUS_CASSANDRA_DC          cassandra-dc
     _load_config ARCUS_CASSANDRA_HISTORY_DC  cassandra-history-dc
     _load_config ARCUS_KAFKA_CLIENT_RACK     kafka-client-rack

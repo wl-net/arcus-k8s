@@ -114,6 +114,24 @@ function configure() {
     fi
   fi
 
+  if [[ -z "${ARCUS_ALERT_DISCORD_WEBHOOK:-}" && -z "${ARCUS_ALERT_PUSHOVER_USER_KEY:-}" ]]; then
+    echo ""
+    echo "Grafana alert notifications: with a Discord webhook or Pushover keys here, apply provisions"
+    echo "Grafana's contact points and notification policy (critical alerts also go to Pushover)."
+    echo "Leave both empty to keep setting them up in Grafana by hand."
+    local alert_discord pushover_user pushover_token
+    prompt alert_discord "Discord webhook URL for Grafana alerts (leave empty to skip):"
+    if [[ -n "$alert_discord" ]]; then
+      echo "$alert_discord" > "$ARCUS_CONFIGDIR/alert-discord-webhook"
+    fi
+    prompt pushover_user "Pushover user key for critical alerts (leave empty to skip):"
+    if [[ -n "$pushover_user" ]]; then
+      prompt pushover_token "Pushover application API token:"
+      echo "$pushover_user" > "$ARCUS_CONFIGDIR/alert-pushover-user-key"
+      echo "$pushover_token" > "$ARCUS_CONFIGDIR/alert-pushover-api-token"
+    fi
+  fi
+
   if [[ -z "${ARCUS_CERT_SOLVER:-}" ]]; then
     local cert_solver
     prompt cert_solver "Certificate solver type — http (default) or dns (Route 53 DNS-01): "

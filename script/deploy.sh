@@ -30,6 +30,128 @@ function _peer_targets() {
   printf '[%s]\n' "$groups"
 }
 
+# Print Prometheus file_sd target groups for this cluster's public URLs on domain $1
+# (and the admin domain $2 if there is one), resolved through public DNS as a user would.
+function _public_targets() {
+  local domain=$1 admin=$2
+  local targets="\"https://$domain/\", \"https://client.$domain/\", \"https://static.$domain/\""
+  [[ -z "$admin" ]] || targets+=", \"https://$admin/api/health\""
+  printf '[{"targets": [%s], "labels": {}}]\n' "$targets"
+}
+
+# Print Prometheus file_sd target groups that reach each other datacenter's public
+# services at that datacenter: for the comma-separated peer admin domains in $1, the
+# peer's own address with the public hostnames of domain $2 sent as Host header and
+# TLS server name (the blackbox exporter's hostname parameter), labeled
+# peer=<admin domain> and hostname=<public hostname>.
+function _peer_public_targets() {
+  local peer host groups=""
+  local -a admin_domains
+  IFS=',' read -ra admin_domains <<< "$1"
+  for peer in "${admin_domains[@]}"; do
+    peer=${peer// /}
+    [[ -n "$peer" ]] || continue
+    for host in "$2" "client.$2" "static.$2"; do
+      groups+="${groups:+,$'\n' }{\"targets\": [\"https://$peer/\"], \"labels\": {\"peer\": \"$peer\", \"hostname\": \"$host\"}}"
+    done
+  done
+  printf '[%s]\n' "$groups"
+}
+
+# Write config/grafana/alerting.yaml to $1 with its PLACEHOLDER_* thresholds filled
+# in from .config/: expected-hubs (default 4), the most hubs Unexpected Hub
+# Connections allows.
+function _render_alert_rules() {
+  local hubs="${ARCUS_EXPECTED_HUBS:-4}"
+  if ! [[ "$hubs" =~ ^[0-9]+$ ]]; then
+    echo "Error: .config/expected-hubs must be a whole number, not '${hubs}'."
+    return 1
+  fi
+  sed "s/PLACEHOLDER_EXPECTED_HUBS/${hubs}/g" "$ROOT/config/grafana/alerting.yaml" > "$1"
+}
+
+# Print Grafana alerting provisioning for the contact points in .config/alert-*:
+# a Discord contact point, a Pushover one, and a notification policy that sends
+# every alert to Discord and critical ones to Pushover as well (with only
+# Pushover, the rest go there quietly). With neither configured, prints a file
+# that provisions nothing, so a policy set up by hand in Grafana is left alone.
+function _grafana_notifications() {
+  local discord="${ARCUS_ALERT_DISCORD_WEBHOOK-}"
+  local user="${ARCUS_ALERT_PUSHOVER_USER_KEY-}" token="${ARCUS_ALERT_PUSHOVER_API_TOKEN-}"
+  if [[ -n "$user" && -z "$token" || -z "$user" && -n "$token" ]]; then
+    echo "Error: .config/alert-pushover-user-key and alert-pushover-api-token are needed together." >&2
+    return 1
+  fi
+  echo 'apiVersion: 1'
+  if [[ -z "$discord" && -z "$user" ]]; then
+    return 0
+  fi
+  echo 'contactPoints:'
+  if [[ -n "$discord" ]]; then
+    cat <<EOF
+- orgId: 1
+  name: arcus-discord
+  receivers:
+  - uid: arcus-discord
+    type: discord
+    settings:
+      url: '${discord}'
+      title: '{{ template "arcus.title" . }}'
+      message: '{{ template "arcus.message" . }}'
+EOF
+  fi
+  if [[ -n "$user" ]]; then
+    # Critical alerts at high priority, their resolutions and everything else
+    # (when there is no Discord) at the quiet ones
+    local name priority ok_priority
+    for name in arcus-pushover:1:0 arcus-pushover-quiet:-1:-1; do
+      IFS=: read -r name priority ok_priority <<< "$name"
+      cat <<EOF
+- orgId: 1
+  name: ${name}
+  receivers:
+  - uid: ${name}
+    type: pushover
+    settings:
+      userKey: '${user}'
+      apiToken: '${token}'
+      priority: '${priority}'
+      okPriority: '${ok_priority}'
+      title: '{{ template "arcus.title" . }}'
+      message: '{{ template "arcus.text" . }}'
+EOF
+    done
+  fi
+  local default_receiver=arcus-discord
+  [[ -n "$discord" ]] || default_receiver=arcus-pushover-quiet
+  cat <<EOF
+policies:
+- orgId: 1
+  receiver: ${default_receiver}
+  group_by: [alertname]
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+  routes:
+EOF
+  if [[ -n "$user" ]]; then
+    cat <<EOF
+  - receiver: arcus-pushover
+    object_matchers:
+    - [severity, =, critical]
+    repeat_interval: 2h
+    continue: true
+EOF
+  fi
+  if [[ -n "$discord" ]]; then
+    cat <<EOF
+  - receiver: arcus-discord
+    object_matchers:
+    - [severity, =~, .+]
+EOF
+  fi
+}
+
 # Print the image, without its tag, that config/deployments/$1.yaml runs.
 function _app_image() {
   local image
@@ -236,11 +358,28 @@ function apply() {
     "$(_datastore_targets cassandra 9042 "$ARCUS_CASSANDRA_HOST")" \
     "$(_datastore_targets kafka 9092 "$ARCUS_KAFKA_HOST")" \
     "$(_datastore_targets zookeeper 2181 "${ARCUS_ZOOKEEPER_HOST%%/*}")" > "$targets"
-  # Grafana health checks of the other datacenters for the blackbox-peers job
+  # Grafana health checks of the other datacenters for the blackbox-peers job,
+  # their public services for blackbox-peer-public, and this cluster's own public
+  # URLs for blackbox-public
   local peers="overlays/${ARCUS_OVERLAY_NAME}-local/peers.json"
+  local peer_public="overlays/${ARCUS_OVERLAY_NAME}-local/peer-public.json"
+  local public="overlays/${ARCUS_OVERLAY_NAME}-local/public.json"
   _peer_targets "${ARCUS_PEER_ADMIN_DOMAINS-}" > "$peers"
+  _peer_public_targets "${ARCUS_PEER_ADMIN_DOMAINS-}" "$ARCUS_DOMAIN_NAME" > "$peer_public"
+  _public_targets "$ARCUS_DOMAIN_NAME" "${ARCUS_ADMIN_DOMAIN-}" > "$public"
   $KUBECTL create configmap prometheus-targets --from-file=datastores.json="$targets" \
-    --from-file=peers.json="$peers" --dry-run=client -o yaml | $KUBECTL apply -f - > /dev/null
+    --from-file=peers.json="$peers" --from-file=peer-public.json="$peer_public" \
+    --from-file=public.json="$public" --dry-run=client -o yaml | $KUBECTL apply -f - > /dev/null
+
+  # Alert rules with this node's thresholds, and the contact points and
+  # notification policy for .config/alert-*; the overlay's generators turn
+  # them into the grafana-alerting ConfigMap and grafana-notifications Secret,
+  # so Grafana restarts and re-reads them when they change.
+  _render_alert_rules "overlays/${ARCUS_OVERLAY_NAME}-local/alerting.yaml"
+  _grafana_notifications > "overlays/${ARCUS_OVERLAY_NAME}-local/grafana-notifications.yaml"
+  if [[ -n "${ARCUS_ALERT_DISCORD_WEBHOOK-}${ARCUS_ALERT_PUSHOVER_USER_KEY-}" ]]; then
+    echo "Grafana alert notifications provisioned from .config/alert-*:${ARCUS_ALERT_DISCORD_WEBHOOK:+ Discord}${ARCUS_ALERT_PUSHOVER_USER_KEY:+ Pushover (critical)}."
+  fi
 
   ensure_grafana_renderer_token
   $KUBECTL create secret generic shared --from-file secret/ --dry-run=client -o yaml | $KUBECTL apply -f - > /dev/null

@@ -139,6 +139,26 @@ function arcus_status() {
     fi
   done
 
+  # Alert rules made by hand in Grafana, which config/grafana/alerting.yaml doesn't
+  # manage (needs the API token 'silence' creates)
+  if $KUBECTL get secret "$GRAFANA_SECRET_NAME" &>/dev/null; then
+    local unmanaged
+    unmanaged=$({ _grafana_api GET /api/v1/provisioning/alert-rules; echo; _grafana_api GET /api/folders; } 2>/dev/null \
+      | python3 -c '
+import sys, json
+rules, folders = sys.stdin.read().split("\n", 1)
+names = {f["uid"]: f["title"] for f in json.loads(folders)}
+for r in json.loads(rules):
+    if r.get("provenance") != "file":
+        print("  %s  (folder: %s)" % (r["title"], names.get(r["folderUID"], r["folderUID"])))' 2>/dev/null) || true
+    if [[ -n "$unmanaged" ]]; then
+      echo ""
+      echo "Grafana alert rules not managed by config/grafana/alerting.yaml:"
+      echo "$unmanaged"
+      echo "  Move them into alerting.yaml or delete them in Grafana (Alerting > Alert rules)."
+    fi
+  fi
+
   echo ""
   infra_versions
 }
