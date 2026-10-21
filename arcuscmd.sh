@@ -28,7 +28,7 @@ mkdir -p "$ARCUS_CONFIGDIR"
 
 KUBECTL=${KUBECTL:-kubectl}
 
-if [[ ${1:-help} != 'help' && ${1:-help} != 'setup' && ${1:-help} != 'configure' && ${1:-help} != 'verifyconfig' && ${1:-help} != 'shell-setup' && ${1:-help} != 'validate' && ${1:-help} != 'drain' && ${1:-help} != 'resume' && ${1:-help} != 'auto-resume' ]]; then
+if [[ ${1:-help} != 'help' && ${1:-help} != 'setup' && ${1:-help} != 'configure' && ${1:-help} != 'verifyconfig' && ${1:-help} != 'shell-setup' && ${1:-help} != 'validate' && ${1:-help} != 'k3s' && ${1:-help} != 'drain' && ${1:-help} != 'resume' && ${1:-help} != 'auto-resume' ]]; then
   if ! command -v "$KUBECTL" &>/dev/null; then
     echo "Error: kubectl not found. Is it installed and in your PATH?"
     exit 1
