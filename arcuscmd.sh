@@ -229,10 +229,12 @@ reboot-node)
   reboot_node
   ;;
 drain)
+  load  # drain and resume skip require_config; the start message needs the webhook
   _notify_start "Draining traffic" "$_NOTIFY_COLOR_ORANGE"
   route53_drain
   ;;
 resume)
+  load
   _notify_start "Resuming traffic"
   route53_resume
   ;;
