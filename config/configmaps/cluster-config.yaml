@@ -7,15 +7,16 @@ metadata:
   name: cluster-config
   namespace: default
 data:
-  BOOTSTRAP_SERVERS: kafka-service.default.svc.cluster.local:9092
+  # apply fills in the PLACEHOLDER_* hosts from .config/
+  BOOTSTRAP_SERVERS: PLACEHOLDER_KAFKA_HOST
   CLUSTER_SERVICE_DAO: zookeeper
-  CLUSTER_ZK_HOST: zookeeper-service.default.svc.cluster.local:2181
-  cassandra_history_contactPoints: cassandra.default.svc.cluster.local
-  cassandra_contactPoints: cassandra.default.svc.cluster.local
-  CASSANDRA_CONTACTPOINTS: cassandra.default.svc.cluster.local
-  CASSANDRA_HOST: cassandra-service.default.svc.cluster.local
+  CLUSTER_ZK_HOST: PLACEHOLDER_ZOOKEEPER_HOST
+  cassandra_history_contactPoints: PLACEHOLDER_CASSANDRA_HOST
+  cassandra_contactPoints: PLACEHOLDER_CASSANDRA_HOST
+  CASSANDRA_CONTACTPOINTS: PLACEHOLDER_CASSANDRA_HOST
+  CASSANDRA_HOST: PLACEHOLDER_CASSANDRA_HOST
   CASSANDRA_KEYSPACE: production
   CASSANDRA_LOADBALANCINGPOLICY: roundrobin
-  ZOOKEEPER: zookeeper-service.default.svc.cluster.local:2181
-  ZOOKEEPEROPS: zookeeper-service.default.svc.cluster.local:2181
+  ZOOKEEPER: PLACEHOLDER_ZOOKEEPER_HOST
+  ZOOKEEPEROPS: PLACEHOLDER_ZOOKEEPER_HOST
   SCHEDULER_SANITY_CHECK: "true"

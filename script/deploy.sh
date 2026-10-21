@@ -30,6 +30,16 @@ function apply() {
     exit 1
   fi
 
+  local missing=()
+  [[ -n "${ARCUS_CASSANDRA_HOST-}" ]] || missing+=(cassandra-host)
+  [[ -n "${ARCUS_KAFKA_HOST-}" ]] || missing+=(kafka-host)
+  [[ -n "${ARCUS_ZOOKEEPER_HOST-}" ]] || missing+=(zookeeper-host)
+  if [[ ${#missing[@]} -gt 0 ]]; then
+    echo "Error: missing .config/ ${missing[*]}. Cassandra, Kafka and ZooKeeper run outside the cluster;"
+    echo "run './arcuscmd.sh configure' or write their hosts to .config/ directly."
+    exit 1
+  fi
+
   mkdir -p "overlays/${ARCUS_OVERLAY_NAME}-local"
 
   # Preserve user-customized tunable files before overwriting the overlay
@@ -87,17 +97,17 @@ function apply() {
   cp config/configmaps/cluster-config.yaml "overlays/${ARCUS_OVERLAY_NAME}-local/cluster-config.yaml"
 
   if [[ -n "${ARCUS_CASSANDRA_HOST-}" ]]; then
-    sed -i "s!cassandra.default.svc.cluster.local!${ARCUS_CASSANDRA_HOST}!g" "overlays/${ARCUS_OVERLAY_NAME}-local/cluster-config.yaml"
+    sed -i "s!PLACEHOLDER_CASSANDRA_HOST!${ARCUS_CASSANDRA_HOST}!g" "overlays/${ARCUS_OVERLAY_NAME}-local/cluster-config.yaml"
     # Services talk to the external Cassandra, so don't deploy the in-cluster node.
     if ! _is_in_cluster_host cassandra "${ARCUS_CASSANDRA_HOST}"; then
       sed -i '/^- cassandra\.yaml$/d' "overlays/${ARCUS_OVERLAY_NAME}-local/kustomization.yaml"
     fi
   fi
   if [[ -n "${ARCUS_ZOOKEEPER_HOST-}" ]]; then
-    sed -i "s!zookeeper-service.default.svc.cluster.local:2181!${ARCUS_ZOOKEEPER_HOST}!g" "overlays/${ARCUS_OVERLAY_NAME}-local/cluster-config.yaml"
+    sed -i "s!PLACEHOLDER_ZOOKEEPER_HOST!${ARCUS_ZOOKEEPER_HOST}!g" "overlays/${ARCUS_OVERLAY_NAME}-local/cluster-config.yaml"
   fi
   if [[ -n "${ARCUS_KAFKA_HOST-}" ]]; then
-    sed -i "s!kafka-service.default.svc.cluster.local:9092!${ARCUS_KAFKA_HOST}!g" "overlays/${ARCUS_OVERLAY_NAME}-local/cluster-config.yaml"
+    sed -i "s!PLACEHOLDER_KAFKA_HOST!${ARCUS_KAFKA_HOST}!g" "overlays/${ARCUS_OVERLAY_NAME}-local/cluster-config.yaml"
     # Services talk to the external Kafka, so don't deploy the in-cluster broker.
     if ! _is_in_cluster_host kafka-service "${ARCUS_KAFKA_HOST}"; then
       sed -i '/^- kafka\.yaml$/d' "overlays/${ARCUS_OVERLAY_NAME}-local/kustomization.yaml"

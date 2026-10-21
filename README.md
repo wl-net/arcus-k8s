@@ -225,9 +225,9 @@ You can also write the files directly:
 | `subnet` | MetalLB only | MetalLB IP range (e.g. `192.168.1.200-192.168.1.207`) |
 | `metallb` | Optional | `yes` or `no` — enable MetalLB for load balancer IPs |
 | `proxy-real-ip` | Optional | Upstream proxy IP/subnet for PROXY protocol (e.g. `192.168.1.1/32`) |
-| `cassandra-host` | Optional | External Cassandra contact points (omit to use in-cluster) |
-| `zookeeper-host` | Optional | External Zookeeper host (omit to use in-cluster) |
-| `kafka-host` | Optional | External Kafka host (omit to use in-cluster) |
+| `cassandra-host` | Yes | Cassandra contact points, comma-separated (e.g. `10.0.0.10,10.0.0.11`) |
+| `zookeeper-host` | Yes | ZooKeeper `host:port` (e.g. `10.0.0.30:2181`) |
+| `kafka-host` | Yes | Kafka bootstrap server `host:port` (e.g. `10.0.0.20:9092`) |
 | `admin-domain` | Optional | Grafana admin domain (e.g. `admin.arcus-dc1.example.com`) |
 | `cert-solver` | Optional | `http` (default) or `dns` — use DNS-01 challenges via Route 53 |
 | `route53-hosted-zone-id` | If DNS solver | Route 53 hosted zone ID |

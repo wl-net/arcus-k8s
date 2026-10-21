@@ -38,6 +38,20 @@ function configure() {
     fi
   fi
 
+  # Cassandra, Kafka and ZooKeeper run outside the cluster
+  if [[ -z "${ARCUS_CASSANDRA_HOST:-}" ]]; then
+    prompt ARCUS_CASSANDRA_HOST "Enter Cassandra contact points, comma-separated (e.g. 10.0.0.10,10.0.0.11): "
+    echo "$ARCUS_CASSANDRA_HOST" > "$ARCUS_CONFIGDIR/cassandra-host"
+  fi
+  if [[ -z "${ARCUS_KAFKA_HOST:-}" ]]; then
+    prompt ARCUS_KAFKA_HOST "Enter Kafka bootstrap server as host:port (e.g. 10.0.0.20:9092): "
+    echo "$ARCUS_KAFKA_HOST" > "$ARCUS_CONFIGDIR/kafka-host"
+  fi
+  if [[ -z "${ARCUS_ZOOKEEPER_HOST:-}" ]]; then
+    prompt ARCUS_ZOOKEEPER_HOST "Enter ZooKeeper host as host:port (e.g. 10.0.0.30:2181): "
+    echo "$ARCUS_ZOOKEEPER_HOST" > "$ARCUS_CONFIGDIR/zookeeper-host"
+  fi
+
   if [[ -z "${ARCUS_CASSANDRA_DC:-}" ]]; then
     local use_multidc
     prompt use_multidc "Is this a multi-datacenter Cassandra deployment? [yes/no]:"
@@ -285,7 +299,7 @@ function verify_config() {
   # --- Required .config files ---
   echo "=== Node Configuration (.config/) ==="
 
-  for file in domain.name admin.email cert-issuer; do
+  for file in domain.name admin.email cert-issuer cassandra-host kafka-host zookeeper-host; do
     if [[ ! -f "$ARCUS_CONFIGDIR/$file" ]]; then
       echo "  MISSING: .config/$file (required)"
       errors=$((errors + 1))
@@ -325,7 +339,7 @@ function verify_config() {
   fi
 
   # Optional config files
-  for file in proxy-real-ip cassandra-host zookeeper-host kafka-host admin-domain cert-solver cassandra-dc cassandra-history-dc kafka-client-rack; do
+  for file in proxy-real-ip admin-domain cert-solver cassandra-dc cassandra-history-dc kafka-client-rack; do
     if [[ -f "$ARCUS_CONFIGDIR/$file" ]]; then
       echo "  OK:      .config/$file = $(cat "$ARCUS_CONFIGDIR/$file")"
     fi
