@@ -23,7 +23,7 @@ config/
   grafana/ dashboards/       # Grafana provisioning (datasources, alerting, dashboards)
   extrafiles/                # firmware.xml, logback.xml, Prometheus, Loki and blackbox exporter config
   logging/                   # Alloy log collector
-  monitoring/                # kube-state-metrics (pod restarts, CrashLoopBackOff) and the blackbox exporter (TCP/TLS checks)
+  monitoring/                # kube-state-metrics (pod restarts, CrashLoopBackOff), blackbox exporter (TCP/TLS checks), node-exporter (disk space)
   certprovider/              # Let's Encrypt issuers
   cronjob/                   # Scheduled jobs (hub-keystore renewal)
   jobs/                      # One-shot Kubernetes jobs

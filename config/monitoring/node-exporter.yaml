@@ -1,0 +1,70 @@
+# node-exporter reports each node's filesystem space for the disk alerts, matching df
+# and the kubelet's eviction thresholds (cAdvisor counts ext4's reserved blocks as free).
+# Only the filesystem collector runs, reading the host's mounts through a read-only /host.
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  labels:
+    app: node-exporter
+  name: node-exporter
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: node-exporter
+  template:
+    metadata:
+      labels:
+        app: node-exporter
+    spec:
+      tolerations:
+      - operator: Exists
+      containers:
+      - image: prom/node-exporter:v1.12.1
+        imagePullPolicy: IfNotPresent
+        name: node-exporter
+        args:
+        - --path.rootfs=/host
+        - --web.listen-address=:9100
+        - --collector.disable-defaults
+        - --collector.filesystem
+        - --collector.filesystem.mount-points-exclude=^/(dev|proc|run|sys|var/lib/kubelet/.+|var/lib/rancher/k3s/agent/containerd/.+)($|/)
+        - --collector.filesystem.fs-types-exclude=^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|erofs|fusectl|hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tmpfs|tracefs)$
+        ports:
+        - containerPort: 9100
+          name: metrics
+        livenessProbe:
+          httpGet:
+            path: /
+            port: metrics
+          initialDelaySeconds: 5
+          timeoutSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /
+            port: metrics
+          initialDelaySeconds: 5
+          timeoutSeconds: 5
+        resources:
+          limits:
+            cpu: 100m
+            memory: 64Mi
+          requests:
+            cpu: "0.01"
+            memory: 16Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 65534
+          capabilities:
+            drop: ["ALL"]
+        volumeMounts:
+        - mountPath: /host
+          name: root
+          readOnly: true
+          mountPropagation: HostToContainer
+      volumes:
+      - name: root
+        hostPath:
+          path: /

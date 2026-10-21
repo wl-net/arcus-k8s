@@ -113,6 +113,25 @@ scrape_configs:
   static_configs:
   - targets: ['kube-state-metrics.default.svc.cluster.local:8080']
 
+# Filesystem space on every node, from the node-exporter DaemonSet (one pod per node,
+# discovered individually so a multi-node cluster reports each node).
+- job_name: 'node-exporter'
+  scrape_interval: 60s
+  kubernetes_sd_configs:
+  - role: pod
+    namespaces:
+      names:
+      - default
+  relabel_configs:
+  - source_labels: [__meta_kubernetes_pod_label_app]
+    regex: node-exporter
+    action: keep
+  - source_labels: [__meta_kubernetes_pod_container_port_name]
+    regex: metrics
+    action: keep
+  - source_labels: [__meta_kubernetes_pod_node_name]
+    target_label: node
+
 # Traefik (bundled with k3s) serves Prometheus metrics on its "metrics" port.
 - job_name: 'traefik'
   scrape_interval: 15s

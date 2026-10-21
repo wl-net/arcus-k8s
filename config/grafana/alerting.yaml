@@ -1,6 +1,109 @@
 apiVersion: 1
 groups:
 - orgId: 1
+  name: Node Health
+  folder: Provisioned
+  interval: 1m
+  rules:
+  - uid: node-disk-filling
+    title: Node Disk Filling
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 300
+        to: 0
+      datasourceUid: prometheus
+      model:
+        expr: 100 * (1 - node_filesystem_avail_bytes{job="node-exporter"} / node_filesystem_size_bytes{job="node-exporter"})
+        instant: true
+        refId: A
+    - refId: B
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: reduce
+        expression: A
+        reducer: last
+        refId: B
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: threshold
+        expression: B
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 80
+          operator:
+            type: and
+          reducer:
+            type: last
+        refId: C
+    for: 30m
+    noDataState: OK
+    execErrState: Error
+    labels:
+      severity: info
+    annotations:
+      summary: 'Disk {{ $labels.mountpoint }} on {{ $labels.node }} is {{ printf "%.0f" $values.B.Value }}% full'
+      description: 'Above 85% the kubelet starts deleting unused images, and at 95% it evicts pods. First steps: on {{ $labels.node }}, sudo du -xh --max-depth=2 {{ $labels.mountpoint }} | sort -h | tail to see what grew. The usual causes are container logs under /var/log/pods, unused images (sudo k3s crictl rmi --prune), and the Loki, Prometheus and Grafana volumes under /var/lib/rancher/k3s/storage (kubectl get pvc).'
+  - uid: node-disk-critical
+    title: Node Disk Critical
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 300
+        to: 0
+      datasourceUid: prometheus
+      model:
+        expr: 100 * (1 - node_filesystem_avail_bytes{job="node-exporter"} / node_filesystem_size_bytes{job="node-exporter"})
+        instant: true
+        refId: A
+    - refId: B
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: reduce
+        expression: A
+        reducer: last
+        refId: B
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: threshold
+        expression: B
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 90
+          operator:
+            type: and
+          reducer:
+            type: last
+        refId: C
+    for: 5m
+    noDataState: OK
+    execErrState: Error
+    labels:
+      severity: critical
+    annotations:
+      summary: 'Disk {{ $labels.mountpoint }} on {{ $labels.node }} is {{ printf "%.0f" $values.B.Value }}% full'
+      description: 'The kubelet deletes unused images above 85%, so the disk is filling faster than it can clean up, and at 95% it evicts pods. First steps: free space now on {{ $labels.node }} with sudo k3s crictl rmi --prune and sudo journalctl --vacuum-size=200M, then find what grew with sudo du -xh --max-depth=2 {{ $labels.mountpoint }} | sort -h | tail (old backups, tarballs, container logs, the volumes under /var/lib/rancher/k3s/storage).'
+- orgId: 1
   name: Service Health
   folder: Provisioned
   interval: 1m

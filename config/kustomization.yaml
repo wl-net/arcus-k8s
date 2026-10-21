@@ -33,6 +33,7 @@ resources:
 - logging/alloy.yaml
 - monitoring/kube-state-metrics.yaml
 - monitoring/blackbox-exporter.yaml
+- monitoring/node-exporter.yaml
 - service/grafana.yaml
 - service/prometheus.yaml
 
