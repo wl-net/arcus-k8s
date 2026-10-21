@@ -261,6 +261,63 @@ groups:
     annotations:
       summary: '{{ $labels.container }} in {{ $labels.pod }} cannot pull its image'
       description: '{{ $labels.container }} ({{ $labels.namespace }}/{{ $labels.pod }}) has been unable to pull its image for 10 minutes. First steps: kubectl describe pod -n {{ $labels.namespace }} {{ $labels.pod }} and read the Events for the exact pull error, then check the tag (newTag in config/kustomization.yaml) exists in the registry.'
+  # Service Down only sees pods Prometheus can scrape: a Pending pod has no target, and
+  # one failing its readiness probe still answers scrapes. Rollouts don't trip this,
+  # since the deployments surge a new pod before taking the old one away.
+  # The workload's name is in whichever of deployment/statefulset/daemonset it has.
+  - uid: workload-unavailable
+    title: Workload Unavailable
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 300
+        to: 0
+      datasourceUid: prometheus
+      model:
+        expr: >-
+          max by (namespace, deployment, statefulset, daemonset) (
+          (kube_deployment_spec_replicas - kube_deployment_status_replicas_available)
+          or (kube_statefulset_replicas - kube_statefulset_status_replicas_ready)
+          or kube_daemonset_status_number_unavailable)
+        instant: true
+        refId: A
+    - refId: B
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: reduce
+        expression: A
+        reducer: last
+        refId: B
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: threshold
+        expression: B
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0
+          operator:
+            type: and
+          reducer:
+            type: last
+        refId: C
+    for: 10m
+    noDataState: OK
+    execErrState: Error
+    labels:
+      severity: critical
+    annotations:
+      summary: '{{ or $labels.deployment $labels.statefulset $labels.daemonset }} has {{ $values.B.Value }} unavailable pod(s)'
+      description: '{{ or $labels.deployment $labels.statefulset $labels.daemonset }} ({{ $labels.namespace }}) has had fewer ready pods than it should for 10 minutes. First steps: kubectl get pods -n {{ $labels.namespace }} -o wide | grep {{ or $labels.deployment $labels.statefulset $labels.daemonset }}, then kubectl describe pod on the one that is not Ready. Pending with FailedScheduling means the node has no room for its resource requests; Running but not Ready means its readiness probe is failing, so read its logs. If Pod Crash Looping or Image Pull Failing is firing for it too, start there.'
   # cert-manager renews at 2/3 of a certificate's lifetime, so an overdue renewal is the
   # earliest sign that issuance is failing, whatever the certificate lifetime is.
   - uid: cert-renewal-overdue
