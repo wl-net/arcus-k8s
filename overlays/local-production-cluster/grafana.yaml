@@ -40,17 +40,6 @@ spec:
             secretKeyRef:
               key: grafana.renderer.token
               name: shared
-        - name: GF_SMTP_HOST
-          value: smtp.sendgrid.net:587
-        - name: GF_SMTP_USER
-          value: apikey
-        - name: GF_SMTP_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              key: email.provider.apikey
-              name: shared
-        - name: GF_SMTP_ENABLED
-          value: "true"
         - name: GF_UNIFIED_ALERTING_SCREENSHOTS_CAPTURE
           value: "true"
           #ports:
