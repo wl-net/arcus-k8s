@@ -48,7 +48,7 @@ groups:
         refId: C
     for: 5m
     noDataState: Alerting
-    execErrState: Alerting
+    execErrState: Error
     labels:
       severity: critical
     annotations:
@@ -101,7 +101,7 @@ groups:
         refId: C
     for: 10m
     noDataState: OK
-    execErrState: Alerting
+    execErrState: Error
     labels:
       severity: critical
     annotations:
@@ -152,7 +152,7 @@ groups:
         refId: C
     for: 10m
     noDataState: OK
-    execErrState: Alerting
+    execErrState: Error
     labels:
       severity: critical
     annotations:
@@ -203,7 +203,7 @@ groups:
         refId: C
     for: 15m
     noDataState: OK
-    execErrState: Alerting
+    execErrState: Error
     labels:
       severity: critical
     annotations:
@@ -252,7 +252,7 @@ groups:
         refId: C
     for: 1h
     noDataState: OK
-    execErrState: Alerting
+    execErrState: Error
     labels:
       severity: critical
     annotations:
@@ -301,7 +301,7 @@ groups:
         refId: C
     for: 5m
     noDataState: OK
-    execErrState: Alerting
+    execErrState: Error
     labels:
       severity: critical
     annotations:
@@ -352,7 +352,7 @@ groups:
         refId: C
     for: 0s
     noDataState: OK
-    execErrState: Alerting
+    execErrState: Error
     labels:
       severity: critical
     annotations:
@@ -406,7 +406,7 @@ groups:
         refId: C
     for: 0s
     noDataState: OK
-    execErrState: Alerting
+    execErrState: Error
     labels:
       severity: critical
     annotations:
@@ -457,7 +457,7 @@ groups:
         refId: C
     for: 5m
     noDataState: OK
-    execErrState: Alerting
+    execErrState: Error
     labels:
       severity: critical
     annotations:
@@ -508,7 +508,7 @@ groups:
         refId: C
     for: 5m
     noDataState: OK
-    execErrState: Alerting
+    execErrState: Error
     labels:
       severity: critical
     annotations:
@@ -557,16 +557,16 @@ groups:
           reducer:
             type: last
         refId: C
-    for: 0s
+    for: 2m
     noDataState: OK
-    execErrState: Alerting
+    execErrState: Error
     labels:
       severity: critical
     annotations:
       __dashboardUid__: arcus-overview
       __panelId__: "60"
-      summary: 'Alloy hitting inotify watch limit'
-      description: 'Alloy is logging "too many open files" errors — logs are not being collected.'
+      summary: 'Alloy hitting an inotify or open-file limit'
+      description: 'Alloy is logging "too many open files": the node is out of inotify instances (fs.inotify.max_user_instances) or open files, so some logs are not being collected.'
   - uid: log-ingestion-stopped
     title: Log Ingestion Stopped
     condition: C
@@ -610,7 +610,7 @@ groups:
         refId: C
     for: 5m
     noDataState: OK
-    execErrState: Alerting
+    execErrState: Error
     labels:
       severity: critical
     annotations:
