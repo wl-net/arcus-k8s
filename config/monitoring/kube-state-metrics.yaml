@@ -1,5 +1,6 @@
 # kube-state-metrics exposes pod and workload state from the Kubernetes API (restart counts,
-# waiting reasons such as CrashLoopBackOff, replica availability) for Prometheus and alerting.
+# waiting reasons such as CrashLoopBackOff, replica availability, CronJob successes) for
+# Prometheus and alerting.
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -16,6 +17,9 @@ rules:
   verbs: ["list", "watch"]
 - apiGroups: ["apps"]
   resources: ["deployments", "statefulsets", "daemonsets"]
+  verbs: ["list", "watch"]
+- apiGroups: ["batch"]
+  resources: ["cronjobs"]
   verbs: ["list", "watch"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -56,8 +60,8 @@ spec:
         args:
         - --port=8080
         - --telemetry-port=8081
-        - --resources=pods,deployments,statefulsets,daemonsets
-        - --metric-allowlist=kube_pod_container_status_restarts_total,kube_pod_container_status_waiting_reason,kube_pod_container_status_last_terminated_reason,kube_pod_container_status_ready,kube_deployment_spec_replicas,kube_deployment_status_replicas_available,kube_statefulset_replicas,kube_statefulset_status_replicas_ready,kube_daemonset_status_number_unavailable
+        - --resources=pods,deployments,statefulsets,daemonsets,cronjobs
+        - --metric-allowlist=kube_pod_container_status_restarts_total,kube_pod_container_status_waiting_reason,kube_pod_container_status_last_terminated_reason,kube_pod_container_status_ready,kube_deployment_spec_replicas,kube_deployment_status_replicas_available,kube_statefulset_replicas,kube_statefulset_status_replicas_ready,kube_daemonset_status_number_unavailable,kube_cronjob_status_last_successful_time
         ports:
         - containerPort: 8080
           name: http-metrics

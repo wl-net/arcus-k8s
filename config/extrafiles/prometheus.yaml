@@ -176,3 +176,21 @@ scrape_configs:
     target_label: instance
   - target_label: __address__
     replacement: blackbox-exporter.default.svc.cluster.local:9115
+
+# The certificate hub-bridge serves to hubs on 8082. It comes from the hub-keystore
+# secret, which the hub-keystore-renewal CronJob copies from cert-manager's
+# certificate, so cert-manager's own metrics don't cover it.
+- job_name: 'blackbox-hub-tls'
+  scrape_interval: 60s
+  metrics_path: /probe
+  params:
+    module: [tls_connect]
+  static_configs:
+  - targets: ['hub-bridge-service.default.svc.cluster.local:8082']
+  relabel_configs:
+  - source_labels: [__address__]
+    target_label: __param_target
+  - source_labels: [__param_target]
+    target_label: instance
+  - target_label: __address__
+    replacement: blackbox-exporter.default.svc.cluster.local:9115

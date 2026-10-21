@@ -565,6 +565,153 @@ groups:
     annotations:
       summary: '{{ $labels.datastore }} at {{ $labels.instance }} is not accepting connections'
       description: 'The blackbox exporter has not been able to open a TCP connection to {{ $labels.datastore }} at {{ $labels.instance }} for 2 minutes. Cassandra, Kafka and ZooKeeper run outside the cluster: check the host and the service on it.'
+  - uid: keystore-renewal-stale
+    title: Hub Keystore Renewal Stale
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 300
+        to: 0
+      datasourceUid: prometheus
+      model:
+        expr: (time() - kube_cronjob_status_last_successful_time{cronjob="hub-keystore-renewal"}) / 3600
+        instant: true
+        refId: A
+    - refId: B
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: reduce
+        expression: A
+        reducer: last
+        refId: B
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: threshold
+        expression: B
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 13
+          operator:
+            type: and
+          reducer:
+            type: last
+        refId: C
+    for: 5m
+    noDataState: OK
+    execErrState: Error
+    labels:
+      severity: critical
+    annotations:
+      summary: 'hub-keystore-renewal has not succeeded for {{ printf "%.0f" $values.B.Value }} hours'
+      description: 'The CronJob runs every 6 hours to copy cert-manager''s renewed certificate into hub-keystore, and a stuck run blocks the ones after it (concurrencyPolicy: Forbid). Check kubectl get jobs, delete a stuck job, or test a run with kubectl create job --from=cronjob/hub-keystore-renewal hub-keystore-test.'
+  - uid: hub-tls-failing
+    title: Hub TLS Failing
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 300
+        to: 0
+      datasourceUid: prometheus
+      model:
+        expr: probe_success{job="blackbox-hub-tls"}
+        instant: true
+        refId: A
+    - refId: B
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: reduce
+        expression: A
+        reducer: last
+        refId: B
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: threshold
+        expression: B
+        conditions:
+        - evaluator:
+            type: lt
+            params:
+            - 1
+          operator:
+            type: and
+          reducer:
+            type: last
+        refId: C
+    for: 5m
+    noDataState: OK
+    execErrState: Error
+    labels:
+      severity: critical
+    annotations:
+      summary: 'hub-bridge is not completing TLS handshakes on 8082'
+      description: 'Hubs connect to hub-bridge on 8082 with the certificate in the hub-keystore secret. Check that hub-bridge is running and that hub-keystore holds a valid certificate; ./arcuscmd.sh updatehubkeystore recreates it.'
+  - uid: hub-cert-expiring
+    title: Hub Certificate Expiring
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 300
+        to: 0
+      datasourceUid: prometheus
+      model:
+        expr: (probe_ssl_earliest_cert_expiry{job="blackbox-hub-tls"} - time()) / 86400
+        instant: true
+        refId: A
+    - refId: B
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: reduce
+        expression: A
+        reducer: last
+        refId: B
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: threshold
+        expression: B
+        conditions:
+        - evaluator:
+            type: lt
+            params:
+            - 21
+          operator:
+            type: and
+          reducer:
+            type: last
+        refId: C
+    for: 1h
+    noDataState: OK
+    execErrState: Error
+    labels:
+      severity: critical
+    annotations:
+      summary: 'Hub certificate on 8082 expires in {{ printf "%.0f" $values.B.Value }} days'
+      description: 'cert-manager renews the certificate about 30 days before it expires, and hub-keystore-renewal copies it into hub-keystore within 6 hours, so a certificate this close to expiry means hub-bridge missed the renewal. Check the hub-keystore-renewal CronJob, or run ./arcuscmd.sh updatehubkeystore.'
   - uid: alloy-inotify-errors
     title: Alloy Inotify Errors
     condition: C
