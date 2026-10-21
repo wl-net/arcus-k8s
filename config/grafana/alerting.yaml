@@ -55,7 +55,7 @@ groups:
       __dashboardUid__: arcus-overview
       __panelId__: "1"
       summary: '{{ $labels.job }} is down'
-      description: '{{ $labels.job }} ({{ $labels.instance }}) has been down for more than 5 minutes.'
+      description: '{{ $labels.job }} ({{ $labels.instance }}) has been down for more than 5 minutes. First steps: ./arcuscmd.sh status to see which pods are not ready, then kubectl describe pod and ./arcuscmd.sh logs <app> for the service behind {{ $labels.job }}; for a blackbox-* job, check the blackbox-exporter pod first.'
   - uid: pod-crash-looping
     title: Pod Crash Looping
     condition: C
@@ -108,7 +108,7 @@ groups:
       __dashboardUid__: arcus-overview
       __panelId__: "306"
       summary: '{{ $labels.container }} in {{ $labels.pod }} is crash looping'
-      description: '{{ $labels.container }} ({{ $labels.namespace }}/{{ $labels.pod }}) keeps crashing and Kubernetes is backing off its restarts. Check the previous run with: kubectl logs -n {{ $labels.namespace }} {{ $labels.pod }} -c {{ $labels.container }} --previous'
+      description: '{{ $labels.container }} ({{ $labels.namespace }}/{{ $labels.pod }}) keeps crashing and Kubernetes is backing off its restarts. First steps: kubectl logs -n {{ $labels.namespace }} {{ $labels.pod }} -c {{ $labels.container }} --previous for the crash, and kubectl describe pod -n {{ $labels.namespace }} {{ $labels.pod }} for Last State; OOMKilled means the memory limit in config/deployments/ is too low.'
   - uid: image-pull-failing
     title: Image Pull Failing
     condition: C
@@ -157,7 +157,7 @@ groups:
       severity: critical
     annotations:
       summary: '{{ $labels.container }} in {{ $labels.pod }} cannot pull its image'
-      description: '{{ $labels.container }} ({{ $labels.namespace }}/{{ $labels.pod }}) has been unable to pull its image for 10 minutes. Check the image name and tag exist in the registry: kubectl describe pod -n {{ $labels.namespace }} {{ $labels.pod }}'
+      description: '{{ $labels.container }} ({{ $labels.namespace }}/{{ $labels.pod }}) has been unable to pull its image for 10 minutes. First steps: kubectl describe pod -n {{ $labels.namespace }} {{ $labels.pod }} and read the Events for the exact pull error, then check the tag (newTag in config/kustomization.yaml) exists in the registry.'
   # cert-manager renews at 2/3 of a certificate's lifetime, so an overdue renewal is the
   # earliest sign that issuance is failing, whatever the certificate lifetime is.
   - uid: cert-renewal-overdue
@@ -208,7 +208,7 @@ groups:
       severity: critical
     annotations:
       summary: 'Certificate {{ $labels.name }} renewal is overdue'
-      description: '{{ $labels.name }} in namespace {{ $labels.namespace }} should have renewed {{ printf "%.0f" $values.B.Value }} hours ago. Check the Certificate and its CertificateRequests (arcuscmd certlogs).'
+      description: '{{ $labels.name }} in namespace {{ $labels.namespace }} should have renewed {{ printf "%.0f" $values.B.Value }} hours ago. First steps: kubectl describe certificate -n {{ $labels.namespace }} {{ $labels.name }}, then kubectl get certificaterequest,order,challenge -n {{ $labels.namespace }} and ./arcuscmd.sh certlogs for why issuance is stuck; once fixed, ./arcuscmd.sh renewcert {{ $labels.name }} forces a re-issue.'
   - uid: cert-expiring-soon
     title: Certificate Expiring Soon
     condition: C
@@ -257,7 +257,7 @@ groups:
       severity: critical
     annotations:
       summary: 'Certificate {{ $labels.name }} expiring soon'
-      description: '{{ $labels.name }} in namespace {{ $labels.namespace }} expires in {{ printf "%.0f" $values.B.Value }} days.'
+      description: '{{ $labels.name }} in namespace {{ $labels.namespace }} expires in {{ printf "%.0f" $values.B.Value }} days, so cert-manager has not renewed it on schedule (about 30 days before expiry). First steps: kubectl describe certificate -n {{ $labels.namespace }} {{ $labels.name }} and ./arcuscmd.sh certlogs, then ./arcuscmd.sh renewcert {{ $labels.name }}; after nginx-production-tls renews, hub-keystore follows within 6 hours.'
   - uid: unexpected-hubs
     title: Unexpected Hub Connections
     condition: C
@@ -308,7 +308,7 @@ groups:
       __dashboardUid__: arcus-overview
       __panelId__: "2"
       summary: 'Unexpected hub connections detected'
-      description: '{{ $value }} hubs connected (expected 4 or fewer). Possible unauthorized hub connection.'
+      description: '{{ $value }} hubs connected (expected 4 or fewer). Possible unauthorized hub connection. First steps: find the hub IDs and source addresses of recent connections in ./arcuscmd.sh logs hub-bridge and compare them with the hubs you expect; an unknown hub should be checked against the place it is registered to.'
   - uid: password-changed
     title: Password Changed
     condition: C
@@ -357,7 +357,7 @@ groups:
       severity: critical
     annotations:
       summary: 'Password changed'
-      description: 'A password change was detected on the platform.'
+      description: 'A password change was detected on the platform. First steps: confirm it was expected by finding the person and time in ./arcuscmd.sh logs platform-services, and the session and source address that made it in ./arcuscmd.sh logs client-bridge; if nobody expected it, treat the account as compromised and review its places for recent changes.'
   - uid: unauthorized-access
     title: Unauthorized Access Attempt
     condition: C
@@ -413,7 +413,7 @@ groups:
       __dashboardUid__: arcus-overview
       __panelId__: "6"
       summary: 'Unauthorized access attempt detected'
-      description: 'Bridge received unauthorized access attempts in the last 5 minutes.'
+      description: '{{ $labels.job }} received unauthorized access attempts in the last 5 minutes. First steps: ./arcuscmd.sh logs client-bridge (or the bridge behind {{ $labels.job }}) and look at the authorization failures: which person, which place and which source address. Many places tried from one source points to probing; one person hitting the wrong place is more often a stale app session.'
   - uid: notification-email-errors
     title: Email Notification Errors
     condition: C
@@ -464,7 +464,7 @@ groups:
       __dashboardUid__: arcus-overview
       __panelId__: "42"
       summary: 'Email notification errors'
-      description: 'Email notifications are failing to send.'
+      description: 'Email notifications are failing to send. First steps: ./arcuscmd.sh logs notification-services | grep -i email for the provider error; a rejected or out-of-credit key (email.provider.apikey in secret/) is the usual cause, and ./arcuscmd.sh verifyconfig confirms the key is present.'
   - uid: scheduler-errors
     title: Scheduler Errors
     condition: C
@@ -515,7 +515,7 @@ groups:
       __dashboardUid__: arcus-overview
       __panelId__: "30"
       summary: 'Scheduler command errors'
-      description: 'Scheduler service is experiencing command errors.'
+      description: 'Scheduler service is experiencing command errors. First steps: ./arcuscmd.sh logs scheduler-service for the failing command and place; errors that start with a Cassandra or Kafka problem usually clear when it recovers, so check for a Datastore Unreachable alert too.'
   - uid: datastore-unreachable
     title: Datastore Unreachable
     condition: C
@@ -564,7 +564,7 @@ groups:
       severity: critical
     annotations:
       summary: '{{ $labels.datastore }} at {{ $labels.instance }} is not accepting connections'
-      description: 'The blackbox exporter has not been able to open a TCP connection to {{ $labels.datastore }} at {{ $labels.instance }} for 2 minutes. Cassandra, Kafka and ZooKeeper run outside the cluster: check the host and the service on it.'
+      description: 'The blackbox exporter has not been able to open a TCP connection to {{ $labels.datastore }} at {{ $labels.instance }} for 2 minutes. Cassandra, Kafka and ZooKeeper run outside the cluster. First steps: ./arcuscmd.sh status (External Services pings each host), then check the {{ $labels.datastore }} service on that host; services that depend on it will be logging connection errors (./arcuscmd.sh logs platform-services).'
   - uid: keystore-renewal-stale
     title: Hub Keystore Renewal Stale
     condition: C
@@ -613,7 +613,7 @@ groups:
       severity: critical
     annotations:
       summary: 'hub-keystore-renewal has not succeeded for {{ printf "%.0f" $values.B.Value }} hours'
-      description: 'The CronJob runs every 6 hours to copy cert-manager''s renewed certificate into hub-keystore, and a stuck run blocks the ones after it (concurrencyPolicy: Forbid). Check kubectl get jobs, delete a stuck job, or test a run with kubectl create job --from=cronjob/hub-keystore-renewal hub-keystore-test.'
+      description: 'The CronJob runs every 6 hours to copy cert-manager''s renewed certificate into hub-keystore, and a stuck run blocks the ones after it (concurrencyPolicy: Forbid). First steps: kubectl get jobs,pods | grep hub-keystore-renewal and kubectl logs job/<name> for the last run; delete a stuck job or pod, then test a run with kubectl create job --from=cronjob/hub-keystore-renewal hub-keystore-test.'
   - uid: hub-tls-failing
     title: Hub TLS Failing
     condition: C
@@ -662,7 +662,7 @@ groups:
       severity: critical
     annotations:
       summary: 'hub-bridge is not completing TLS handshakes on 8082'
-      description: 'Hubs connect to hub-bridge on 8082 with the certificate in the hub-keystore secret. Check that hub-bridge is running and that hub-keystore holds a valid certificate; ./arcuscmd.sh updatehubkeystore recreates it.'
+      description: 'hub-bridge has stopped completing TLS handshakes on 8082, where it serves the certificate in the hub-keystore secret. First steps: kubectl get pods -l app=hub-bridge and ./arcuscmd.sh logs hub-bridge for keystore or TLS errors, and kubectl get secret hub-keystore; ./arcuscmd.sh updatehubkeystore recreates the secret from nginx-production-tls and restarts hub-bridge.'
   - uid: hub-cert-expiring
     title: Hub Certificate Expiring
     condition: C
@@ -711,7 +711,7 @@ groups:
       severity: critical
     annotations:
       summary: 'Hub certificate on 8082 expires in {{ printf "%.0f" $values.B.Value }} days'
-      description: 'cert-manager renews the certificate about 30 days before it expires, and hub-keystore-renewal copies it into hub-keystore within 6 hours, so a certificate this close to expiry means hub-bridge missed the renewal. Check the hub-keystore-renewal CronJob, or run ./arcuscmd.sh updatehubkeystore.'
+      description: 'cert-manager renews the certificate about 30 days before it expires, and hub-keystore-renewal copies it into hub-keystore within 6 hours, so a certificate this close to expiry on 8082 means hub-bridge missed the renewal. First steps: compare kubectl get secret nginx-production-tls -o jsonpath={.metadata.resourceVersion} with the arcus.io/source-resource-version annotation on hub-keystore, and check the CronJob''s last job (kubectl get jobs | grep hub-keystore-renewal); ./arcuscmd.sh updatehubkeystore fixes it immediately.'
   - uid: alloy-inotify-errors
     title: Alloy Inotify Errors
     condition: C
@@ -762,7 +762,7 @@ groups:
       __dashboardUid__: arcus-overview
       __panelId__: "60"
       summary: 'Alloy hitting an inotify or open-file limit'
-      description: 'Alloy is logging "too many open files": the node is out of inotify instances (fs.inotify.max_user_instances) or open files, so some logs are not being collected.'
+      description: 'Alloy is logging "too many open files": the node is out of inotify instances (fs.inotify.max_user_instances) or open files, so some logs are not being collected. First steps: kubectl logs ds/alloy --since=10m | grep "too many open files" for the exact error, then on the node compare cat /proc/sys/fs/inotify/max_user_instances with find /proc/[0-9]*/fd -lname anon_inode:inotify | wc -l, and raise fs.inotify.max_user_instances (persist it in /etc/sysctl.d/99-inotify.conf). A failed Loki query raises a separate DatasourceError alert, not this one.'
   - uid: log-ingestion-stopped
     title: Log Ingestion Stopped
     condition: C
@@ -813,4 +813,4 @@ groups:
       __dashboardUid__: arcus-overview
       __panelId__: "60"
       summary: 'No logs being ingested into Loki'
-      description: 'Loki has received no log entries for at least 15 minutes. Alloy may be down or unable to collect logs.'
+      description: 'Loki has received no log entries for at least 15 minutes. Alloy may be down or unable to collect logs. First steps: kubectl get pods -l app=alloy and kubectl get pod loki-0, then kubectl logs ds/alloy --since=15m and kubectl logs loki-0 --since=15m for push or ingester errors; a 503 from Loki /ready for about 15 seconds after it starts is normal.'
