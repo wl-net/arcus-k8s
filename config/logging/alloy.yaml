@@ -60,7 +60,57 @@ data:
 
     loki.source.kubernetes "pods" {
       targets    = discovery.relabel.pods.output
+      forward_to = [loki.process.pods.receiver]
+    }
+
+    // Give every stream a level label, so error rates are a stream selector
+    // ({app="x", level="error"}) and Grafana colours the lines.
+    loki.process "pods" {
       forward_to = [loki.write.default.receiver]
+
+      // Arcus services (config/extrafiles/logback.xml) log one event per line as
+      // "<level letter><MMdd> <HH:mm:ss.SSS> ...", followed by the stack trace
+      // when there is one. Older logback.xml copies wrap the start in colour
+      // codes, which are stripped so the first character is the level.
+      stage.match {
+        selector = "{app=~\"alarm-service|api-bridge|client-bridge|driver-services|history-service|hub-bridge|ivr-callback-server|notification-services|platform-services|rule-service|scheduler-service|subsystem-service|modelmanager\"}"
+
+        stage.replace {
+          expression = "(\\x1b\\[[0-9;]*m)"
+          replace    = ""
+        }
+        stage.multiline {
+          firstline     = "^[TDIWE]\\d{4} \\d{2}:\\d{2}:\\d{2}\\.\\d{3} "
+          max_wait_time = "3s"
+        }
+        stage.regex {
+          expression = "^(?P<level>[TDIWE])\\d{4} "
+        }
+        stage.template {
+          source   = "level"
+          template = "{{ if eq .Value \"E\" }}error{{ else if eq .Value \"W\" }}warn{{ else if eq .Value \"I\" }}info{{ else if eq .Value \"D\" }}debug{{ else }}trace{{ end }}"
+        }
+        stage.labels {
+          values = { level = "" }
+        }
+      }
+
+      // Everything else (Grafana, Loki, Alloy, Traefik, MetalLB) logs logfmt with
+      // a level field; lines that aren't logfmt just get no level label.
+      stage.match {
+        selector = "{app!~\"alarm-service|api-bridge|client-bridge|driver-services|history-service|hub-bridge|ivr-callback-server|notification-services|platform-services|rule-service|scheduler-service|subsystem-service|modelmanager\"}"
+
+        stage.logfmt {
+          mapping = { level = "" }
+        }
+        stage.template {
+          source   = "level"
+          template = "{{ $l := ToLower .Value }}{{ if or (eq $l \"eror\") (eq $l \"err\") (eq $l \"fatal\") (eq $l \"crit\") }}error{{ else if or (eq $l \"warning\") (eq $l \"wrn\") }}warn{{ else if eq $l \"dbug\" }}debug{{ else }}{{ $l }}{{ end }}"
+        }
+        stage.labels {
+          values = { level = "" }
+        }
+      }
     }
 
     loki.write "default" {
@@ -94,6 +144,9 @@ spec:
         - run
         - /etc/alloy/config.alloy
         - --server.http.listen-addr=0.0.0.0:12345
+        ports:
+        - containerPort: 12345
+          name: http
         resources:
           limits:
             cpu: 500m

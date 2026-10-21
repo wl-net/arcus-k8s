@@ -12,20 +12,13 @@
   <conversionRule conversionWord="ver" converterClass="com.iris.log.IrisVersionConverter" />
   <conversionRule conversionWord="ix" converterClass="com.iris.log.IrisMdcConverter" />
 
-  <appender name="STDOUT" class="com.iris.log.IrisAppender">
-    <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
-      <layout class="com.iris.log.IrisLayout">
-         <pattern>%.-1level%d{MMdd} %d{HH:mm:ss.SSS} &lt;%thread&gt; %ix{:target:system} %ix{place} %ix{from:from} %ix{to:to} %ix{id:id} %ix{ip:ip} %ix{loc:loc} %ix{slvl:slvl} [%logger{32}] %msg%n</pattern>
-      </layout>
-    </encoder>
-  </appender>
-
+  <!-- One line per event, no colour codes: Alloy's pipeline (config/logging/alloy.yaml)
+       reads the level from the first character and joins stack traces onto the line
+       that raised them, so keep the start of the pattern in step with it. -->
   <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-    <encoder>
-    </encoder>
     <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
       <layout class="com.iris.log.IrisLayout">
-         <pattern>%highlight(%.-1level%d{MMdd}) %gray(%d{HH:mm:ss.SSS} %6.6thread %32.32logger{32}]) %msg%n</pattern>
+         <pattern>%.-1level%d{MMdd} %d{HH:mm:ss.SSS} %6.6thread [%32.32logger{32}] %msg%n</pattern>
       </layout>
     </encoder>
   </appender>

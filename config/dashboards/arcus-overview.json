@@ -407,7 +407,7 @@
       },
       "targets": [
         {
-          "expr": "sum(count_over_time({app=~\".+\"} |~ \"ERROR|Exception\" [5m]))",
+          "expr": "sum(count_over_time({app=~\".+\", level=\"error\"}[5m]))",
           "refId": "A",
           "queryType": "instant"
         }
@@ -732,7 +732,7 @@
       "id": 61,
       "targets": [
         {
-          "expr": "sum by (app) (rate({app=~\"$service\"} |~ \"ERROR|Exception\" [$__auto])) * 60",
+          "expr": "sum by (app) (rate({app=~\"$service\", level=\"error\"}[$__auto])) * 60",
           "refId": "A",
           "legendFormat": "{{app}}"
         }
