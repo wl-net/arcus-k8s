@@ -3,7 +3,7 @@ kind: Job
 metadata:
   labels:
     app: modelmanager-video
-    app.kubernetes.io/version: 2019.10.0
+    app.kubernetes.io/version: 2026.3.0
   name: modelmanager-video
   namespace: default
 spec:
@@ -15,13 +15,16 @@ spec:
       containers:
       - env:
         - name: MODELMANAGER_HOME
-          value: /modelmanager-2019.10.0/video-resources/
+          value: /modelmanager-2026.3.0/video-resources/
         - name: MODELMANAGER_SCHEMA
           value: video
         - name: MODELMANAGER_AUTO
           value: "true"
         - name: cassandra_video_contactPoints
-          value: cassandra-service.default.svc.cluster.local
+          valueFrom:
+            configMapKeyRef:
+              key: CASSANDRA_CONTACTPOINTS
+              name: cluster-config
         - name: BOOTSTRAP_SERVERS
           valueFrom:
             configMapKeyRef:
@@ -32,10 +35,10 @@ spec:
             configMapKeyRef:
               key: BOOTSTRAP_SERVERS
               name: cluster-config
-        image: ghcr.io/wl-net/arcusplatform/arcus-modelmanager:2019.10.0
+        image: ghcr.io/wl-net/arcusplatform/arcus-modelmanager:2026.3.0
         imagePullPolicy: IfNotPresent
-        command: ["/modelmanager-2019.10.0/bin/modelmanager"]
-        args: ["-c", "/modelmanager-2019.10.0/conf/arcus-modelmanager.properties"]
+        command: ["/modelmanager-2026.3.0/bin/modelmanager"]
+        args: ["-c", "/modelmanager-2026.3.0/conf/arcus-modelmanager.properties"]
         name: modelmanager-video
         resources: {}
         terminationMessagePath: /dev/termination-log
