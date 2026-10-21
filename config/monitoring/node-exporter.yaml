@@ -24,7 +24,10 @@ spec:
         imagePullPolicy: IfNotPresent
         name: node-exporter
         args:
+        # The host's /proc and /sys, so the mount list is the host's and not this container's
         - --path.rootfs=/host
+        - --path.procfs=/host/proc
+        - --path.sysfs=/host/sys
         - --web.listen-address=:9100
         - --collector.disable-defaults
         - --collector.filesystem
