@@ -68,16 +68,18 @@ function validate_manifests() {
 }
 
 # Every rule in alerting.yaml needs a runbook in docs/runbooks/<uid>.md (with the
-# four sections the README asks for) that its runbook_url annotation points to,
-# every runbook needs a rule and an entry in the README's index, and a rule's
-# __dashboardUid__/__panelId__ must name a panel in config/dashboards/. This is
-# what the notification's Runbook and Panel links rely on.
+# four sections the README asks for, and a header that states the rule's severity
+# and group) that its runbook_url annotation points to, every runbook needs a rule
+# and a matching entry in the README's index, and every rule needs a
+# __dashboardUid__/__panelId__ naming a panel in config/dashboards/. This is what
+# the notification's Runbook and Panel links rely on. The text Pushover gets
+# (summary, description and the runbook line) must fit its 1024-character limit.
 function _validate_alert_rules() {
   local output
-  if output=$(python3 - "$ROOT" <<'PY'
+  if output=$(python3 - "$ROOT" 2>&1 <<'PY'
 import glob, json, os, re, sys, yaml
 root = sys.argv[1]
-base = "https://github.com/wl-net/arcus-k8s/blob/master/docs/runbooks/"
+base = "https://github.com/wl-net/arcus-k8s/blob/PLACEHOLDER_RUNBOOK_REF/docs/runbooks/"
 sections = ["What it means", "Confirm", "Fix", "Related alerts"]
 problems, rules = [], 0
 panels = {}
@@ -91,6 +93,7 @@ for f in glob.glob(f"{root}/config/dashboards/*.json"):
     walk(d["panels"])
     panels[d["uid"]] = ids
 readme = open(f"{root}/docs/runbooks/README.md").read()
+index = dict(re.findall(r"^\| \[[^\]]+\]\(([^)]+)\.md\) \| \S+ \| (.*) \|$", readme, re.M))
 seen = set()
 for g in yaml.safe_load(open(f"{root}/config/grafana/alerting.yaml"))["groups"]:
     for r in g["rules"]:
@@ -109,14 +112,23 @@ for g in yaml.safe_load(open(f"{root}/config/grafana/alerting.yaml"))["groups"]:
             for sec in sections:
                 if f"\n## {sec}\n" not in text:
                     problems.append(f"{uid}: docs/runbooks/{uid}.md has no '## {sec}' section")
-            if f"]({uid}.md)" not in readme:
+            header = text.split("\n")[2]
+            if not header.startswith(f"Severity **{r['labels'].get('severity')}** · group {g['name']} · fires "):
+                problems.append(f"{uid}: line 3 of docs/runbooks/{uid}.md should start 'Severity **{r['labels'].get('severity')}** · group {g['name']} · fires ...'")
+            fires = header.split(" · ")[-1].rstrip(".")
+            if uid not in index:
                 problems.append(f"{uid}: not in the docs/runbooks/README.md index")
+            elif index[uid].lower() != fires.lower():
+                problems.append(f"{uid}: the README index says '{index[uid]}' but the runbook says '{fires}'")
+        # what Pushover gets: the summary line, the description and the runbook line
+        text_len = len(a.get("summary", "")) + len(a.get("description", "")) + len(a.get("runbook_url", "")) + 16
+        if text_len > 1024:
+            problems.append(f"{uid}: summary + description + runbook link is {text_len} characters, over Pushover's 1024 limit")
         dash, panel = a.get("__dashboardUid__"), a.get("__panelId__")
-        if dash or panel:
-            if dash not in panels:
-                problems.append(f"{uid}: __dashboardUid__ {dash} is not a dashboard in config/dashboards/")
-            elif str(panel) not in panels[dash]:
-                problems.append(f"{uid}: panel {panel} is not in dashboard {dash}")
+        if dash not in panels:
+            problems.append(f"{uid}: __dashboardUid__ {dash} is not a dashboard in config/dashboards/")
+        elif str(panel) not in panels[dash]:
+            problems.append(f"{uid}: panel {panel} is not in dashboard {dash}")
 for f in glob.glob(f"{root}/docs/runbooks/*.md"):
     name = os.path.basename(f)[:-3]
     if name != "README" and name not in seen:
@@ -127,7 +139,7 @@ print(f"{rules} rules")
 sys.exit(1 if problems else 0)
 PY
   ); then
-    echo "  OK:   alerting.yaml: every rule has a runbook and a panel that exist (${output##*$'\n'})"
+    echo "  OK:   alerting.yaml: every rule has a runbook, an index entry and a panel that exist, and fits Pushover (${output##*$'\n'})"
     return 0
   fi
   echo "  FAIL: alerting.yaml: rules, runbooks and panel links do not match up"

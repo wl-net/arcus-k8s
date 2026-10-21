@@ -97,10 +97,11 @@ spec:
       - name: datasources
         configMap:
           name: grafana-datasources
-      # Alert rules from config/grafana/alerting.yaml (rendered by apply) and, when
-      # .config/alert-* is set, the contact points and notification policy apply
-      # writes to the grafana-notifications Secret. Optional so Grafana starts
-      # before the first apply.
+      # Alert rules from config/grafana/alerting.yaml (rendered by apply) and the
+      # contact points and notification policy apply writes to the
+      # grafana-notifications Secret from .config/alert-*. The Secret is optional
+      # so that a -local overlay generated before the secretGenerator existed
+      # still starts Grafana.
       - name: alerting
         projected:
           sources:

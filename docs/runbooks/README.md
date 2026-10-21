@@ -21,9 +21,10 @@ The notification links to the rule (its query and current state), the panel
 the rule reads from (with the alert's state changes drawn on it), the
 runbook, and a one-click silence. The Alerts panel at the top of the
 Arcus Overview dashboard shows everything firing or pending right now, and
-Alerting → History in Grafana shows every state change (kept in Loki, so it
-survives a Grafana restart and can be queried next to the logs with
-`{from="state-history"}`).
+Alerting → History in Grafana shows every state change of the last 30 days
+(kept in Loki, so it can be queried next to the logs with
+`{from="state-history"}`). The Runbook link names the commit the datacenter
+runs, so it matches the rule that fired even after a rollback.
 
 To quieten everything during planned work: `./arcuscmd.sh silence 2h`
 (`unsilence` to lift it). `./arcuscmd.sh reboot-node` silences on its own.

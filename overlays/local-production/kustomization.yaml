@@ -1,5 +1,6 @@
 resources:
 - ../../config
+# grafana.yaml is config/stateful/grafana.yaml, which apply copies into the -local overlay
 - grafana.yaml
 # apply renders config/grafana/alerting.yaml (its PLACEHOLDER_* thresholds come
 # from .config/) to alerting.yaml here, replacing the copy config/ generates

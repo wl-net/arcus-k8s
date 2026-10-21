@@ -58,16 +58,20 @@ function _peer_public_targets() {
   printf '[%s]\n' "$groups"
 }
 
-# Write config/grafana/alerting.yaml to $1 with its PLACEHOLDER_* thresholds filled
-# in from .config/: expected-hubs (default 4), the most hubs Unexpected Hub
-# Connections allows.
+# Write config/grafana/alerting.yaml to $1 with its PLACEHOLDER_* tokens filled in:
+# PLACEHOLDER_EXPECTED_HUBS from .config/expected-hubs (default 4), the most hubs
+# Unexpected Hub Connections allows, and PLACEHOLDER_RUNBOOK_REF, the commit the
+# runbook links name, so they show the runbook that matches the deployed rule
+# even after a rollback (master when this isn't a git checkout).
 function _render_alert_rules() {
-  local hubs="${ARCUS_EXPECTED_HUBS:-4}"
+  local hubs="${ARCUS_EXPECTED_HUBS:-4}" ref
   if ! [[ "$hubs" =~ ^[0-9]+$ ]]; then
     echo "Error: .config/expected-hubs must be a whole number, not '${hubs}'."
     return 1
   fi
-  sed "s/PLACEHOLDER_EXPECTED_HUBS/${hubs}/g" "$ROOT/config/grafana/alerting.yaml" > "$1"
+  ref=$(git -C "$ROOT" rev-parse HEAD 2>/dev/null) || ref=master
+  sed -e "s/PLACEHOLDER_EXPECTED_HUBS/${hubs}/g" -e "s/PLACEHOLDER_RUNBOOK_REF/${ref}/g" \
+    "$ROOT/config/grafana/alerting.yaml" > "$1"
 }
 
 # Print Grafana alerting provisioning for the contact points in .config/alert-*:

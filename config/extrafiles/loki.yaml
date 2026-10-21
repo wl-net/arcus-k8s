@@ -37,5 +37,11 @@ compactor:
 
 limits_config:
   retention_period: 168h
+  # Grafana's alert state history ({from="state-history"}) is small and worth
+  # keeping longer than the logs: a month of a rule's transitions
+  retention_stream:
+  - selector: '{from="state-history"}'
+    priority: 1
+    period: 720h
   ingestion_burst_size_mb: 16
   ingestion_rate_mb: 8
