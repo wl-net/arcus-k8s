@@ -1,3 +1,10 @@
+# Grafana alert rules, provisioned from this file (apply renders the PLACEHOLDER_*
+# thresholds from .config/ first). Severity decides who is told, through the
+# notification policy apply provisions:
+#   critical  users or hubs are affected now, or will be without action today
+#             (goes to Pushover as well as Discord)
+#   warning   needs attention in working hours; nothing is down for users
+#   info      for the record
 apiVersion: 1
 groups:
 - orgId: 1
@@ -50,7 +57,7 @@ groups:
     noDataState: OK
     execErrState: Error
     labels:
-      severity: info
+      severity: warning
     annotations:
       summary: 'Disk {{ $labels.mountpoint }} on {{ $labels.node }} is {{ printf "%.0f" $values.B.Value }}% full'
       description: 'The kubelet deletes unused images once the disk passes 75%, so on a node with /etc/rancher/k3s/config.yaml.d/arcus-image-gc.yaml something else is growing; without that file (./arcuscmd.sh k3s writes it) the kubelet waits until 85% and old release images are the usual cause (sudo k3s crictl rmi --prune). At 95% it evicts pods. First steps: on {{ $labels.node }}, sudo du -xh --max-depth=2 {{ $labels.mountpoint }} | sort -h | tail to see what grew. The usual causes are container logs under /var/log/pods and the Loki, Prometheus and Grafana volumes under /var/lib/rancher/k3s/storage (kubectl get pvc).'
@@ -199,10 +206,157 @@ groups:
     noDataState: OK
     execErrState: Error
     labels:
-      severity: info
+      severity: warning
     annotations:
       summary: 'Processes on {{ $labels.node }} are waiting for a CPU {{ printf "%.0f" $values.B.Value }}% of the time'
       description: 'For 15 minutes, something runnable on {{ $labels.node }} has been kept waiting for a CPU more than 25% of the time (/proc/pressure/cpu), so services there are slowed by a shortage of CPU. A healthy node stays near 0%. First steps: kubectl top pods -A --sort-by=cpu, and top on {{ $labels.node }} for anything outside Kubernetes (Cassandra, Kafka or ZooKeeper if they run on this host).'
+  - uid: node-swapping
+    title: Node Swapping
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 300
+        to: 0
+      datasourceUid: prometheus
+      model:
+        expr: max by (node) (rate(node_vmstat_pswpin{job="node-exporter"}[5m]) + rate(node_vmstat_pswpout{job="node-exporter"}[5m])) * 4096 / 1048576
+        instant: true
+        refId: A
+    - refId: B
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: reduce
+        expression: A
+        reducer: last
+        refId: B
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: threshold
+        expression: B
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 1
+          operator:
+            type: and
+          reducer:
+            type: last
+        refId: C
+    for: 15m
+    noDataState: OK
+    execErrState: Error
+    labels:
+      severity: warning
+    annotations:
+      summary: '{{ $labels.node }} has been swapping {{ printf "%.1f" $values.B.Value }} MiB/s for 15 minutes'
+      description: 'Pages are moving to and from swap continuously, so the node is short of memory and everything on it is slower; the JVMs are the usual cause. First steps: kubectl top pods --sort-by=memory against each services limit in config/deployments/, free -m and ps -eo rss,comm --sort=-rss | head on {{ $labels.node }} for what is using it outside the pods (k3s itself is several hundred MB). Lower a services -Xmx and limit, or add memory.'
+  - uid: node-not-ready
+    title: Node Not Ready
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 300
+        to: 0
+      datasourceUid: prometheus
+      model:
+        expr: kube_node_status_condition{condition="Ready", status="true"}
+        instant: true
+        refId: A
+    - refId: B
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: reduce
+        expression: A
+        reducer: last
+        refId: B
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: threshold
+        expression: B
+        conditions:
+        - evaluator:
+            type: lt
+            params:
+            - 1
+          operator:
+            type: and
+          reducer:
+            type: last
+        refId: C
+    for: 5m
+    noDataState: OK
+    execErrState: Error
+    labels:
+      severity: critical
+    annotations:
+      summary: '{{ $labels.node }} is not Ready'
+      description: 'The kubelet on {{ $labels.node }} has not reported Ready for 5 minutes; its pods are not being scheduled and, after a few more minutes, are evicted. First steps: kubectl describe node {{ $labels.node }} (Conditions), then on the node: systemctl status k3s, journalctl -u k3s -n 200, df -h and free -m.'
+  - uid: node-pressure
+    title: Node Under Pressure
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 300
+        to: 0
+      datasourceUid: prometheus
+      model:
+        expr: max by (node, condition) (kube_node_status_condition{condition=~"MemoryPressure|DiskPressure|PIDPressure", status="true"})
+        instant: true
+        refId: A
+    - refId: B
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: reduce
+        expression: A
+        reducer: last
+        refId: B
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: threshold
+        expression: B
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0
+          operator:
+            type: and
+          reducer:
+            type: last
+        refId: C
+    for: 5m
+    noDataState: OK
+    execErrState: Error
+    labels:
+      severity: critical
+    annotations:
+      summary: '{{ $labels.node }} reports {{ $labels.condition }}'
+      description: 'The kubelet on {{ $labels.node }} has had {{ $labels.condition }} for 5 minutes, so it is evicting pods and refusing new ones. First steps: kubectl describe node {{ $labels.node }} (Conditions and Events) and kubectl get pods -A --field-selector=status.phase=Failed for what was evicted; then free -m, df -h or ps -e | wc -l on the node depending on the condition.'
 - orgId: 1
   name: Service Health
   folder: Provisioned
@@ -218,7 +372,7 @@ groups:
         to: 0
       datasourceUid: prometheus
       model:
-        expr: up
+        expr: up{job!~"prometheus|grafana|loki|alloy|kube-state-metrics|node-exporter|kubelet-cadvisor|cert-manager"}
         instant: true
         refId: A
     - refId: B
@@ -362,7 +516,7 @@ groups:
     noDataState: OK
     execErrState: Error
     labels:
-      severity: critical
+      severity: warning
     annotations:
       summary: '{{ $labels.container }} in {{ $labels.pod }} was killed for running out of memory'
       description: '{{ $labels.container }} ({{ $labels.namespace }}/{{ $labels.pod }}) went over its memory limit and the kernel killed it (OOMKilled). Kubernetes restarted it, but whatever it was doing was lost. First steps: kubectl describe pod -n {{ $labels.namespace }} {{ $labels.pod }} for Last State and the limit. For an Arcus service, compare the memory limit in config/deployments/ with its -Xmx (the services use about 3 times their heap), and check Old Gen After GC on the overview dashboard for a leak.'
@@ -411,7 +565,7 @@ groups:
     noDataState: OK
     execErrState: Error
     labels:
-      severity: critical
+      severity: warning
     annotations:
       summary: '{{ $labels.container }} in {{ $labels.pod }} cannot pull its image'
       description: '{{ $labels.container }} ({{ $labels.namespace }}/{{ $labels.pod }}) has been unable to pull its image for 10 minutes. First steps: kubectl describe pod -n {{ $labels.namespace }} {{ $labels.pod }} and read the Events for the exact pull error, then check the tag (newTag in config/kustomization.yaml) exists in the registry.'
@@ -519,7 +673,7 @@ groups:
     noDataState: OK
     execErrState: Error
     labels:
-      severity: critical
+      severity: warning
     annotations:
       summary: 'Certificate {{ $labels.name }} renewal is overdue'
       description: '{{ $labels.name }} in namespace {{ $labels.namespace }} should have renewed {{ printf "%.0f" $values.B.Value }} hours ago. First steps: kubectl describe certificate -n {{ $labels.namespace }} {{ $labels.name }}, then kubectl get certificaterequest,order,challenge -n {{ $labels.namespace }} and ./arcuscmd.sh certlogs for why issuance is stuck; once fixed, ./arcuscmd.sh renewcert {{ $labels.name }} forces a re-issue.'
@@ -607,7 +761,7 @@ groups:
         - evaluator:
             type: gt
             params:
-            - 4
+            - PLACEHOLDER_EXPECTED_HUBS
           operator:
             type: and
           reducer:
@@ -622,7 +776,7 @@ groups:
       __dashboardUid__: arcus-overview
       __panelId__: "2"
       summary: 'Unexpected hub connections detected'
-      description: '{{ $value }} hubs connected (expected 4 or fewer). Possible unauthorized hub connection. First steps: find the hub IDs and source addresses of recent connections in ./arcuscmd.sh logs hub-bridge and compare them with the hubs you expect; an unknown hub should be checked against the place it is registered to.'
+      description: '{{ $value }} hubs connected (expected PLACEHOLDER_EXPECTED_HUBS or fewer; .config/expected-hubs sets this). Possible unauthorized hub connection. First steps: find the hub IDs and source addresses of recent connections in ./arcuscmd.sh logs hub-bridge and compare them with the hubs you expect; an unknown hub should be checked against the place it is registered to.'
   # The counter only exists once a pod has seen its first password change, and
   # increase() reads a series that appears at 1 as no increase. The second half
   # catches that first change: a series with samples in the last 5 minutes but
@@ -675,7 +829,7 @@ groups:
     noDataState: OK
     execErrState: Error
     labels:
-      severity: critical
+      severity: warning
     annotations:
       summary: 'Password changed'
       description: 'A password change was detected on the platform. First steps: confirm it was expected by finding the person and time in ./arcuscmd.sh logs platform-services, and the session and source address that made it in ./arcuscmd.sh logs client-bridge; if nobody expected it, treat the account as compromised and review its places for recent changes.'
@@ -729,7 +883,7 @@ groups:
     noDataState: OK
     execErrState: Error
     labels:
-      severity: critical
+      severity: warning
     annotations:
       __dashboardUid__: arcus-overview
       __panelId__: "6"
@@ -780,7 +934,7 @@ groups:
     noDataState: OK
     execErrState: Error
     labels:
-      severity: critical
+      severity: warning
     annotations:
       __dashboardUid__: arcus-overview
       __panelId__: "42"
@@ -831,7 +985,7 @@ groups:
     noDataState: OK
     execErrState: Error
     labels:
-      severity: critical
+      severity: warning
     annotations:
       __dashboardUid__: arcus-overview
       __panelId__: "30"
@@ -931,7 +1085,7 @@ groups:
     noDataState: OK
     execErrState: Error
     labels:
-      severity: critical
+      severity: warning
     annotations:
       summary: 'hub-keystore-renewal has not succeeded for {{ printf "%.0f" $values.B.Value }} hours'
       description: 'The CronJob runs every 6 hours to copy cert-manager''s renewed certificate into hub-keystore, and a stuck run blocks the ones after it (concurrencyPolicy: Forbid). First steps: kubectl get jobs,pods | grep hub-keystore-renewal and kubectl logs job/<name> for the last run; delete a stuck job or pod, then test a run with kubectl create job --from=cronjob/hub-keystore-renewal hub-keystore-test.'
@@ -1088,7 +1242,7 @@ groups:
     noDataState: OK
     execErrState: Error
     labels:
-      severity: critical
+      severity: warning
     annotations:
       summary: 'Hub {{ $labels.hub }} has failed its firmware upgrade {{ printf "%.0f" $values.B.Value }} times in 6 hours'
       description: 'Hub {{ $labels.hub }} has been failing its firmware upgrade for more than 2 hours and failed again within the last 2, so it is stuck rather than retrying its way through: each time it reconnects, hub-bridge finds it needs an upgrade and the upgrade fails again. First steps: in Grafana Explore run {app="hub-bridge"} |= "{{ $labels.hub }}" for the "firmware upgrade failed, reason - [code] - [message]" lines; then on a Cassandra host run cqlsh -e "SELECT state, firmwareversion, targetversion, upgradeerrorcode, upgradeerrormessage, upgradeerrortime, lastconnected FROM production.hub_registration WHERE id = ''{{ $labels.hub }}''" and compare the hub''s firmwareversion with the min, max and target of the entry for its model in firmware.xml (kubectl get configmap extrafiles -o jsonpath=''{.data.firmware\.xml}''). A targetversion that never changes while upgradeerrortime keeps moving is the stuck pattern.'
@@ -1137,7 +1291,7 @@ groups:
     noDataState: OK
     execErrState: Error
     labels:
-      severity: critical
+      severity: warning
     annotations:
       __dashboardUid__: arcus-overview
       __panelId__: "60"
@@ -1188,7 +1342,7 @@ groups:
     noDataState: OK
     execErrState: Error
     labels:
-      severity: critical
+      severity: warning
     annotations:
       __dashboardUid__: arcus-overview
       __panelId__: "60"
@@ -1204,7 +1358,7 @@ groups:
         to: 0
       datasourceUid: prometheus
       model:
-        expr: probe_success{job="blackbox-peers"}
+        expr: probe_success{job=~"blackbox-peers|blackbox-peer-public"}
         instant: true
         refId: A
     - refId: B
@@ -1241,13 +1395,464 @@ groups:
     labels:
       severity: critical
     annotations:
-      summary: 'Datacenter {{ $labels.peer }} is unreachable from here'
-      description: 'Grafana''s health check at https://{{ $labels.peer }}/api/health has failed for 5 minutes (unreachable, not 200, database not ok, or an invalid certificate). That datacenter or its monitoring is down, so it may not be able to alert on its own. First steps: open https://{{ $labels.peer }}/, run ./arcuscmd.sh status on that cluster, and check its Route 53 health check.'
+      summary: 'Datacenter {{ $labels.peer }}: {{ $labels.instance }} is unreachable from here'
+      description: '{{ $labels.instance }} at datacenter {{ $labels.peer }} has failed for 5 minutes: unreachable, an unexpected status, an invalid certificate, or (for /api/health) Grafana''s database not ok. The public hostnames are checked at that datacenter''s own address, so this is independent of where the weighted public record points. If only /api/health fails, that datacenter''s monitoring is down and it may not be able to alert on its own. First steps: open https://{{ $labels.peer }}/, run ./arcuscmd.sh status and ./arcuscmd.sh check on that cluster, and check its Route 53 health check.'
+  - uid: monitoring-service-down
+    title: Monitoring Service Down
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 300
+        to: 0
+      datasourceUid: prometheus
+      model:
+        expr: up{job=~"prometheus|grafana|loki|alloy|kube-state-metrics|node-exporter|kubelet-cadvisor|cert-manager"}
+        instant: true
+        refId: A
+    - refId: B
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: reduce
+        expression: A
+        reducer: last
+        refId: B
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: threshold
+        expression: B
+        conditions:
+        - evaluator:
+            type: lt
+            params:
+            - 1
+          operator:
+            type: and
+          reducer:
+            type: last
+        refId: C
+    for: 5m
+    noDataState: Alerting
+    execErrState: Error
+    labels:
+      severity: warning
+    annotations:
+      summary: '{{ $labels.job }} is down'
+      description: 'Prometheus has not been able to scrape {{ $labels.job }} ({{ $labels.instance }}) for 5 minutes. Users are not affected, but the alerts that read from it are blind: with Loki or Alloy down the log alerts stop, with Grafana down nothing alerts at all (the other datacenters notice through Peer Datacenter Unreachable). First steps: kubectl get pods -l app={{ $labels.job }}, kubectl describe pod and kubectl logs for it; for kubelet-cadvisor, kubectl get --raw /api/v1/nodes/{{ $labels.instance }}/proxy/metrics/cadvisor.'
+  - uid: pod-pending
+    title: Pod Stuck Pending
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 300
+        to: 0
+      datasourceUid: prometheus
+      model:
+        expr: >-
+          max by (namespace, pod) (kube_pod_status_phase{phase="Pending"} == 1
+          unless on (namespace, pod) kube_pod_container_status_waiting_reason{reason=~"ErrImagePull|ImagePullBackOff|InvalidImageName"} == 1)
+        instant: true
+        refId: A
+    - refId: B
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: reduce
+        expression: A
+        reducer: last
+        refId: B
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: threshold
+        expression: B
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0
+          operator:
+            type: and
+          reducer:
+            type: last
+        refId: C
+    for: 10m
+    noDataState: OK
+    execErrState: Error
+    labels:
+      severity: warning
+    annotations:
+      summary: '{{ $labels.pod }} has been Pending for 10 minutes'
+      description: '{{ $labels.pod }} in namespace {{ $labels.namespace }} has not started. Either it cannot be scheduled (the node has less free CPU or memory than its requests, see Allocated resources in kubectl describe node) or a volume, Secret or ConfigMap it mounts is missing. During a rollout the old pod keeps serving, so the service runs the previous version until this is fixed. First steps: kubectl describe pod -n {{ $labels.namespace }} {{ $labels.pod }} and read the Events at the end.'
+  - uid: rollout-stuck
+    title: Deployment Rollout Stuck
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 300
+        to: 0
+      datasourceUid: prometheus
+      model:
+        expr: max by (namespace, deployment) (kube_deployment_status_condition{condition="Progressing", status="false"})
+        instant: true
+        refId: A
+    - refId: B
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: reduce
+        expression: A
+        reducer: last
+        refId: B
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: threshold
+        expression: B
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0
+          operator:
+            type: and
+          reducer:
+            type: last
+        refId: C
+    for: 5m
+    noDataState: OK
+    execErrState: Error
+    labels:
+      severity: warning
+    annotations:
+      summary: 'Rollout of {{ $labels.deployment }} is stuck'
+      description: 'The new pods of {{ $labels.deployment }} did not become ready within the 10 minute progress deadline, so the Deployment has given up. The old pod keeps serving (maxUnavailable is 0), so the service runs the previous version. Workload Unavailable does not fire in this case. First steps: kubectl rollout status deployment/{{ $labels.deployment }}, kubectl get pods -l app={{ $labels.deployment }} and ./arcuscmd.sh logs {{ $labels.deployment }} on the new pod; kubectl rollout undo deployment/{{ $labels.deployment }} goes back to the previous version.'
+  - uid: job-failed
+    title: Job Failed
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 300
+        to: 0
+      datasourceUid: prometheus
+      model:
+        expr: >-
+          max by (namespace, job_name) (kube_job_failed{condition="true"} == 1
+          and on (namespace, job_name) (time() - kube_job_status_start_time) < 21600)
+        instant: true
+        refId: A
+    - refId: B
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: reduce
+        expression: A
+        reducer: last
+        refId: B
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: threshold
+        expression: B
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0
+          operator:
+            type: and
+          reducer:
+            type: last
+        refId: C
+    for: 0s
+    noDataState: OK
+    execErrState: Error
+    labels:
+      severity: warning
+    annotations:
+      summary: 'Job {{ $labels.job_name }} failed'
+      description: '{{ $labels.job_name }} in namespace {{ $labels.namespace }} failed in the last 6 hours (its retries are used up). For a modelmanager-* job the schema migration did not run; for a hub-keystore-renewal-* job the hub certificate was not refreshed (Hub Certificate Expiring fires if that goes on). First steps: kubectl logs job/{{ $labels.job_name }} -n {{ $labels.namespace }} and kubectl describe job/{{ $labels.job_name }} -n {{ $labels.namespace }}. ./arcuscmd.sh modelmanager re-runs the modelmanager jobs. The alert clears 6 hours after the failure, or when the job is deleted.'
+  - uid: public-endpoint-unreachable
+    title: Public Endpoint Unreachable
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 300
+        to: 0
+      datasourceUid: prometheus
+      model:
+        expr: probe_success{job="blackbox-public"}
+        instant: true
+        refId: A
+    - refId: B
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: reduce
+        expression: A
+        reducer: last
+        refId: B
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: threshold
+        expression: B
+        conditions:
+        - evaluator:
+            type: lt
+            params:
+            - 1
+          operator:
+            type: and
+          reducer:
+            type: last
+        refId: C
+    for: 5m
+    noDataState: OK
+    execErrState: Error
+    labels:
+      severity: critical
+    annotations:
+      summary: '{{ $labels.instance }} is not answering from the internet side'
+      description: 'The probe resolves the public name and connects like a user or hub would, and has failed for 5 minutes (unreachable, not a 2xx/3xx answer, or an invalid certificate). DNS, the Route 53 record, port forwarding, Traefik or the certificate can be at fault; the in-cluster services may well be fine. A drained cluster still passes, because the name then points at the other datacenter. First steps: ./arcuscmd.sh check and ./arcuscmd.sh info, then curl -v {{ $labels.instance }} from outside the LAN; for hub.<domain>:8082, openssl s_client -connect against it.'
+- orgId: 1
+  name: Monitoring Health
+  folder: Provisioned
+  interval: 1m
+  rules:
+  - uid: grafana-notifications-failing
+    title: Alert Notifications Failing
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 300
+        to: 0
+      datasourceUid: prometheus
+      model:
+        expr: sum by (integration) (increase(grafana_alerting_notifications_failed_total[15m]))
+        instant: true
+        refId: A
+    - refId: B
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: reduce
+        expression: A
+        reducer: last
+        refId: B
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: threshold
+        expression: B
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0
+          operator:
+            type: and
+          reducer:
+            type: last
+        refId: C
+    for: 0s
+    noDataState: OK
+    execErrState: Error
+    labels:
+      severity: critical
+    annotations:
+      summary: 'Grafana could not deliver {{ $labels.integration }} notifications'
+      description: 'Grafanas {{ $labels.integration }} contact point failed to send in the last 15 minutes, so alerts are firing without reaching anyone (this one included, unless another integration works). First steps: Alerting > Contact points > Test in Grafana and ./arcuscmd.sh logs grafana for the HTTP error. A rotated Discord webhook or Pushover token goes in .config/alert-discord-webhook or .config/alert-pushover-*, then ./arcuscmd.sh apply.'
+  - uid: prometheus-storage-errors
+    title: Prometheus Storage Errors
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 300
+        to: 0
+      datasourceUid: prometheus
+      model:
+        expr: increase(prometheus_tsdb_compactions_failed_total[2h]) + increase(prometheus_tsdb_wal_corruptions_total[2h])
+        instant: true
+        refId: A
+    - refId: B
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: reduce
+        expression: A
+        reducer: last
+        refId: B
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: threshold
+        expression: B
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0
+          operator:
+            type: and
+          reducer:
+            type: last
+        refId: C
+    for: 0s
+    noDataState: OK
+    execErrState: Error
+    labels:
+      severity: warning
+    annotations:
+      summary: 'Prometheus storage errors'
+      description: 'Prometheus failed a compaction or found a corrupt WAL segment in the last 2 hours; metrics may be missing and the next restart may be slow or fail. The volume being full is the usual cause. First steps: kubectl exec prometheus-0 -- df -h /prometheus-data and ./arcuscmd.sh logs prometheus. Retention is capped at 4GB and 30 days in config/stateful/prometheus.yaml.'
+  - uid: alloy-dropping-logs
+    title: Log Shipping Dropping Entries
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 300
+        to: 0
+      datasourceUid: prometheus
+      model:
+        expr: sum by (pod, reason) (increase(loki_write_dropped_entries_total{job="alloy"}[10m]))
+        instant: true
+        refId: A
+    - refId: B
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: reduce
+        expression: A
+        reducer: last
+        refId: B
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: threshold
+        expression: B
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0
+          operator:
+            type: and
+          reducer:
+            type: last
+        refId: C
+    for: 0s
+    noDataState: OK
+    execErrState: Error
+    labels:
+      severity: warning
+    annotations:
+      summary: 'Alloy on {{ $labels.pod }} dropped {{ printf "%.0f" $values.B.Value }} log entries ({{ $labels.reason }})'
+      description: 'Alloy gave up sending log entries to Loki in the last 10 minutes ({{ $labels.reason }}); those lines are lost. Loki refusing them (Loki Discarding Logs says why) or being down (Monitoring Service Down) are the usual causes. First steps: kubectl logs {{ $labels.pod }} and ./arcuscmd.sh logs loki.'
+  - uid: loki-discarding-logs
+    title: Loki Discarding Logs
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 300
+        to: 0
+      datasourceUid: prometheus
+      model:
+        expr: sum by (reason) (increase(loki_discarded_samples_total[10m]))
+        instant: true
+        refId: A
+    - refId: B
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: reduce
+        expression: A
+        reducer: last
+        refId: B
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: threshold
+        expression: B
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0
+          operator:
+            type: and
+          reducer:
+            type: last
+        refId: C
+    for: 0s
+    noDataState: OK
+    execErrState: Error
+    labels:
+      severity: warning
+    annotations:
+      summary: 'Loki discarded {{ printf "%.0f" $values.B.Value }} log lines in 10 minutes ({{ $labels.reason }})'
+      description: 'Loki refused log lines in the last 10 minutes with reason {{ $labels.reason }}: rate_limited means a pod is logging faster than the ingestion limits in config/extrafiles/loki.yaml allow (the Log Volume panel shows which), line_too_long a line over the limit, and the others a label or timestamp problem from the Alloy pipeline in config/logging/alloy.yaml. Those lines are lost. First steps: ./arcuscmd.sh logs loki and the Log Volume by Service panel.'
 
 # How alert notifications read. Grafana's default message lists the raw query
 # values (A=1, B=1, C=0) and every label, with the summary and description
-# buried at the end. The contact points are set up in each datacenter's
-# Grafana, not provisioned here, so set their fields there:
+# buried at the end. The contact points and notification policy are provisioned
+# by apply from .config/alert-* (see script/deploy.sh) with these templates; a
+# contact point set up by hand in Grafana needs them in its fields:
 #   Discord:  Title {{ template "arcus.title" . }}  Message {{ template "arcus.message" . }}
 #   Pushover: Title {{ template "arcus.title" . }}  Message {{ template "arcus.text" . }}
 # Discord cuts messages at 2000 characters and Pushover at 1024, so only the

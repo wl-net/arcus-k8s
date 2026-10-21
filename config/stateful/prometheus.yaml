@@ -49,7 +49,11 @@ spec:
           name: config
         - mountPath: /etc/prometheus-targets
           name: targets
-        args: ['--web.listen-address=0.0.0.0:9080', '--config.file=/etc/prometheus/prometheus.yaml', '--storage.tsdb.path=/prometheus-data/data']
+        # Keep 30 days, but never more than 4GB (the volume is 5Gi), whichever
+        # comes first, so a burst of new series can't fill the disk.
+        args: ['--web.listen-address=0.0.0.0:9080', '--config.file=/etc/prometheus/prometheus.yaml',
+               '--storage.tsdb.path=/prometheus-data/data', '--storage.tsdb.retention.time=30d',
+               '--storage.tsdb.retention.size=4GB']
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler

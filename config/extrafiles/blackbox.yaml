@@ -25,3 +25,14 @@ modules:
       valid_status_codes: [200]
       fail_if_body_not_matches_regexp:
       - '"database":\s*"ok"'
+  # A public Arcus URL answers 2xx or 3xx over valid TLS. Redirects aren't
+  # followed: client.<domain>/ answers 302, and following it would test a
+  # different service. The hostname parameter sets the Host header and TLS
+  # server name, so one datacenter can be checked by address.
+  http_public:
+    prober: http
+    timeout: 10s
+    http:
+      preferred_ip_protocol: ip4
+      valid_status_codes: [200, 201, 202, 203, 204, 301, 302, 303, 307, 308]
+      follow_redirects: false

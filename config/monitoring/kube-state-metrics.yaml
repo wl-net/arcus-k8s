@@ -1,6 +1,7 @@
 # kube-state-metrics exposes pod and workload state from the Kubernetes API (restart counts,
-# waiting reasons such as CrashLoopBackOff, replica availability, CronJob successes) for
-# Prometheus and alerting.
+# waiting reasons such as CrashLoopBackOff, pods stuck Pending, replica availability, stuck
+# Deployment rollouts, failed Jobs, CronJob successes, node conditions) for Prometheus and
+# alerting.
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -13,13 +14,13 @@ metadata:
   name: kube-state-metrics
 rules:
 - apiGroups: [""]
-  resources: ["pods"]
+  resources: ["pods", "nodes"]
   verbs: ["list", "watch"]
 - apiGroups: ["apps"]
   resources: ["deployments", "statefulsets", "daemonsets"]
   verbs: ["list", "watch"]
 - apiGroups: ["batch"]
-  resources: ["cronjobs"]
+  resources: ["cronjobs", "jobs"]
   verbs: ["list", "watch"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -60,8 +61,8 @@ spec:
         args:
         - --port=8080
         - --telemetry-port=8081
-        - --resources=pods,deployments,statefulsets,daemonsets,cronjobs
-        - --metric-allowlist=kube_pod_container_status_restarts_total,kube_pod_container_status_waiting_reason,kube_pod_container_status_last_terminated_reason,kube_pod_container_status_ready,kube_deployment_spec_replicas,kube_deployment_status_replicas_available,kube_statefulset_replicas,kube_statefulset_status_replicas_ready,kube_daemonset_status_number_unavailable,kube_cronjob_status_last_successful_time
+        - --resources=pods,deployments,statefulsets,daemonsets,cronjobs,jobs,nodes
+        - --metric-allowlist=kube_pod_container_status_restarts_total,kube_pod_container_status_waiting_reason,kube_pod_container_status_last_terminated_reason,kube_pod_container_status_ready,kube_pod_status_phase,kube_deployment_spec_replicas,kube_deployment_status_replicas_available,kube_deployment_status_condition,kube_statefulset_replicas,kube_statefulset_status_replicas_ready,kube_daemonset_status_number_unavailable,kube_cronjob_status_last_successful_time,kube_job_failed,kube_job_status_start_time,kube_node_status_condition
         ports:
         - containerPort: 8080
           name: http-metrics

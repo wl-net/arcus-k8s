@@ -1,31 +1,15 @@
-# my global config
 global:
-  scrape_interval:     15s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
-  evaluation_interval: 15s # Evaluate rules every 15 seconds. The default is every 1 minute.
-  # scrape_timeout is set to the global default (10s).
+  scrape_interval:     15s
+  evaluation_interval: 15s
 
-# Alertmanager configuration
-alerting:
-  alertmanagers:
-  - static_configs:
-    - targets:
-      # - alertmanager:9093
+# Alerting is done in Grafana (config/grafana/alerting.yaml), not by Prometheus
+# rules or an Alertmanager.
 
-# Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
-rule_files:
-  # - "first_rules.yml"
-  # - "second_rules.yml"
-
-# A scrape configuration containing exactly one endpoint to scrape:
-# Here it's Prometheus itself.
 scrape_configs:
-- job_name: 'example-metric'
+# The Arcus services: each JVM serves its codahale metrics on :9100 (the
+# Service port named "metrics"). The job label is replaced with the service name.
+- job_name: 'arcus-services'
   scrape_interval: 5s
-
-  metrics_path: /metrics
-  scheme: http
-
-
   kubernetes_sd_configs:
   - role: endpoints
     namespaces:
@@ -35,7 +19,7 @@ scrape_configs:
   relabel_configs:
   - source_labels: [__meta_kubernetes_service_label_app]
     separator: ;
-    regex: (alarm-service|api-bridge|client-bridge|driver-services|hub-bridge|ivr-callback-server|history-service|notification-services|platform-services|rule-service|scheduler-service|subsystem-service|tag-service)
+    regex: (alarm-service|api-bridge|client-bridge|driver-services|hub-bridge|ivr-callback-server|history-service|notification-services|platform-services|rule-service|scheduler-service|subsystem-service)
     replacement: $1
     action: keep
   - source_labels: [__meta_kubernetes_endpoint_port_name]
@@ -229,6 +213,83 @@ scrape_configs:
   - source_labels: [__address__]
     target_label: __param_target
   - source_labels: [__param_target]
+    target_label: instance
+  - target_label: __address__
+    replacement: blackbox-exporter.default.svc.cluster.local:9115
+
+# The monitoring stack itself, so a failing scrape shows up as Service Down and
+# its own error counters can alert: Prometheus, Grafana (notification failures),
+# Loki (discarded log lines) and Alloy (dropped log entries).
+- job_name: 'prometheus'
+  scrape_interval: 30s
+  static_configs:
+  - targets: ['localhost:9080']
+
+- job_name: 'grafana'
+  scrape_interval: 30s
+  static_configs:
+  - targets: ['grafana-service.default.svc.cluster.local:3000']
+
+- job_name: 'loki'
+  scrape_interval: 30s
+  static_configs:
+  - targets: ['loki-service.default.svc.cluster.local:3100']
+
+- job_name: 'alloy'
+  scrape_interval: 30s
+  kubernetes_sd_configs:
+  - role: pod
+    namespaces:
+      names:
+      - default
+  relabel_configs:
+  - source_labels: [__meta_kubernetes_pod_label_app]
+    regex: alloy
+    action: keep
+  - source_labels: [__meta_kubernetes_pod_container_port_name]
+    regex: http
+    action: keep
+  - source_labels: [__meta_kubernetes_pod_node_name]
+    target_label: node
+
+# This cluster's own public URLs, resolved through public DNS like a user would
+# reach them, so a DNS, port-forwarding or certificate problem outside the
+# cluster is noticed. apply writes them from .config/domain.name into the
+# prometheus-targets ConfigMap.
+- job_name: 'blackbox-public'
+  scrape_interval: 60s
+  metrics_path: /probe
+  params:
+    module: [http_public]
+  file_sd_configs:
+  - files: ['/etc/prometheus-targets/public.json']
+  relabel_configs:
+  - source_labels: [__address__]
+    target_label: __param_target
+  - source_labels: [__param_target]
+    target_label: instance
+  - target_label: __address__
+    replacement: blackbox-exporter.default.svc.cluster.local:9115
+
+# The other datacenters' public services, reached by each peer's own admin
+# domain address with the public hostname sent as the Host header and TLS
+# server name (the blackbox exporter's hostname parameter), so the check lands
+# on that datacenter and not wherever the weighted public record points. apply
+# writes them from .config/peer-admin-domains into the prometheus-targets
+# ConfigMap, labeled peer=<admin domain> and hostname=<public hostname>.
+- job_name: 'blackbox-peer-public'
+  scrape_interval: 60s
+  metrics_path: /probe
+  params:
+    module: [http_public]
+  file_sd_configs:
+  - files: ['/etc/prometheus-targets/peer-public.json']
+  relabel_configs:
+  - source_labels: [__address__]
+    target_label: __param_target
+  - source_labels: [hostname]
+    target_label: __param_hostname
+  - source_labels: [hostname]
     target_label: instance
   - target_label: __address__
     replacement: blackbox-exporter.default.svc.cluster.local:9115
