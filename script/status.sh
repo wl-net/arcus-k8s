@@ -96,9 +96,9 @@ function arcus_status() {
   fi
 
   local external_hosts=()
-  [[ -n "${ARCUS_CASSANDRA_HOST-}" ]] && external_hosts+=("cassandra:${ARCUS_CASSANDRA_HOST%%:*}")
-  [[ -n "${ARCUS_KAFKA_HOST-}" ]]     && external_hosts+=("kafka:${ARCUS_KAFKA_HOST%%:*}")
-  [[ -n "${ARCUS_ZOOKEEPER_HOST-}" ]] && external_hosts+=("zookeeper:${ARCUS_ZOOKEEPER_HOST%%:*}")
+  [[ -n "${ARCUS_CASSANDRA_HOST-}" ]] && external_hosts+=("cassandra:${ARCUS_CASSANDRA_HOST}")
+  [[ -n "${ARCUS_KAFKA_HOST-}" ]]     && external_hosts+=("kafka:${ARCUS_KAFKA_HOST}")
+  [[ -n "${ARCUS_ZOOKEEPER_HOST-}" ]] && external_hosts+=("zookeeper:${ARCUS_ZOOKEEPER_HOST%%/*}")  # drop any /chroot
 
   if [[ ${#external_hosts[@]} -gt 0 ]]; then
     echo ""
@@ -109,6 +109,8 @@ function arcus_status() {
       IFS=',' read -ra hosts <<< "$hosts_str"
       for host in "${hosts[@]}"; do
         host="${host// /}"  # trim spaces
+        host="${host%%:*}"  # drop the port
+        [[ -n "$host" ]] || continue
         if ping -c 1 -W 2 "$host" &>/dev/null; then
           printf "  %-16s %s  [OK]\n" "$name" "$host"
         else
