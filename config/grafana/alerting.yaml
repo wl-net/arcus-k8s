@@ -1089,3 +1089,46 @@ groups:
     annotations:
       summary: 'Datacenter {{ $labels.peer }} is unreachable from here'
       description: 'Grafana''s health check at https://{{ $labels.peer }}/api/health has failed for 5 minutes (unreachable, not 200, database not ok, or an invalid certificate). That datacenter or its monitoring is down, so it may not be able to alert on its own. First steps: open https://{{ $labels.peer }}/, run ./arcuscmd.sh status on that cluster, and check its Route 53 health check.'
+
+# How alert notifications read. Grafana's default message lists the raw query
+# values (A=1, B=1, C=0) and every label, with the summary and description
+# buried at the end. The contact points are set up in each datacenter's
+# Grafana, not provisioned here, so set their fields there:
+#   Discord:  Title {{ template "arcus.title" . }}  Message {{ template "arcus.message" . }}
+#   Pushover: Title {{ template "arcus.title" . }}  Message {{ template "arcus.text" . }}
+# Discord cuts messages at 2000 characters and Pushover at 1024, so only the
+# first firing alert's description is included, and at most 5 firing and 5
+# resolved alerts are listed.
+templates:
+- orgId: 1
+  name: arcus
+  template: |-
+    {{ define "arcus.title" -}}
+    {{ if not .Alerts.Firing }}Resolved: {{ end }}{{ or .CommonLabels.alertname "Grafana alerts" }} · {{ reReplaceAll `^https?://(admin\.)?([^/:]+).*$` "$2" .ExternalURL }}
+    {{- end }}
+
+    {{ define "arcus.text" -}}
+    {{ range $i, $a := .Alerts.Firing }}{{ if lt $i 5 -}}
+    🔴 {{ or $a.Annotations.summary $a.Labels.alertname }}
+    {{ end }}{{ end -}}
+    {{ if gt (len .Alerts.Firing) 5 -}}
+    …{{ len .Alerts.Firing }} firing in total
+    {{ end -}}
+    {{ with .Alerts.Firing }}{{ with (index . 0).Annotations.description -}}
+    {{ . }}
+    {{ end }}{{ end -}}
+    {{ range $i, $a := .Alerts.Resolved }}{{ if lt $i 5 -}}
+    ✅ Resolved after {{ ($a.EndsAt.Sub $a.StartsAt).Round 1000000000 }}: {{ or $a.Annotations.summary $a.Labels.alertname }}
+    {{ end }}{{ end -}}
+    {{ if gt (len .Alerts.Resolved) 5 -}}
+    …{{ len .Alerts.Resolved }} resolved in total
+    {{ end -}}
+    {{ end }}
+
+    {{ define "arcus.message" -}}
+    {{ template "arcus.text" . -}}
+    -# {{ or .CommonLabels.severity "alert" }}
+    {{- with index .Alerts 0 }}{{ with .GeneratorURL }} · [Rule](<{{ . }}>){{ end }}
+    {{- if .PanelURL }} · [Panel](<{{ .PanelURL }}>){{ else if .DashboardURL }} · [Dashboard](<{{ .DashboardURL }}>){{ end }}{{ end }}
+    {{- if eq (len .Alerts.Firing) 1 }} · [Silence](<{{ (index .Alerts.Firing 0).SilenceURL }}>){{ end }}
+    {{- end }}
