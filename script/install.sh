@@ -17,6 +17,18 @@ function check_prerequisites() {
 }
 
 function setup_k3s() {
+  # The Node Disk Filling alert fires at 80%, but by default the kubelet only
+  # deletes unused images from 85%. Start at 75% and clear down to 65%, so old
+  # release images go before the alert does. Written before the installer runs,
+  # since it (re)starts k3s.
+  sudo mkdir -p /etc/rancher/k3s/config.yaml.d
+  sudo tee /etc/rancher/k3s/config.yaml.d/arcus-image-gc.yaml > /dev/null <<'EOF'
+# Written by arcuscmd.sh k3s
+kubelet-arg+:
+  - image-gc-high-threshold=75
+  - image-gc-low-threshold=65
+EOF
+
   curl -sfL https://get.k3s.io | sudo INSTALL_K3S_VERSION="${K3S_VERSION}" INSTALL_K3S_EXEC='--disable=servicelb --write-kubeconfig-mode 644' sh -
 
   local inotify_watches
