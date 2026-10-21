@@ -815,6 +815,65 @@ groups:
     annotations:
       summary: 'Hub certificate on 8082 expires in {{ printf "%.0f" $values.B.Value }} days'
       description: 'cert-manager renews the certificate about 30 days before it expires, and hub-keystore-renewal copies it into hub-keystore within 6 hours, so a certificate this close to expiry on 8082 means hub-bridge missed the renewal. First steps: compare kubectl get secret nginx-production-tls -o jsonpath={.metadata.resourceVersion} with the arcus.io/source-resource-version annotation on hub-keystore, and check the CronJob''s last job (kubectl get jobs | grep hub-keystore-renewal); ./arcuscmd.sh updatehubkeystore fixes it immediately.'
+  # Every failed hub firmware upgrade (the resolver can't upgrade the hub's version,
+  # or the hub reports a download or install error) goes through
+  # HubRegistrationRegistry.firmwareUpgradeFailed, which logs this WARN line with the
+  # hub ID. The hub.registration.firmware.upgrade.failures counter counts the same
+  # failures but has no hub label, so the per-hub alert reads the log line instead.
+  # A hub that retries and then upgrades stops failing; this fires only for one that
+  # has failed at least 3 times in 6 hours, both 4-6 hours ago and in the last 2.
+  - uid: hub-firmware-upgrade-stuck
+    title: Hub Firmware Upgrade Stuck
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 21600
+        to: 0
+      datasourceUid: loki
+      model:
+        expr: >-
+          sum by (hub) (count_over_time({app="hub-bridge"} |= "firmware upgrade failed" | regexp `Hub with id \[(?P<hub>[^\]]+)\] firmware upgrade failed` [6h]))
+          and sum by (hub) (count_over_time({app="hub-bridge"} |= "firmware upgrade failed" | regexp `Hub with id \[(?P<hub>[^\]]+)\] firmware upgrade failed` [2h])) > 0
+          and sum by (hub) (count_over_time({app="hub-bridge"} |= "firmware upgrade failed" | regexp `Hub with id \[(?P<hub>[^\]]+)\] firmware upgrade failed` [2h] offset 4h)) > 0
+        instant: true
+        refId: A
+    - refId: B
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: reduce
+        expression: A
+        reducer: last
+        refId: B
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: threshold
+        expression: B
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 2
+          operator:
+            type: and
+          reducer:
+            type: last
+        refId: C
+    for: 0s
+    noDataState: OK
+    execErrState: Error
+    labels:
+      severity: critical
+    annotations:
+      summary: 'Hub {{ $labels.hub }} has failed its firmware upgrade {{ printf "%.0f" $values.B.Value }} times in 6 hours'
+      description: 'Hub {{ $labels.hub }} has been failing its firmware upgrade for more than 2 hours and failed again within the last 2, so it is stuck rather than retrying its way through: each time it reconnects, hub-bridge finds it needs an upgrade and the upgrade fails again. First steps: in Grafana Explore run {app="hub-bridge"} |= "{{ $labels.hub }}" for the "firmware upgrade failed, reason - [code] - [message]" lines; then on a Cassandra host run cqlsh -e "SELECT state, firmwareversion, targetversion, upgradeerrorcode, upgradeerrormessage, upgradeerrortime, lastconnected FROM production.hub_registration WHERE id = ''{{ $labels.hub }}''" and compare the hub''s firmwareversion with the min, max and target of the entry for its model in firmware.xml (kubectl get configmap extrafiles -o jsonpath=''{.data.firmware\.xml}''). A targetversion that never changes while upgradeerrortime keeps moving is the stuck pattern.'
   - uid: alloy-inotify-errors
     title: Alloy Inotify Errors
     condition: C
