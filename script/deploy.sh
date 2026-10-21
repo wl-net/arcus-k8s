@@ -16,6 +16,20 @@ function _datastore_targets() {
   printf '{"targets": [%s], "labels": {"datastore": "%s"}}' "$targets" "$name"
 }
 
+# Print Prometheus file_sd target groups for the comma-separated admin domains of
+# the other datacenters in $1: each one's Grafana health endpoint, labeled peer=<domain>.
+function _peer_targets() {
+  local domain groups=""
+  local -a domains
+  IFS=',' read -ra domains <<< "$1"
+  for domain in "${domains[@]}"; do
+    domain=${domain// /}
+    [[ -n "$domain" ]] || continue
+    groups+="${groups:+,$'\n' }{\"targets\": [\"https://$domain/api/health\"], \"labels\": {\"peer\": \"$domain\"}}"
+  done
+  printf '[%s]\n' "$groups"
+}
+
 function apply() {
   # Apply the configuration
   load
@@ -150,8 +164,11 @@ function apply() {
     "$(_datastore_targets cassandra 9042 "$ARCUS_CASSANDRA_HOST")" \
     "$(_datastore_targets kafka 9092 "$ARCUS_KAFKA_HOST")" \
     "$(_datastore_targets zookeeper 2181 "${ARCUS_ZOOKEEPER_HOST%%/*}")" > "$targets"
+  # Grafana health checks of the other datacenters for the blackbox-peers job
+  local peers="overlays/${ARCUS_OVERLAY_NAME}-local/peers.json"
+  _peer_targets "${ARCUS_PEER_ADMIN_DOMAINS-}" > "$peers"
   $KUBECTL create configmap prometheus-targets --from-file=datastores.json="$targets" \
-    --dry-run=client -o yaml | $KUBECTL apply -f - > /dev/null
+    --from-file=peers.json="$peers" --dry-run=client -o yaml | $KUBECTL apply -f - > /dev/null
 
   ensure_grafana_renderer_token
   $KUBECTL create secret generic shared --from-file secret/ --dry-run=client -o yaml | $KUBECTL apply -f - > /dev/null

@@ -52,6 +52,7 @@ function load() {
     _load_config ARCUS_KAFKA_HOST      kafka-host
     _load_config ARCUS_PROXY_REAL_IP   proxy-real-ip
     _load_config ARCUS_ADMIN_DOMAIN    admin-domain
+    _load_config ARCUS_PEER_ADMIN_DOMAINS peer-admin-domains
     _load_config ARCUS_METALLB         metallb
     _load_config ARCUS_CERT_SOLVER     cert-solver
     _load_config ARCUS_ROUTE53_ZONE_ID route53-hosted-zone-id

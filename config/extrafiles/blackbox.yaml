@@ -12,3 +12,13 @@ modules:
       tls: true
       tls_config:
         insecure_skip_verify: true
+  # Another datacenter's internet-facing Grafana: /api/health answers 200 with
+  # "database": "ok". TLS verification stays on, so a bad certificate fails too.
+  grafana_health:
+    prober: http
+    timeout: 10s
+    http:
+      preferred_ip_protocol: ip4
+      valid_status_codes: [200]
+      fail_if_body_not_matches_regexp:
+      - '"database":\s*"ok"'

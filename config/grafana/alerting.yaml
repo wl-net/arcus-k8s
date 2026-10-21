@@ -917,3 +917,52 @@ groups:
       __panelId__: "60"
       summary: 'No logs being ingested into Loki'
       description: 'Loki has received no log entries for at least 15 minutes. Alloy may be down or unable to collect logs. First steps: kubectl get pods -l app=alloy and kubectl get pod loki-0, then kubectl logs ds/alloy --since=15m and kubectl logs loki-0 --since=15m for push or ingester errors; a 503 from Loki /ready for about 15 seconds after it starts is normal.'
+  - uid: peer-datacenter-unreachable
+    title: Peer Datacenter Unreachable
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 300
+        to: 0
+      datasourceUid: prometheus
+      model:
+        expr: probe_success{job="blackbox-peers"}
+        instant: true
+        refId: A
+    - refId: B
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: reduce
+        expression: A
+        reducer: last
+        refId: B
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: threshold
+        expression: B
+        conditions:
+        - evaluator:
+            type: lt
+            params:
+            - 1
+          operator:
+            type: and
+          reducer:
+            type: last
+        refId: C
+    for: 5m
+    noDataState: OK
+    execErrState: Error
+    labels:
+      severity: critical
+    annotations:
+      summary: 'Datacenter {{ $labels.peer }} is unreachable from here'
+      description: 'Grafana''s health check at https://{{ $labels.peer }}/api/health has failed for 5 minutes (unreachable, not 200, database not ok, or an invalid certificate). That datacenter or its monitoring is down, so it may not be able to alert on its own. First steps: open https://{{ $labels.peer }}/, run ./arcuscmd.sh status on that cluster, and check its Route 53 health check.'

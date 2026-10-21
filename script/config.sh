@@ -339,7 +339,7 @@ function verify_config() {
   fi
 
   # Optional config files
-  for file in proxy-real-ip admin-domain cert-solver cassandra-dc cassandra-history-dc kafka-client-rack; do
+  for file in proxy-real-ip admin-domain peer-admin-domains cert-solver cassandra-dc cassandra-history-dc kafka-client-rack; do
     if [[ -f "$ARCUS_CONFIGDIR/$file" ]]; then
       echo "  OK:      .config/$file = $(cat "$ARCUS_CONFIGDIR/$file")"
     fi

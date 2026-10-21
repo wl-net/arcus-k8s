@@ -228,6 +228,7 @@ You can also write the files directly:
 | `zookeeper-host` | Yes | ZooKeeper `host:port` (e.g. `10.0.0.30:2181`) |
 | `kafka-host` | Yes | Kafka bootstrap server `host:port` (e.g. `10.0.0.20:9092`) |
 | `admin-domain` | Optional | Grafana admin domain (e.g. `admin.arcus-dc1.example.com`) |
+| `peer-admin-domains` | Optional | Admin domains of the other datacenters, comma-separated (e.g. `admin.arcus-dc2.example.com`); this node alerts when their Grafana stops answering |
 | `cert-solver` | Optional | `http` (default) or `dns` — use DNS-01 challenges via Route 53 |
 | `route53-hosted-zone-id` | If DNS solver | Route 53 hosted zone ID |
 | `route53-region` | If DNS solver | AWS region for Route 53 (e.g. `us-east-1`) |

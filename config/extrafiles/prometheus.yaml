@@ -213,3 +213,22 @@ scrape_configs:
     target_label: instance
   - target_label: __address__
     replacement: blackbox-exporter.default.svc.cluster.local:9115
+
+# The other datacenters' internet-facing Grafana health endpoints, so each one
+# notices when another (or its monitoring, which can't alert on its own outage)
+# goes down. apply writes them from .config/peer-admin-domains into the
+# prometheus-targets ConfigMap, labeled with the peer's admin domain.
+- job_name: 'blackbox-peers'
+  scrape_interval: 60s
+  metrics_path: /probe
+  params:
+    module: [grafana_health]
+  file_sd_configs:
+  - files: ['/etc/prometheus-targets/peers.json']
+  relabel_configs:
+  - source_labels: [__address__]
+    target_label: __param_target
+  - source_labels: [__param_target]
+    target_label: instance
+  - target_label: __address__
+    replacement: blackbox-exporter.default.svc.cluster.local:9115
