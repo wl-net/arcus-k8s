@@ -329,10 +329,18 @@ function killallpods() {
       return 0
     fi
   fi
+  # Datastores, then bridges, then the core services, then everything else
+  # in APPS (so new services are included without editing this list)
+  local bridges="hub-bridge api-bridge client-bridge"
+  local core="driver-services rule-service scheduler-service"
+  local rest="" app
+  for app in $APPS static-server; do
+    [[ " $bridges $core " == *" $app "* ]] || rest+="$app "
+  done
   echo "cassandra zookeeper kafka" | tr ' ' '\n' | xargs -P 2 -I{} "$KUBECTL" delete pod -l app={} --ignore-not-found 2>/dev/null
-  echo "hub-bridge api-bridge client-bridge" | tr ' ' '\n' | xargs -P 2 -I{} "$KUBECTL" delete pod -l app={} --ignore-not-found 2>/dev/null
-  echo "driver-services rule-service scheduler-service" | tr ' ' '\n' | xargs -P 2 -I{} "$KUBECTL" delete pod -l app={} --ignore-not-found 2>/dev/null
-  echo "alarm-service subsystem-service history-service ivr-callback-server notification-services platform-services ui-server" | tr ' ' '\n' | xargs -P 3 -I{} "$KUBECTL" delete pod -l app={} --ignore-not-found 2>/dev/null
+  echo "$bridges" | tr ' ' '\n' | xargs -P 2 -I{} "$KUBECTL" delete pod -l app={} --ignore-not-found 2>/dev/null
+  echo "$core" | tr ' ' '\n' | xargs -P 2 -I{} "$KUBECTL" delete pod -l app={} --ignore-not-found 2>/dev/null
+  echo "${rest% }" | tr ' ' '\n' | xargs -P 3 -I{} "$KUBECTL" delete pod -l app={} --ignore-not-found 2>/dev/null
 }
 
 function useprodcert() {
