@@ -5,6 +5,9 @@ modules:
     timeout: 5s
   # hub-bridge on 8082: completes a TLS handshake. Verification is skipped because
   # the probe connects by Service name; the alert rules check the certificate's expiry.
+  # hub-bridge requires a hub client certificate, which the probe doesn't have, so
+  # this only passes over TLS 1.3, where the probe finishes its side of the handshake
+  # before hub-bridge checks for one. Over TLS 1.2 hub-bridge rejects it first.
   tls_connect:
     prober: tcp
     timeout: 5s
