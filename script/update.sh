@@ -72,7 +72,8 @@ function update() {
   if [[ "$do_apply" == true ]]; then
     echo ""
     echo "Applying configuration..."
-    apply
+    # Run the pulled arcuscmd.sh: this shell still has the pre-pull apply loaded
+    "$ROOT/arcuscmd.sh" apply
   else
     echo ""
     echo "Run './arcuscmd.sh apply' to deploy the new configuration."
