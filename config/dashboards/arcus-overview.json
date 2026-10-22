@@ -680,12 +680,93 @@
       "description": "UP or DOWN per scrape job right now. A pod that isn't ready yet, such as a new one starting during a rollout, doesn't count. A blackbox job is DOWN when one of its checks fails, and a deployment with no ready pod (Pending, or failing its readiness probe) shows as DOWN under its own name."
     },
     {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "Platform bus partitions owned by each service in this datacenter. ACTIVE means the instance accepts and handles platform messages; STANDBY means it is registered in the cluster but owns no partitions, so it discards every message it reads (a failover peer in another datacenter owns them). A service that is UP but STANDBY in every datacenter is handling nothing.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "color": "blue",
+                  "text": "STANDBY"
+                }
+              },
+              "type": "value"
+            },
+            {
+              "options": {
+                "from": 1,
+                "to": 1000000,
+                "result": {
+                  "color": "green",
+                  "text": "ACTIVE"
+                }
+              },
+              "type": "range"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 24,
+        "x": 0,
+        "y": 14
+      },
+      "id": 320,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "expr": "sum by (job) (platform_partitions_assigned{svcup!=\"false\"})",
+          "legendFormat": "{{job}}",
+          "refId": "A",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "title": "Active / Standby (platform partitions)",
+      "type": "stat"
+    },
+    {
       "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 14
+        "y": 17
       },
       "id": 107,
       "title": "Logs",
@@ -715,7 +796,7 @@
         "h": 9,
         "w": 8,
         "x": 0,
-        "y": 15
+        "y": 18
       },
       "id": 60,
       "targets": [
@@ -772,7 +853,7 @@
         "h": 9,
         "w": 8,
         "x": 8,
-        "y": 15
+        "y": 18
       },
       "id": 61,
       "targets": [
@@ -828,7 +909,7 @@
         "h": 9,
         "w": 8,
         "x": 16,
-        "y": 15
+        "y": 18
       },
       "id": 63,
       "targets": [
@@ -898,7 +979,7 @@
         "h": 12,
         "w": 24,
         "x": 0,
-        "y": 24
+        "y": 27
       }
     },
     {
@@ -907,7 +988,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 36
+        "y": 39
       },
       "id": 108,
       "title": "Ingress (Traefik)",
@@ -934,7 +1015,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 37
+        "y": 40
       },
       "id": 200,
       "targets": [
@@ -1044,7 +1125,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 37
+        "y": 40
       },
       "id": 201,
       "targets": [
@@ -1091,7 +1172,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 37
+        "y": 40
       },
       "id": 202,
       "targets": [
@@ -1137,7 +1218,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 45
+        "y": 48
       },
       "id": 203,
       "targets": [
@@ -1188,7 +1269,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 45
+        "y": 48
       },
       "id": 204,
       "targets": [
@@ -1252,7 +1333,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 45
+        "y": 48
       },
       "id": 205,
       "options": {
@@ -1284,7 +1365,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 53
+        "y": 56
       },
       "id": 109,
       "title": "Client & API Bridge",
@@ -1311,7 +1392,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 54
+        "y": 57
       },
       "id": 210,
       "targets": [
@@ -1362,7 +1443,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 54
+        "y": 57
       },
       "id": 211,
       "targets": [
@@ -1413,7 +1494,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 54
+        "y": 57
       },
       "id": 212,
       "targets": [
@@ -1465,7 +1546,7 @@
         "h": 9,
         "w": 8,
         "x": 0,
-        "y": 62
+        "y": 65
       },
       "id": 213,
       "targets": [
@@ -1534,7 +1615,7 @@
         "h": 9,
         "w": 8,
         "x": 8,
-        "y": 62
+        "y": 65
       },
       "id": 214,
       "targets": [
@@ -1594,7 +1675,7 @@
         "h": 9,
         "w": 8,
         "x": 16,
-        "y": 62
+        "y": 65
       },
       "id": 215,
       "targets": [
@@ -1646,7 +1727,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 71
+        "y": 74
       },
       "id": 216,
       "targets": [
@@ -1708,7 +1789,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 71
+        "y": 74
       },
       "id": 217,
       "targets": [
@@ -1744,7 +1825,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 79
+        "y": 82
       },
       "id": 101,
       "title": "Hub & Client Bridge",
@@ -1770,7 +1851,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 80
+        "y": 83
       },
       "id": 2,
       "targets": [
@@ -1825,7 +1906,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 80
+        "y": 83
       },
       "id": 3,
       "targets": [
@@ -1916,7 +1997,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 80
+        "y": 83
       },
       "id": 4,
       "targets": [
@@ -1977,7 +2058,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 88
+        "y": 91
       },
       "id": 5,
       "targets": [
@@ -2027,7 +2108,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 88
+        "y": 91
       },
       "id": 6,
       "targets": [
@@ -2098,7 +2179,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 88
+        "y": 91
       },
       "id": 7,
       "targets": [
@@ -2143,7 +2224,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 96
+        "y": 99
       },
       "id": 8,
       "targets": [
@@ -2215,7 +2296,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 96
+        "y": 99
       },
       "options": {
         "tooltip": {
@@ -2236,7 +2317,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 104
+        "y": 107
       },
       "id": 103,
       "title": "Cassandra DAO",
@@ -2263,7 +2344,7 @@
         "h": 10,
         "w": 12,
         "x": 0,
-        "y": 105
+        "y": 108
       },
       "id": 20,
       "targets": [
@@ -2336,7 +2417,7 @@
         "h": 10,
         "w": 12,
         "x": 12,
-        "y": 105
+        "y": 108
       },
       "id": 21,
       "targets": [
@@ -2393,7 +2474,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 115
+        "y": 118
       },
       "id": 104,
       "title": "Scheduler",
@@ -2420,7 +2501,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 116
+        "y": 119
       },
       "id": 30,
       "targets": [
@@ -2485,7 +2566,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 116
+        "y": 119
       },
       "id": 31,
       "targets": [
@@ -2551,7 +2632,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 116
+        "y": 119
       },
       "options": {
         "tooltip": {
@@ -2572,7 +2653,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 124
+        "y": 127
       },
       "id": 105,
       "title": "Platform & Drivers",
@@ -2598,7 +2679,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 125
+        "y": 128
       },
       "id": 40,
       "targets": [
@@ -2685,7 +2766,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 125
+        "y": 128
       },
       "id": 41,
       "targets": [
@@ -2758,7 +2839,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 125
+        "y": 128
       },
       "id": 42,
       "targets": [
@@ -2800,7 +2881,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 133
+        "y": 136
       },
       "id": 102,
       "title": "JVM Memory",
@@ -2844,7 +2925,7 @@
         "h": 10,
         "w": 12,
         "x": 0,
-        "y": 134
+        "y": 137
       },
       "id": 10,
       "targets": [
@@ -2897,7 +2978,7 @@
         "h": 10,
         "w": 12,
         "x": 12,
-        "y": 134
+        "y": 137
       },
       "id": 11,
       "targets": [
@@ -2949,7 +3030,7 @@
         "h": 10,
         "w": 12,
         "x": 0,
-        "y": 144
+        "y": 147
       },
       "id": 12,
       "targets": [
@@ -3006,7 +3087,7 @@
         "h": 10,
         "w": 12,
         "x": 12,
-        "y": 144
+        "y": 147
       },
       "id": 13,
       "targets": [
@@ -3062,7 +3143,7 @@
         "h": 10,
         "w": 12,
         "x": 0,
-        "y": 154
+        "y": 157
       },
       "id": 14,
       "targets": [
@@ -3168,7 +3249,7 @@
         "h": 10,
         "w": 12,
         "x": 12,
-        "y": 154
+        "y": 157
       }
     },
     {
@@ -3177,7 +3258,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 164
+        "y": 167
       },
       "id": 106,
       "title": "Thread Pools",
@@ -3203,7 +3284,7 @@
         "h": 10,
         "w": 9,
         "x": 0,
-        "y": 165
+        "y": 168
       },
       "id": 50,
       "targets": [
@@ -3254,7 +3335,7 @@
         "h": 10,
         "w": 9,
         "x": 9,
-        "y": 165
+        "y": 168
       },
       "id": 51,
       "targets": [
@@ -3374,7 +3455,7 @@
         "h": 10,
         "w": 6,
         "x": 18,
-        "y": 165
+        "y": 168
       }
     }
   ],
