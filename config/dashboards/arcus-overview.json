@@ -713,7 +713,7 @@
       },
       "gridPos": {
         "h": 9,
-        "w": 12,
+        "w": 8,
         "x": 0,
         "y": 15
       },
@@ -770,8 +770,8 @@
       },
       "gridPos": {
         "h": 9,
-        "w": 12,
-        "x": 12,
+        "w": 8,
+        "x": 8,
         "y": 15
       },
       "id": 61,
@@ -803,6 +803,70 @@
           "sortDesc": true
         }
       }
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 80,
+            "lineWidth": 0,
+            "showPoints": "never",
+            "stacking": {
+              "mode": "normal"
+            },
+            "axisLabel": "events"
+          },
+          "min": 0
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 16,
+        "y": 15
+      },
+      "id": 63,
+      "targets": [
+        {
+          "expr": "sum by (app) (count_over_time({app=~\"$service\"} |= \"Client session timed out\" [$__auto]))",
+          "refId": "A",
+          "legendFormat": "{{app}} timed out"
+        },
+        {
+          "expr": "sum by (app) (count_over_time({app=~\"$service\"} |= \"Zookeeper session expired\" [$__auto]))",
+          "refId": "B",
+          "legendFormat": "{{app}} expired"
+        },
+        {
+          "expr": "sum by (app) (count_over_time({app=~\"$service\"} |= \"Connected to zookeeper\" [$__auto]))",
+          "refId": "C",
+          "legendFormat": "{{app}} connected"
+        }
+      ],
+      "title": "ZooKeeper Client Events",
+      "type": "timeseries",
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [
+            "sum"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "sortBy": "Total",
+          "sortDesc": true
+        }
+      },
+      "description": "What the services' ZooKeeper client logged: a timeout (it stopped hearing from its server and is reconnecting), an expiry (the session lapsed; the service exits and restarts, the ZooKeeper Session Expired alert) and a connection. Timeouts that recur at a fixed interval point at the network path to the member the services talk to."
     },
     {
       "datasource": {

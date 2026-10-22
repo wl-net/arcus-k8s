@@ -235,7 +235,7 @@ You can also write the files directly:
 | `metallb` | Optional | `yes` or `no` — enable MetalLB for load balancer IPs |
 | `proxy-real-ip` | Optional | Upstream proxy IP/subnet for PROXY protocol (e.g. `192.168.1.1/32`) |
 | `cassandra-host` | Yes | Cassandra contact points, comma-separated (e.g. `10.0.0.10,10.0.0.11`) |
-| `zookeeper-host` | Yes | ZooKeeper `host:port` (e.g. `10.0.0.30:2181`) |
+| `zookeeper-host` | Yes | ZooKeeper connect string, every ensemble member comma-separated (e.g. `10.0.0.30:2181,10.0.0.31:2181,10.0.0.32:2181`); with one member listed, the services lose their sessions whenever it is away |
 | `kafka-host` | Yes | Kafka bootstrap server `host:port` (e.g. `10.0.0.20:9092`) |
 | `admin-domain` | Optional | Grafana admin domain (e.g. `admin.arcus-dc1.example.com`) |
 | `peer-admin-domains` | Optional | Admin domains of the other datacenters, comma-separated (e.g. `admin.arcus-dc2.example.com`); this node alerts when their Grafana or public services stop answering |

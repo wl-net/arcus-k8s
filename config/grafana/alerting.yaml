@@ -1088,6 +1088,58 @@ groups:
       summary: '{{ $labels.datastore }} at {{ $labels.instance }} is not accepting connections'
       description: 'The blackbox exporter has not been able to open a TCP connection to {{ $labels.datastore }} at {{ $labels.instance }} for 2 minutes. Cassandra, Kafka and ZooKeeper run outside the cluster. First steps: ./arcuscmd.sh status (External Services pings each host), then check the {{ $labels.datastore }} service on that host; services that depend on it will be logging connection errors (./arcuscmd.sh logs platform-services).'
       runbook_url: https://github.com/wl-net/arcus-k8s/blob/PLACEHOLDER_RUNBOOK_REF/docs/runbooks/datastore-unreachable.md
+  - uid: zookeeper-session-expired
+    title: ZooKeeper Session Expired
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: loki
+      model:
+        expr: sum by (app) (count_over_time({app=~".+"} |= "Zookeeper session expired" [10m]))
+        instant: true
+        refId: A
+    - refId: B
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: reduce
+        expression: A
+        reducer: last
+        refId: B
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: threshold
+        expression: B
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0
+          operator:
+            type: and
+          reducer:
+            type: last
+        refId: C
+    for: 0s
+    noDataState: OK
+    execErrState: Error
+    labels:
+      severity: critical
+    annotations:
+      __dashboardUid__: arcus-overview
+      __panelId__: "63"
+      summary: '{{ $labels.app }} lost its ZooKeeper session and restarted'
+      description: '{{ $labels.app }} logged "Zookeeper session expired" in the last 10 minutes. A service that loses its session drops its cluster membership and exits, Kubernetes restarts it, and everything it owned waits until it re-registers; usually every service goes at once. A session only expires when the client cannot reach any member in its connect string for longer than the session timeout, so with a single member in .config/zookeeper-host that member being away is enough. First steps: kubectl get pods for the restarts, ./arcuscmd.sh logs <app> | grep -i zookeeper, then the ZooKeeper servers'' logs for the minute before (a follower losing the leader, or a restart).'
+      runbook_url: https://github.com/wl-net/arcus-k8s/blob/PLACEHOLDER_RUNBOOK_REF/docs/runbooks/zookeeper-session-expired.md
   - uid: keystore-renewal-stale
     title: Hub Keystore Renewal Stale
     condition: C
@@ -1845,7 +1897,7 @@ groups:
         to: 0
       datasourceUid: prometheus
       model:
-        expr: sum by (pod, reason) (increase(loki_write_dropped_entries_total{job="alloy"}[10m]))
+        expr: sum by (node, reason) (increase(loki_write_dropped_entries_total{job="alloy"}[10m]))
         instant: true
         refId: A
     - refId: B
@@ -1884,8 +1936,8 @@ groups:
     annotations:
       __dashboardUid__: arcus-cluster
       __panelId__: "33"
-      summary: 'Alloy on {{ $labels.pod }} dropped {{ printf "%.0f" $values.B.Value }} log entries ({{ $labels.reason }})'
-      description: 'Alloy gave up sending log entries to Loki in the last 10 minutes ({{ $labels.reason }}); those lines are lost. Loki refusing them (Loki Discarding Logs says why) or being down (Monitoring Service Down) are the usual causes. First steps: kubectl logs {{ $labels.pod }} and ./arcuscmd.sh logs loki.'
+      summary: 'Alloy on {{ $labels.node }} dropped {{ printf "%.0f" $values.B.Value }} log entries ({{ $labels.reason }})'
+      description: 'Alloy gave up sending log entries to Loki in the last 10 minutes ({{ $labels.reason }}); those lines are lost. ingester_error covers Loki answering with an error or not at all for the whole retry window (about 8 minutes; Monitoring Service Down) and Loki rejecting a push outright, which drops every line in that batch (Loki Discarding Logs says why). First steps: kubectl logs -l app=alloy --all-pods --prefix --since=15m | grep "final error" for the status and Loki''s message (the pod on {{ $labels.node }}), then ./arcuscmd.sh logs loki.'
       runbook_url: https://github.com/wl-net/arcus-k8s/blob/PLACEHOLDER_RUNBOOK_REF/docs/runbooks/alloy-dropping-logs.md
   - uid: loki-discarding-logs
     title: Loki Discarding Logs
@@ -1939,6 +1991,58 @@ groups:
       summary: 'Loki discarded {{ printf "%.0f" $values.B.Value }} log lines in 10 minutes ({{ $labels.reason }})'
       description: 'Loki refused log lines in the last 10 minutes with reason {{ $labels.reason }}: rate_limited means a pod is logging faster than the ingestion limits in config/extrafiles/loki.yaml allow (the Log Volume panel shows which), line_too_long a line over the limit, and the others a label or timestamp problem from the Alloy pipeline in config/logging/alloy.yaml. Those lines are lost. First steps: ./arcuscmd.sh logs loki and the Log Volume by Service panel.'
       runbook_url: https://github.com/wl-net/arcus-k8s/blob/PLACEHOLDER_RUNBOOK_REF/docs/runbooks/loki-discarding-logs.md
+  - uid: log-flood
+    title: Log Flood
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 300
+        to: 0
+      datasourceUid: loki
+      model:
+        expr: sum by (app) (rate({app=~".+"}[5m])) * 60
+        instant: true
+        refId: A
+    - refId: B
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: reduce
+        expression: A
+        reducer: last
+        refId: B
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: threshold
+        expression: B
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 60000
+          operator:
+            type: and
+          reducer:
+            type: last
+        refId: C
+    for: 0s
+    noDataState: OK
+    execErrState: Error
+    labels:
+      severity: warning
+    annotations:
+      __dashboardUid__: arcus-overview
+      __panelId__: "60"
+      summary: '{{ $labels.app }} is writing {{ printf "%.0f" $values.B.Value }} log lines a minute'
+      description: '{{ $labels.app }} has averaged more than 60000 log lines a minute (1000 a second) over the last 5 minutes, hundreds of times its normal rate. That is a tight loop logging each pass, such as a Kafka consumer polling with no partitions assigned, not load. It fills Loki and the node disk and buries every other log. First steps: ./arcuscmd.sh logs {{ $labels.app }} | tail -n 40 to see the repeated line; a service stuck retrying since a restart or a ZooKeeper Session Expired is cleared by ./arcuscmd.sh deletepod {{ $labels.app }}; a line that is merely chatty is quietened in config/extrafiles/logback.xml.'
+      runbook_url: https://github.com/wl-net/arcus-k8s/blob/PLACEHOLDER_RUNBOOK_REF/docs/runbooks/log-flood.md
 
 # How alert notifications read. Grafana's default message lists the raw query
 # values (A=1, B=1, C=0) and every label, with the summary and description

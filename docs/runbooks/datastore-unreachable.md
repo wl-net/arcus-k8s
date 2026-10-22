@@ -18,6 +18,10 @@ What it costs depends on which one:
   needs it is failing. Hubs stay connected but commands are not processed,
   rules do not fire, and the apps cannot load. Fix it now.
 
+ZooKeeper is probed at every member in `zookeeper-host`; the services fail
+over between members only if all of them are listed there ([ZooKeeper Session
+Expired](zookeeper-session-expired.md) is what one member's absence costs otherwise).
+
 The probe only tests the TCP connect; a datastore that accepts connections but
 misbehaves does not fire this. Those show up as errors in the service logs and
 as [Scheduler Errors](scheduler-errors.md) or a [Service Down](service-down.md)

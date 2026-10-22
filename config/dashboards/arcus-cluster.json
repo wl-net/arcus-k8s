@@ -1478,8 +1478,8 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum by (pod, reason) (increase(loki_write_dropped_entries_total{job=\"alloy\"}[10m]))",
-          "legendFormat": "alloy {{pod}} {{reason}}",
+          "expr": "sum by (node, reason) (increase(loki_write_dropped_entries_total{job=\"alloy\"}[10m]))",
+          "legendFormat": "alloy {{node}} {{reason}}",
           "refId": "A"
         },
         {

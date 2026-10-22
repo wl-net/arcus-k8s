@@ -70,6 +70,7 @@ node or pod with the alert's labels where the description does.
 | [Email Notification Errors](notification-email-errors.md) | warning | Fires when notification-services has failed to send email for 5 minutes |
 | [Scheduler Errors](scheduler-errors.md) | warning | Fires when scheduler-service has been failing scheduled commands for 5 minutes |
 | [Datastore Unreachable](datastore-unreachable.md) | critical | Fires when the blackbox exporter has not been able to open a TCP connection to a Cassandra, Kafka or ZooKeeper host for 2 minutes |
+| [ZooKeeper Session Expired](zookeeper-session-expired.md) | critical | Fires as soon as a service has logged that its ZooKeeper session expired in the last 10 minutes |
 | [Hub Keystore Renewal Stale](keystore-renewal-stale.md) | warning | Fires when the `hub-keystore-renewal` CronJob has not completed successfully for 13 hours |
 | [Hub TLS Failing](hub-tls-failing.md) | critical | Fires when the blackbox exporter has not been able to complete a TLS handshake with hub-bridge on port 8082 for 5 minutes |
 | [Hub Certificate Expiring](hub-cert-expiring.md) | critical | Fires when the certificate hub-bridge serves on port 8082 expires in less than 21 days (for 1 hour) |
@@ -91,3 +92,4 @@ node or pod with the alert's labels where the description does.
 | [Prometheus Storage Errors](prometheus-storage-errors.md) | warning | Fires as soon as Prometheus has failed a compaction or found a corrupt WAL segment in the last 2 hours |
 | [Log Shipping Dropping Entries](alloy-dropping-logs.md) | warning | Fires as soon as Alloy has given up on log entries in the last 10 minutes |
 | [Loki Discarding Logs](loki-discarding-logs.md) | warning | Fires as soon as Loki has refused log lines in the last 10 minutes |
+| [Log Flood](log-flood.md) | warning | Fires as soon as a service has averaged more than 60000 log lines a minute over the last 5 minutes |

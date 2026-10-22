@@ -8,6 +8,8 @@ metadata:
   namespace: default
 data:
   # apply fills in the PLACEHOLDER_* hosts from .config/
+  # (the ZooKeeper one is a connect string: list every ensemble member, or a
+  # single member's downtime expires every service's session)
   BOOTSTRAP_SERVERS: PLACEHOLDER_KAFKA_HOST
   CLUSTER_SERVICE_DAO: zookeeper
   CLUSTER_ZK_HOST: PLACEHOLDER_ZOOKEEPER_HOST

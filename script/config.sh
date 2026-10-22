@@ -48,7 +48,7 @@ function configure() {
     echo "$ARCUS_KAFKA_HOST" > "$ARCUS_CONFIGDIR/kafka-host"
   fi
   if [[ -z "${ARCUS_ZOOKEEPER_HOST:-}" ]]; then
-    prompt ARCUS_ZOOKEEPER_HOST "Enter ZooKeeper host as host:port (e.g. 10.0.0.30:2181): "
+    prompt ARCUS_ZOOKEEPER_HOST "Enter the ZooKeeper connect string, every member as host:port, comma-separated (e.g. 10.0.0.30:2181,10.0.0.31:2181,10.0.0.32:2181): "
     echo "$ARCUS_ZOOKEEPER_HOST" > "$ARCUS_CONFIGDIR/zookeeper-host"
   fi
 
