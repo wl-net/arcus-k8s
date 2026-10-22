@@ -1098,7 +1098,8 @@ groups:
         to: 0
       datasourceUid: loki
       model:
-        expr: sum by (app) (count_over_time({app=~".+"} |= "Zookeeper session expired" [10m]))
+        # Grafana and Loki log this query's text every evaluation, so leave them out
+        expr: sum by (app) (count_over_time({app=~".+", app!~"grafana|loki"} |= "Zookeeper session expired" [10m]))
         instant: true
         refId: A
     - refId: B

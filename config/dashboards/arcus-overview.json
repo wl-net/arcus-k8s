@@ -833,17 +833,17 @@
       "id": 63,
       "targets": [
         {
-          "expr": "sum by (app) (count_over_time({app=~\"$service\"} |= \"Client session timed out\" [$__auto]))",
+          "expr": "sum by (app) (count_over_time({app=~\"$service\", app!~\"grafana|loki\"} |= \"Client session timed out\" [$__auto]))",
           "refId": "A",
           "legendFormat": "{{app}} timed out"
         },
         {
-          "expr": "sum by (app) (count_over_time({app=~\"$service\"} |= \"Zookeeper session expired\" [$__auto]))",
+          "expr": "sum by (app) (count_over_time({app=~\"$service\", app!~\"grafana|loki\"} |= \"Zookeeper session expired\" [$__auto]))",
           "refId": "B",
           "legendFormat": "{{app}} expired"
         },
         {
-          "expr": "sum by (app) (count_over_time({app=~\"$service\"} |= \"Connected to zookeeper\" [$__auto]))",
+          "expr": "sum by (app) (count_over_time({app=~\"$service\", app!~\"grafana|loki\"} |= \"Connected to zookeeper\" [$__auto]))",
           "refId": "C",
           "legendFormat": "{{app}} connected"
         }
