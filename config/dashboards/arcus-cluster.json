@@ -891,7 +891,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "(certmanager_certificate_expiration_timestamp_seconds - time()) / 86400",
+          "expr": "((certmanager_certificate_expiration_timestamp_seconds > 0) - time()) / 86400",
           "legendFormat": "{{namespace}}/{{name}}",
           "refId": "A"
         },
@@ -985,7 +985,7 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "(time() - certmanager_certificate_renewal_timestamp_seconds) / 3600",
+          "expr": "(time() - (certmanager_certificate_renewal_timestamp_seconds > 0)) / 3600",
           "legendFormat": "{{namespace}}/{{name}}",
           "refId": "A"
         }

@@ -393,7 +393,12 @@ groups:
         to: 0
       datasourceUid: prometheus
       model:
-        expr: up{job!~"prometheus|grafana|loki|alloy|kube-state-metrics|node-exporter|kubelet-cadvisor|cert-manager"}
+        # Ready endpoints only (svcup comes from the endpoint's ready flag), so a
+        # pod that is still rolling out next to a serving one does not count; a
+        # job with no ready endpoint falls back to whatever endpoints it has.
+        expr: >-
+          min by (job) (up{job!~"prometheus|grafana|loki|alloy|kube-state-metrics|node-exporter|kubelet-cadvisor|cert-manager", svcup!="false"})
+          or min by (job) (up{job!~"prometheus|grafana|loki|alloy|kube-state-metrics|node-exporter|kubelet-cadvisor|cert-manager"})
         instant: true
         refId: A
     - refId: B
@@ -433,7 +438,7 @@ groups:
       __dashboardUid__: arcus-overview
       __panelId__: "1"
       summary: '{{ $labels.job }} is down'
-      description: '{{ $labels.job }} ({{ $labels.instance }}) has been down for more than 5 minutes. First steps: ./arcuscmd.sh status to see which pods are not ready, then kubectl describe pod and ./arcuscmd.sh logs <app> for the service behind {{ $labels.job }}; for a blackbox-* job, check the blackbox-exporter pod first.'
+      description: '{{ $labels.job }} has had no ready pod answering on its metrics port for more than 5 minutes. First steps: ./arcuscmd.sh status to see which pods are not ready, then kubectl describe pod and ./arcuscmd.sh logs <app> for the service behind {{ $labels.job }}; for a blackbox-* job, check the blackbox-exporter pod first.'
       runbook_url: https://github.com/wl-net/arcus-k8s/blob/PLACEHOLDER_RUNBOOK_REF/docs/runbooks/service-down.md
   - uid: pod-crash-looping
     title: Pod Crash Looping
@@ -670,7 +675,8 @@ groups:
         to: 0
       datasourceUid: prometheus
       model:
-        expr: (time() - certmanager_certificate_renewal_timestamp_seconds) / 3600
+        # > 0 skips a Certificate that has never been issued (cert-manager reports 0 for it).
+        expr: (time() - (certmanager_certificate_renewal_timestamp_seconds > 0)) / 3600
         instant: true
         refId: A
     - refId: B
@@ -722,7 +728,8 @@ groups:
         to: 0
       datasourceUid: prometheus
       model:
-        expr: (certmanager_certificate_expiration_timestamp_seconds - time()) / 86400
+        # > 0 skips a Certificate that has never been issued (cert-manager reports 0 for it).
+        expr: ((certmanager_certificate_expiration_timestamp_seconds > 0) - time()) / 86400
         instant: true
         refId: A
     - refId: B
@@ -814,7 +821,7 @@ groups:
       __dashboardUid__: arcus-overview
       __panelId__: "2"
       summary: 'Unexpected hub connections detected'
-      description: '{{ $value }} hubs connected (expected PLACEHOLDER_EXPECTED_HUBS or fewer; .config/expected-hubs sets this). Possible unauthorized hub connection. First steps: find the hub IDs and source addresses of recent connections in ./arcuscmd.sh logs hub-bridge and compare them with the hubs you expect; an unknown hub should be checked against the place it is registered to.'
+      description: '{{ printf "%.0f" $values.B.Value }} hubs connected (expected PLACEHOLDER_EXPECTED_HUBS or fewer; .config/expected-hubs sets this). Possible unauthorized hub connection. First steps: find the hub IDs and source addresses of recent connections in ./arcuscmd.sh logs hub-bridge and compare them with the hubs you expect; an unknown hub should be checked against the place it is registered to.'
       runbook_url: https://github.com/wl-net/arcus-k8s/blob/PLACEHOLDER_RUNBOOK_REF/docs/runbooks/unexpected-hubs.md
   # The counter only exists once a pod has seen its first password change, and
   # increase() reads a series that appears at 1 as no increase. The second half
@@ -885,12 +892,13 @@ groups:
         to: 0
       datasourceUid: prometheus
       model:
+        # One sum over every bridge_authz_unauthorized_* counter: adding them with
+        # '+' would drop a job that has not registered all of them yet. The
+        # label_replace keeps a reason label so increase() (which strips the
+        # metric name) does not see duplicate series; that needs the subquery.
         expr: >-
-          increase(bridge_authz_unauthorized_noplace[5m])
-          + increase(bridge_authz_unauthorized_notowner[5m])
-          + increase(bridge_authz_unauthorized_wrongperson[5m])
-          + increase(bridge_authz_unauthorized_wrongplace[5m])
-          + increase(bridge_authz_unauthorized_supportrequest[5m])
+          sum by (job) (increase(label_replace({__name__=~"bridge_authz_unauthorized_.+"},
+          "reason", "$1", "__name__", "bridge_authz_unauthorized_(.+)")[5m:15s]))
         instant: true
         refId: A
     - refId: B
@@ -1355,7 +1363,7 @@ groups:
       severity: warning
     annotations:
       __dashboardUid__: arcus-overview
-      __panelId__: "8"
+      __panelId__: "16"
       summary: 'Hub {{ $labels.hub }} has failed its firmware upgrade {{ printf "%.0f" $values.B.Value }} times in 6 hours'
       description: 'Hub {{ $labels.hub }} has been failing its firmware upgrade for more than 2 hours and failed again within the last 2, so it is stuck rather than retrying its way through: each reconnect, hub-bridge finds it needs an upgrade and the upgrade fails again. First steps: in Grafana Explore, {app="hub-bridge"} |= "{{ $labels.hub }}" |= "firmware" for the failure reason, then the runbook for the hub_registration row and firmware.xml.'
       runbook_url: https://github.com/wl-net/arcus-k8s/blob/PLACEHOLDER_RUNBOOK_REF/docs/runbooks/hub-firmware-upgrade-stuck.md
@@ -1409,7 +1417,7 @@ groups:
       __dashboardUid__: arcus-overview
       __panelId__: "60"
       summary: 'Alloy hitting an inotify or open-file limit'
-      description: 'Alloy is logging "too many open files": the node is out of inotify instances (fs.inotify.max_user_instances) or open files, so some logs are not being collected. First steps: kubectl logs ds/alloy --since=10m | grep "too many open files" for the exact error, then on the node compare cat /proc/sys/fs/inotify/max_user_instances with find /proc/[0-9]*/fd -lname anon_inode:inotify | wc -l, and raise fs.inotify.max_user_instances (persist it in /etc/sysctl.d/99-inotify.conf). A failed Loki query raises a separate DatasourceError alert, not this one.'
+      description: 'Alloy is logging "too many open files": the node is out of inotify instances (fs.inotify.max_user_instances) or open files, so some logs are not being collected. First steps: kubectl logs ds/alloy --since=10m | grep "too many open files" for the exact error, then on the node compare cat /proc/sys/fs/inotify/max_user_instances with find /proc/[0-9]*/fd -lname anon_inode:inotify | wc -l, and raise fs.inotify.max_user_instances (persist it in /etc/sysctl.d/99-inotify.conf).'
       runbook_url: https://github.com/wl-net/arcus-k8s/blob/PLACEHOLDER_RUNBOOK_REF/docs/runbooks/alloy-inotify-errors.md
   - uid: log-ingestion-stopped
     title: Log Ingestion Stopped

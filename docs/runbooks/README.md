@@ -63,7 +63,7 @@ node or pod with the alert's labels where the description does.
 
 | Alert | Severity | Fires |
 |---|---|---|
-| [Service Down](service-down.md) | critical | Fires when Prometheus has not been able to scrape a service, or a blackbox check has failed, for 5 minutes. Also fires on no data |
+| [Service Down](service-down.md) | critical | Fires when Prometheus has not been able to scrape any ready pod of a service, or the blackbox exporter, for 5 minutes. Also fires on no data |
 | [Pod Crash Looping](pod-crash-looping.md) | critical | Fires when a container has been in CrashLoopBackOff for 10 minutes |
 | [Container OOM Killed](container-oom-killed.md) | warning | Fires as soon as a container restarts after an OOMKilled exit |
 | [Image Pull Failing](image-pull-failing.md) | warning | Fires when a container has been in ErrImagePull, ImagePullBackOff or InvalidImageName for 10 minutes |

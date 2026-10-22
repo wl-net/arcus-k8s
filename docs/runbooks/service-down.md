@@ -1,12 +1,15 @@
 # Service Down
 
-Severity **critical** · group Service Health · fires when Prometheus has not been able to scrape a service, or a blackbox check has failed, for 5 minutes. Also fires on no data.
+Severity **critical** · group Service Health · fires when Prometheus has not been able to scrape any ready pod of a service, or the blackbox exporter, for 5 minutes. Also fires on no data.
 Rule `service-down` in [`config/grafana/alerting.yaml`](../../config/grafana/alerting.yaml).
 
 ## What it means
 
 A scrape job is down. For an Arcus service (`hub-bridge`, `platform-services`,
-…) that means no pod of it is ready: users or hubs are affected now. For a
+…) that means no ready pod of it answers on its metrics port: users or hubs
+are affected now. A pod that is not ready yet (a rollout in progress) is
+ignored while a ready one is serving; if a service has no ready pod at all,
+whatever pods it has count instead, so a crashed single pod still fires. For a
 `blackbox-*` job it means the blackbox exporter itself could not be scraped;
 the checks it runs have their own alerts ([Datastore Unreachable](datastore-unreachable.md),
 [Public Endpoint Unreachable](public-endpoint-unreachable.md), …).

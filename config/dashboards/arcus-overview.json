@@ -1604,6 +1604,29 @@
                 }
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "password changed"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.showPoints",
+                "value": "always"
+              },
+              {
+                "id": "custom.pointSize",
+                "value": 6
+              }
+            ]
           }
         ]
       },
@@ -1634,6 +1657,11 @@
           "expr": "sum by (job) (rate({__name__=~\"com_iris_bridge_metrics_bridge_metrics_bridge_(client|api)_authorization_failed\"}[5m]))",
           "legendFormat": "{{job}} authorization failed",
           "refId": "D"
+        },
+        {
+          "expr": "sum(rate(messages_platform_recv_type_person_passwordchanged[5m]))",
+          "legendFormat": "password changed",
+          "refId": "E"
         }
       ],
       "title": "Logins & Authorization (/s)",
@@ -2218,7 +2246,7 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 12,
+        "w": 8,
         "x": 0,
         "y": 102
       },
@@ -2290,10 +2318,57 @@
       "type": "timeseries",
       "gridPos": {
         "h": 8,
-        "w": 12,
-        "x": 12,
+        "w": 8,
+        "x": 8,
         "y": 102
       },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
+      }
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "description": "hub-bridge 'firmware upgrade failed' log lines per hub, counted over the previous hour. Hub Firmware Upgrade Stuck fires when one hub keeps failing for more than 2 hours.",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 10,
+            "lineWidth": 2,
+            "showPoints": "never"
+          },
+          "min": 0,
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 102
+      },
+      "id": 16,
+      "targets": [
+        {
+          "expr": "sum by (hub) (count_over_time({app=\"hub-bridge\"} |= \"firmware upgrade failed\" | regexp `Hub with id \\[(?P<hub>[^\\]]+)\\] firmware upgrade failed` [1h]))",
+          "refId": "A",
+          "legendFormat": "{{hub}}"
+        }
+      ],
+      "title": "Hub Firmware Upgrade Failures (per hour)",
+      "type": "timeseries",
       "options": {
         "tooltip": {
           "mode": "multi",
@@ -3464,7 +3539,6 @@
   "templating": {
     "list": [
       {
-        "allValue": ".+",
         "current": {
           "selected": true,
           "text": [
@@ -3478,7 +3552,8 @@
           "type": "loki",
           "uid": "loki"
         },
-        "definition": "label_values(app)",
+        "definition": "label_values({app=~\".+\", app!~\"grafana|grafana-renderer|loki|prometheus|alloy|blackbox-exporter|kube-state-metrics|node-exporter|metallb|cert-manager|cainjector|webhook\"}, app)",
+        "description": "Arcus services only. The monitoring stack (Grafana, Loki, Prometheus, Alloy, the exporters) logs every query it runs at info level, so it is left out; use Explore for those logs.",
         "includeAll": true,
         "label": "Service",
         "multi": true,
@@ -3487,7 +3562,7 @@
         "query": {
           "label": "app",
           "refId": "LokiVariableQueryEditor-VariableQuery",
-          "stream": "",
+          "stream": "{app=~\".+\", app!~\"grafana|grafana-renderer|loki|prometheus|alloy|blackbox-exporter|kube-state-metrics|node-exporter|metallb|cert-manager|cainjector|webhook\"}",
           "type": 1
         },
         "refresh": 2,

@@ -123,6 +123,9 @@ for g in yaml.safe_load(open(f"{root}/config/grafana/alerting.yaml"))["groups"]:
                 problems.append(f"{uid}: not in the docs/runbooks/README.md index")
             elif index[uid].lower() != fires.lower():
                 problems.append(f"{uid}: the README index says '{index[uid]}' but the runbook says '{fires}'")
+        # $value renders every query's labels and values, not a number: use $values.<refId>.Value
+        if re.search(r"\$value\b", a.get("summary", "") + a.get("description", "")):
+            problems.append(f"{uid}: summary or description uses $value, which renders the whole values dump; use $values.<refId>.Value")
         # what Pushover gets: the summary line, the description and the runbook line
         text_len = len(a.get("summary", "")) + len(a.get("description", "")) + len(a.get("runbook_url", "")) + 16
         if text_len > 1024:
