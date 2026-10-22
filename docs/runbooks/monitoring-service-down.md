@@ -9,6 +9,12 @@ Prometheus, Grafana, Loki, Alloy, kube-state-metrics, node-exporter, the
 kubelet's cAdvisor endpoint or cert-manager is not answering. Users are not
 affected, but the alerts that read from it are blind:
 
+If the notification is named **DatasourceError** with `rulename = Monitoring
+Service Down`, Prometheus itself is the one not answering: this rule reads
+its scrape targets from Prometheus and is the only rule that turns an
+evaluation error into an alert (the others keep their last state). Treat it
+as Prometheus down and start with its pod.
+
 | Down | Blind |
 |---|---|
 | grafana | everything; the other datacenters notice through Peer Datacenter Unreachable |

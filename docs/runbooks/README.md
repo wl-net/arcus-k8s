@@ -26,6 +26,12 @@ Alerting → History in Grafana shows every state change of the last 30 days
 `{from="state-history"}`). The Runbook link names the commit the datacenter
 runs, so it matches the rule that fired even after a rollback.
 
+An alert named **DatasourceError** with `rulename = Monitoring Service Down`
+means Prometheus itself has not answered Grafana for 5 minutes; see
+[Monitoring Service Down](monitoring-service-down.md). No other rule raises
+one: they keep their last state through an evaluation error, so Loki or
+Prometheus restarting during `apply` does not page.
+
 To quieten everything during planned work: `./arcuscmd.sh silence 2h`
 (`unsilence` to lift it). `./arcuscmd.sh reboot-node` silences on its own.
 

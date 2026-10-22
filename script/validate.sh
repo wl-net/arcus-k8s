@@ -101,6 +101,9 @@ for g in yaml.safe_load(open(f"{root}/config/grafana/alerting.yaml"))["groups"]:
         uid, a = r["uid"], r.get("annotations", {})
         seen.add(uid)
         path = f"{root}/docs/runbooks/{uid}.md"
+        want = "Error" if uid == "monitoring-service-down" else "KeepLast"
+        if r.get("execErrState") != want:
+            problems.append(f"{uid}: execErrState should be {want} (a datasource restarting during apply must not raise DatasourceError; only Monitoring Service Down carries a datasource outage)")
         if a.get("runbook_url") != f"{base}{uid}.md":
             problems.append(f"{uid}: runbook_url should be {base}{uid}.md")
         if not os.path.exists(path):
