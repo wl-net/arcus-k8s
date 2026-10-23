@@ -486,12 +486,68 @@
       ]
     },
     {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "id": 8,
+      "type": "stat",
+      "title": "Running Version",
+      "description": "Image tag each container of the service runs, from kube-state-metrics. Compare with `./arcuscmd.sh status`, which also reads the build stamp from the log.",
+      "gridPos": {
+        "h": 3,
+        "w": 24,
+        "x": 0,
+        "y": 10
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "noValue": "no kube_pod_container_info (kube-state-metrics allowlist)"
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "none",
+        "graphMode": "none",
+        "orientation": "auto",
+        "textMode": "name",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "label_replace(max by (container, image) (kube_pod_container_info{namespace=\"default\", container=~\"$service\"}), \"tag\", \"$1\", \"image\", \".*:([^:]+)$\")",
+          "legendFormat": "{{container}}: {{tag}}",
+          "instant": true,
+          "range": false
+        }
+      ]
+    },
+    {
       "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 10
+        "y": 13
       },
       "id": 200,
       "title": "Availability",
@@ -502,7 +558,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "id": 8,
+      "id": 9,
       "type": "state-timeline",
       "title": "Up / Down",
       "description": "Scrape result over time: a gap or DOWN is a restart, a rollout, or the metrics port not answering.",
@@ -510,7 +566,7 @@
         "h": 7,
         "w": 12,
         "x": 0,
-        "y": 11
+        "y": 14
       },
       "fieldConfig": {
         "defaults": {
@@ -580,7 +636,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "id": 9,
+      "id": 10,
       "type": "timeseries",
       "title": "Restarts per Hour",
       "description": "Container restarts, per pod, in each hour. Lines up with Last Termination and the logs below.",
@@ -588,7 +644,7 @@
         "h": 7,
         "w": 12,
         "x": 12,
-        "y": 11
+        "y": 14
       },
       "fieldConfig": {
         "defaults": {
@@ -633,7 +689,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 18
+        "y": 21
       },
       "id": 300,
       "title": "Platform Messages",
@@ -644,7 +700,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "id": 10,
+      "id": 11,
       "type": "timeseries",
       "title": "Platform Messages (/s)",
       "description": "Messages on the platform bus (Kafka) for this service: read off the topic, received for processing, sent, and discarded as not for this instance. A send-error rate above zero means Kafka rejected writes.",
@@ -652,7 +708,7 @@
         "h": 9,
         "w": 12,
         "x": 0,
-        "y": 19
+        "y": 22
       },
       "fieldConfig": {
         "defaults": {
@@ -716,7 +772,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "id": 11,
+      "id": 12,
       "type": "timeseries",
       "title": "Message Timing p95",
       "description": "95th percentile of how long a received message had waited on the bus before this service read it (receive delay), and of the time to send one. Same timer units as the DAO panels.",
@@ -724,7 +780,7 @@
         "h": 9,
         "w": 12,
         "x": 12,
-        "y": 19
+        "y": 22
       },
       "fieldConfig": {
         "defaults": {
@@ -773,7 +829,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "id": 12,
+      "id": 13,
       "type": "timeseries",
       "title": "Messages Processed by Type (/s)",
       "description": "Platform messages this service handled, by message type (the metric name with the messages_platform_proc_type_ prefix removed). The sum across metric names needs the label_replace and subquery; a plain rate collides on identical label sets.",
@@ -781,7 +837,7 @@
         "h": 9,
         "w": 12,
         "x": 0,
-        "y": 28
+        "y": 31
       },
       "fieldConfig": {
         "defaults": {
@@ -825,7 +881,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "id": 13,
+      "id": 14,
       "type": "timeseries",
       "title": "Intra-service Messages (/s)",
       "description": "Messages on the intra-service bus (heartbeats, partition traffic between instances).",
@@ -833,7 +889,7 @@
         "h": 9,
         "w": 12,
         "x": 12,
-        "y": 28
+        "y": 31
       },
       "fieldConfig": {
         "defaults": {
@@ -893,7 +949,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 37
+        "y": 40
       },
       "id": 400,
       "title": "Cassandra DAO",
@@ -904,7 +960,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "id": 14,
+      "id": 15,
       "type": "timeseries",
       "title": "DAO Latency p95",
       "description": "95th percentile Cassandra operation time, slowest DAO per operation type. A step up across every service at once is Cassandra; one service alone is its query pattern.",
@@ -912,7 +968,7 @@
         "h": 9,
         "w": 12,
         "x": 0,
-        "y": 38
+        "y": 41
       },
       "fieldConfig": {
         "defaults": {
@@ -976,7 +1032,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "id": 15,
+      "id": 16,
       "type": "timeseries",
       "title": "DAO Throughput (ops/s)",
       "description": "Cassandra operations per second by type.",
@@ -984,7 +1040,7 @@
         "h": 9,
         "w": 12,
         "x": 12,
-        "y": 38
+        "y": 41
       },
       "fieldConfig": {
         "defaults": {
@@ -1049,7 +1105,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 47
+        "y": 50
       },
       "id": 500,
       "title": "JVM",
@@ -1060,7 +1116,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "id": 16,
+      "id": 17,
       "type": "timeseries",
       "title": "Heap Used vs Max",
       "description": "Heap in use against -Xmx. Used climbing to max with Old Gen After GC high as well means the service is short of heap, not just between collections.",
@@ -1068,7 +1124,7 @@
         "h": 9,
         "w": 8,
         "x": 0,
-        "y": 48
+        "y": 51
       },
       "fieldConfig": {
         "defaults": {
@@ -1118,7 +1174,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "id": 17,
+      "id": 18,
       "type": "timeseries",
       "title": "Old Gen After GC (% of max)",
       "description": "Old-generation heap still in use after the last collection, as a share of its max: live data the service cannot free. Above 90% for long means it needs more heap. Covers the Serial (Tenured Gen) and G1 (G1 Old Gen) collectors.",
@@ -1126,7 +1182,7 @@
         "h": 9,
         "w": 8,
         "x": 8,
-        "y": 48
+        "y": 51
       },
       "fieldConfig": {
         "defaults": {
@@ -1188,7 +1244,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "id": 18,
+      "id": 19,
       "type": "timeseries",
       "title": "Non-Heap (Metaspace) Used",
       "description": "Memory outside the heap: class metadata, code cache. Grows with loaded classes; a steady climb is a class-loader leak.",
@@ -1196,7 +1252,7 @@
         "h": 9,
         "w": 8,
         "x": 16,
-        "y": 48
+        "y": 51
       },
       "fieldConfig": {
         "defaults": {
@@ -1241,7 +1297,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "id": 19,
+      "id": 20,
       "type": "timeseries",
       "title": "GC Rate (/s)",
       "description": "Collections per second by collector, whichever collector the JVM runs (Serial: Copy and MarkSweepCompact; G1: Young and Old Generation).",
@@ -1249,7 +1305,7 @@
         "h": 9,
         "w": 8,
         "x": 0,
-        "y": 57
+        "y": 60
       },
       "fieldConfig": {
         "defaults": {
@@ -1293,7 +1349,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "id": 20,
+      "id": 21,
       "type": "timeseries",
       "title": "GC Time (ms/s)",
       "description": "Milliseconds per second spent in garbage collection, by collector. Sustained time in the old-generation collector is the service running out of heap.",
@@ -1301,7 +1357,7 @@
         "h": 9,
         "w": 8,
         "x": 8,
-        "y": 57
+        "y": 60
       },
       "fieldConfig": {
         "defaults": {
@@ -1345,7 +1401,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "id": 21,
+      "id": 22,
       "type": "timeseries",
       "title": "Threads",
       "description": "Live JVM threads, with the blocked and deadlocked counts. Deadlocked above zero is a stuck service even if it still answers probes.",
@@ -1353,7 +1409,7 @@
         "h": 9,
         "w": 8,
         "x": 16,
-        "y": 57
+        "y": 60
       },
       "fieldConfig": {
         "defaults": {
@@ -1440,7 +1496,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 66
+        "y": 69
       },
       "id": 600,
       "title": "Thread Pools",
@@ -1451,7 +1507,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "id": 22,
+      "id": 23,
       "type": "timeseries",
       "title": "Pool Tasks Running",
       "description": "Tasks executing right now in each executor pool.",
@@ -1459,7 +1515,7 @@
         "h": 9,
         "w": 8,
         "x": 0,
-        "y": 67
+        "y": 70
       },
       "fieldConfig": {
         "defaults": {
@@ -1504,7 +1560,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "id": 23,
+      "id": 24,
       "type": "timeseries",
       "title": "Pool Tasks Queued",
       "description": "Tasks waiting for a thread. A queue that grows and doesn't drain is a pool too small for its load, or work stuck behind a slow dependency.",
@@ -1512,7 +1568,7 @@
         "h": 9,
         "w": 8,
         "x": 8,
-        "y": 67
+        "y": 70
       },
       "fieldConfig": {
         "defaults": {
@@ -1557,7 +1613,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "id": 24,
+      "id": 25,
       "type": "timeseries",
       "title": "Pool Tasks Failed (/s)",
       "description": "Tasks that ended in an exception, per pool. Pair with Error Logs below.",
@@ -1565,7 +1621,7 @@
         "h": 9,
         "w": 8,
         "x": 16,
-        "y": 67
+        "y": 70
       },
       "fieldConfig": {
         "defaults": {
@@ -1609,7 +1665,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "id": 25,
+      "id": 26,
       "type": "timeseries",
       "title": "Pool Enqueue Time p95",
       "description": "How long a task waited in the queue before a thread picked it up, 95th percentile, per pool. Same timer units as the DAO panels.",
@@ -1617,7 +1673,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 76
+        "y": 79
       },
       "fieldConfig": {
         "defaults": {
@@ -1661,7 +1717,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "id": 26,
+      "id": 27,
       "type": "timeseries",
       "title": "Pool Threads",
       "description": "Threads alive in each pool.",
@@ -1669,7 +1725,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 76
+        "y": 79
       },
       "fieldConfig": {
         "defaults": {
@@ -1715,7 +1771,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 84
+        "y": 87
       },
       "id": 700,
       "title": "Logs",
@@ -1726,7 +1782,7 @@
         "type": "loki",
         "uid": "loki"
       },
-      "id": 27,
+      "id": 28,
       "type": "timeseries",
       "title": "Log Volume by Level (lines/min)",
       "description": "Log lines per minute by level, from the level label Alloy sets on every stream. Error and warn climbing while info stays flat is the service hitting a problem; everything climbing is a restart or debug logging left on.",
@@ -1734,7 +1790,7 @@
         "h": 9,
         "w": 12,
         "x": 0,
-        "y": 85
+        "y": 88
       },
       "fieldConfig": {
         "defaults": {
@@ -1854,7 +1910,7 @@
         "type": "loki",
         "uid": "loki"
       },
-      "id": 28,
+      "id": 29,
       "type": "timeseries",
       "title": "ZooKeeper Client Events",
       "description": "Session timeouts, expirations and reconnects logged by this service's ZooKeeper client. An expiry makes the service exit (see ZooKeeper Session Expired).",
@@ -1862,7 +1918,7 @@
         "h": 9,
         "w": 12,
         "x": 12,
-        "y": 85
+        "y": 88
       },
       "fieldConfig": {
         "defaults": {
@@ -1915,7 +1971,7 @@
         "type": "loki",
         "uid": "loki"
       },
-      "id": 29,
+      "id": 30,
       "type": "logs",
       "title": "Logs",
       "description": "Latest log lines for the selected service, filtered by \"Search\" (case-insensitive regex). Stack traces are joined onto the line that raised them.",
@@ -1923,7 +1979,7 @@
         "h": 14,
         "w": 24,
         "x": 0,
-        "y": 94
+        "y": 97
       },
       "options": {
         "dedupStrategy": "none",

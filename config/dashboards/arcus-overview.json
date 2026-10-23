@@ -769,12 +769,69 @@
       "type": "stat"
     },
     {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "id": 401,
+      "type": "stat",
+      "title": "Running Versions",
+      "description": "Image tags the Arcus services run right now and how many services are on each. One tile means the datacenter is on a single release; two or more means a rollout is in progress, a service is held on another tag (deploy --version), or static-server and ui-server are on latest. Open Arcus Service for the tag per service.",
+      "gridPos": {
+        "h": 3,
+        "w": 24,
+        "x": 0,
+        "y": 20
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "decimals": 0,
+          "noValue": "no kube_pod_container_info (kube-state-metrics allowlist)"
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "none",
+        "graphMode": "none",
+        "orientation": "auto",
+        "textMode": "value_and_name",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "instant": true,
+          "range": false,
+          "legendFormat": "{{tag}}",
+          "expr": "count by (tag) (label_replace(max by (container, image) (kube_pod_container_info{namespace=\"default\", container=~\"alarm-service|api-bridge|client-bridge|driver-services|history-service|hub-bridge|ivr-callback-server|notification-services|platform-services|rule-service|scheduler-service|static-server|subsystem-service|ui-server\"}), \"tag\", \"$1\", \"image\", \".*:([^:]+)$\"))"
+        }
+      ]
+    },
+    {
       "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 20
+        "y": 23
       },
       "id": 107,
       "title": "Logs",
@@ -810,7 +867,7 @@
         "h": 9,
         "w": 8,
         "x": 0,
-        "y": 21
+        "y": 24
       },
       "id": 60,
       "targets": [
@@ -873,7 +930,7 @@
         "h": 9,
         "w": 8,
         "x": 8,
-        "y": 21
+        "y": 24
       },
       "id": 61,
       "targets": [
@@ -929,7 +986,7 @@
         "h": 9,
         "w": 8,
         "x": 16,
-        "y": 21
+        "y": 24
       },
       "id": 63,
       "targets": [
@@ -999,7 +1056,7 @@
         "h": 12,
         "w": 24,
         "x": 0,
-        "y": 30
+        "y": 33
       }
     },
     {
@@ -1008,7 +1065,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 42
+        "y": 45
       },
       "id": 108,
       "title": "Ingress (Traefik)",
@@ -1035,7 +1092,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 43
+        "y": 46
       },
       "id": 200,
       "targets": [
@@ -1145,7 +1202,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 43
+        "y": 46
       },
       "id": 201,
       "targets": [
@@ -1192,7 +1249,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 43
+        "y": 46
       },
       "id": 202,
       "targets": [
@@ -1238,7 +1295,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 51
+        "y": 54
       },
       "id": 203,
       "targets": [
@@ -1289,7 +1346,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 51
+        "y": 54
       },
       "id": 204,
       "targets": [
@@ -1353,7 +1410,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 51
+        "y": 54
       },
       "id": 205,
       "options": {
@@ -1385,7 +1442,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 59
+        "y": 62
       },
       "id": 109,
       "title": "Client & API Bridge",
@@ -1412,7 +1469,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 60
+        "y": 63
       },
       "id": 210,
       "targets": [
@@ -1463,7 +1520,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 60
+        "y": 63
       },
       "id": 211,
       "targets": [
@@ -1514,7 +1571,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 60
+        "y": 63
       },
       "id": 212,
       "targets": [
@@ -1566,7 +1623,7 @@
         "h": 9,
         "w": 8,
         "x": 0,
-        "y": 68
+        "y": 71
       },
       "id": 213,
       "targets": [
@@ -1658,7 +1715,7 @@
         "h": 9,
         "w": 8,
         "x": 8,
-        "y": 68
+        "y": 71
       },
       "id": 214,
       "targets": [
@@ -1723,7 +1780,7 @@
         "h": 9,
         "w": 8,
         "x": 16,
-        "y": 68
+        "y": 71
       },
       "id": 215,
       "targets": [
@@ -1775,7 +1832,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 77
+        "y": 80
       },
       "id": 216,
       "targets": [
@@ -1837,7 +1894,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 77
+        "y": 80
       },
       "id": 217,
       "targets": [
@@ -1873,7 +1930,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 85
+        "y": 88
       },
       "id": 101,
       "title": "Hub & Client Bridge",
@@ -1899,7 +1956,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 86
+        "y": 89
       },
       "id": 2,
       "targets": [
@@ -1954,7 +2011,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 86
+        "y": 89
       },
       "id": 3,
       "targets": [
@@ -2045,7 +2102,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 86
+        "y": 89
       },
       "id": 4,
       "targets": [
@@ -2106,7 +2163,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 94
+        "y": 97
       },
       "id": 5,
       "targets": [
@@ -2156,7 +2213,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 94
+        "y": 97
       },
       "id": 6,
       "targets": [
@@ -2227,7 +2284,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 94
+        "y": 97
       },
       "id": 7,
       "targets": [
@@ -2272,7 +2329,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 102
+        "y": 105
       },
       "id": 8,
       "targets": [
@@ -2344,7 +2401,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 102
+        "y": 105
       },
       "options": {
         "tooltip": {
@@ -2381,7 +2438,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 102
+        "y": 105
       },
       "id": 16,
       "targets": [
@@ -2412,7 +2469,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 110
+        "y": 113
       },
       "id": 103,
       "title": "Cassandra DAO",
@@ -2445,7 +2502,7 @@
         "h": 10,
         "w": 12,
         "x": 0,
-        "y": 111
+        "y": 114
       },
       "id": 20,
       "targets": [
@@ -2524,7 +2581,7 @@
         "h": 10,
         "w": 12,
         "x": 12,
-        "y": 111
+        "y": 114
       },
       "id": 21,
       "targets": [
@@ -2581,7 +2638,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 121
+        "y": 124
       },
       "id": 104,
       "title": "Scheduler",
@@ -2608,7 +2665,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 122
+        "y": 125
       },
       "id": 30,
       "targets": [
@@ -2673,7 +2730,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 122
+        "y": 125
       },
       "id": 31,
       "targets": [
@@ -2739,7 +2796,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 122
+        "y": 125
       },
       "options": {
         "tooltip": {
@@ -2760,7 +2817,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 130
+        "y": 133
       },
       "id": 105,
       "title": "Platform & Drivers",
@@ -2786,7 +2843,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 131
+        "y": 134
       },
       "id": 40,
       "targets": [
@@ -2873,7 +2930,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 131
+        "y": 134
       },
       "id": 41,
       "targets": [
@@ -2946,7 +3003,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 131
+        "y": 134
       },
       "id": 42,
       "targets": [
@@ -2988,7 +3045,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 139
+        "y": 142
       },
       "id": 102,
       "title": "JVM Memory",
@@ -3038,7 +3095,7 @@
         "h": 10,
         "w": 12,
         "x": 0,
-        "y": 140
+        "y": 143
       },
       "id": 10,
       "targets": [
@@ -3097,7 +3154,7 @@
         "h": 10,
         "w": 12,
         "x": 12,
-        "y": 140
+        "y": 143
       },
       "id": 11,
       "targets": [
@@ -3155,7 +3212,7 @@
         "h": 10,
         "w": 12,
         "x": 0,
-        "y": 150
+        "y": 153
       },
       "id": 12,
       "targets": [
@@ -3218,7 +3275,7 @@
         "h": 10,
         "w": 12,
         "x": 12,
-        "y": 150
+        "y": 153
       },
       "id": 13,
       "targets": [
@@ -3280,7 +3337,7 @@
         "h": 10,
         "w": 12,
         "x": 0,
-        "y": 160
+        "y": 163
       },
       "id": 14,
       "targets": [
@@ -3386,7 +3443,7 @@
         "h": 10,
         "w": 12,
         "x": 12,
-        "y": 160
+        "y": 163
       }
     },
     {
@@ -3395,7 +3452,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 170
+        "y": 173
       },
       "id": 106,
       "title": "Thread Pools",
@@ -3427,7 +3484,7 @@
         "h": 10,
         "w": 9,
         "x": 0,
-        "y": 171
+        "y": 174
       },
       "id": 50,
       "targets": [
@@ -3484,7 +3541,7 @@
         "h": 10,
         "w": 9,
         "x": 9,
-        "y": 171
+        "y": 174
       },
       "id": 51,
       "targets": [
@@ -3604,7 +3661,7 @@
         "h": 10,
         "w": 6,
         "x": 18,
-        "y": 171
+        "y": 174
       }
     }
   ],
