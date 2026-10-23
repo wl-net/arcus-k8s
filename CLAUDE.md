@@ -45,7 +45,7 @@ Secrets are written to `secret/` and local overlay state to `overlays/<overlay>-
 | Config management | Kustomize |
 | Ingress | Traefik v3.7.13 (bundled with k3s) |
 | Load balancer | MetalLB v0.16.1 (opt-in) |
-| Certificates | cert-manager v1.21.2 + Let's Encrypt |
+| Certificates | cert-manager v1.21.3 + Let's Encrypt |
 | Database | Apache Cassandra (external) |
 | Messaging | Apache Kafka + Zookeeper (external) |
 | Monitoring | Prometheus + Grafana (optional) |
