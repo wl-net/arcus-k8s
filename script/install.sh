@@ -29,33 +29,14 @@ kubelet-arg+:
   - image-gc-low-threshold=65
 EOF
 
-  # On an upgrade the installer stops the running k3s to swap the binary. If
-  # the kubelet is mid-write on its CPU manager checkpoint at that moment the
-  # file is left truncated, and the new kubelet then refuses to start
-  # ("checkpoint is corrupted ... delete the CPU manager checkpoint file"), so
-  # k3s crash-loops and the API is only up for a few seconds per cycle (dev,
-  # 2026-10-23, v1.36.5 -> v1.37.1). Stop k3s ourselves and remove the file
-  # while nothing is writing it: no CPU manager policy is configured, so it
-  # holds nothing to keep and the kubelet recreates it. Pods keep running
-  # under containerd while k3s is down; only the API is away.
-  if sudo systemctl is-active --quiet k3s; then
-    echo "Stopping k3s for the upgrade (pods keep running; the API is unavailable until it is back)..."
-    sudo systemctl stop k3s
-    sudo rm -f /var/lib/kubelet/cpu_manager_state
-  fi
-
+  local started_at
+  started_at=$(date '+%Y-%m-%d %H:%M:%S')
   curl -sfL https://get.k3s.io | sudo INSTALL_K3S_VERSION="${K3S_VERSION}" INSTALL_K3S_EXEC='--disable=servicelb --write-kubeconfig-mode 644' sh -
 
-  # The installer returns as soon as the service is started; make sure the
-  # kubelet actually came up rather than leaving a crash loop for later.
-  local deadline=$((SECONDS + 180))
-  until $KUBECTL get nodes &>/dev/null && [[ "$(sudo systemctl is-active k3s)" == "active" ]]; do
-    if ((SECONDS >= deadline)); then
-      echo "k3s did not become ready within 3 minutes. Check: sudo journalctl -u k3s -n 50"
-      return 1
-    fi
-    sleep 5
-  done
+  # The installer returns as soon as the service is started; wait until the
+  # kubelet is actually up rather than leaving a crash loop for later. Pods
+  # keep running under containerd throughout; only the API is away.
+  _wait_for_k3s "$started_at" || return 1
   $KUBECTL get nodes
 
   local inotify_watches
@@ -74,6 +55,35 @@ EOF
   cp /etc/rancher/k3s/k3s.yaml "$HOME/.kube/config"
   chmod 600 "$HOME/.kube/config"
   echo "Kubeconfig written to ~/.kube/config"
+}
+
+# Wait for k3s to serve the API with the service staying up. One known way an
+# upgrade fails is repaired here: the installer's restart can cut the kubelet
+# off mid-write on /var/lib/kubelet/cpu_manager_state, after which the new
+# kubelet refuses to start ("checkpoint is corrupted ... delete the CPU manager
+# checkpoint file") and k3s crash-loops with the API up for a few seconds per
+# cycle (dev, 2026-10-23, v1.36.5 -> v1.37.1). With no CPU manager policy
+# configured that file holds only the policy name and an empty CPU set, and
+# the kubelet rewrites it on start, so when the journal shows that exact error
+# the file is removed and k3s restarted. Nothing is touched on a clean start.
+function _wait_for_k3s() {
+  local since=$1 deadline=$((SECONDS + 180)) repaired=0
+  until $KUBECTL get nodes &>/dev/null && [[ "$(sudo systemctl is-active k3s)" == "active" ]]; do
+    if [[ $repaired -eq 0 ]] && sudo journalctl -u k3s --since "$since" -o cat 2>/dev/null \
+         | grep -q 'CPU manager checkpoint file'; then
+      echo "k3s is failing on a corrupted kubelet CPU manager checkpoint (truncated during the restart);"
+      echo "removing /var/lib/kubelet/cpu_manager_state (policy none: it holds no pod state) and restarting k3s..."
+      sudo systemctl stop k3s
+      sudo rm -f /var/lib/kubelet/cpu_manager_state
+      sudo systemctl start k3s
+      repaired=1
+    fi
+    if ((SECONDS >= deadline)); then
+      echo "k3s did not become ready within 3 minutes. Check: sudo journalctl -u k3s -n 50"
+      return 1
+    fi
+    sleep 5
+  done
 }
 
 function setup_helm() {
