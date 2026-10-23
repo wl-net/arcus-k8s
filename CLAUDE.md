@@ -41,7 +41,7 @@ Secrets are written to `secret/` and local overlay state to `overlays/<overlay>-
 
 | Layer | Tool / Version |
 |---|---|
-| Kubernetes distro | k3s v1.36.5+k3s1 (recommended) |
+| Kubernetes distro | k3s v1.37.1+k3s1 (recommended) |
 | Config management | Kustomize |
 | Ingress | Traefik v3.7.13 (bundled with k3s) |
 | Load balancer | MetalLB v0.16.1 (opt-in) |
