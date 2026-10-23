@@ -42,6 +42,7 @@ configMapGenerator:
   files:
   - dashboards/arcus-overview.json
   - dashboards/arcus-cluster.json
+  - dashboards/arcus-service.json
 - name: grafana-datasources
   files:
   - grafana/datasources.yaml

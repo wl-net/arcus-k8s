@@ -1,0 +1,2006 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      },
+      {
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "enable": true,
+        "expr": "min by (container) (time() - container_start_time_seconds{namespace=\"default\", container=~\"$service\"}) < 120",
+        "iconColor": "blue",
+        "name": "Container starts",
+        "step": "60s",
+        "tagKeys": "container",
+        "titleFormat": "{{container}} started"
+      }
+    ]
+  },
+  "description": "One Arcus service in depth: availability, platform messaging, Cassandra, JVM, thread pools and logs. Arcus Overview compares all services; its panels link here with the service preselected.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [
+    {
+      "type": "dashboards",
+      "tags": [
+        "arcus"
+      ],
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "targetBlank": false,
+      "title": ""
+    }
+  ],
+  "liveNow": false,
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 100,
+      "title": "Status",
+      "type": "row"
+    },
+    {
+      "id": 1,
+      "type": "alertlist",
+      "title": "Alerts",
+      "description": "Alert rules firing, pending or erroring right now whose instance carries the selected service as its job label. Rules that key on other labels (deployment, container) are on Arcus Overview.",
+      "gridPos": {
+        "h": 5,
+        "w": 24,
+        "x": 0,
+        "y": 1
+      },
+      "options": {
+        "alertName": "",
+        "alertInstanceLabelFilter": "{job=~\"${service:regex}\"}",
+        "dashboardAlerts": false,
+        "datasource": "",
+        "folder": null,
+        "groupBy": [],
+        "groupMode": "default",
+        "maxItems": 20,
+        "sortOrder": 3,
+        "viewMode": "list",
+        "stateFilter": {
+          "error": true,
+          "firing": true,
+          "noData": false,
+          "normal": false,
+          "pending": true,
+          "recovering": true
+        }
+      }
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "id": 2,
+      "type": "stat",
+      "title": "Up",
+      "description": "Whether Prometheus can scrape the service's metrics port on a ready pod.",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 0,
+        "y": 6
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "color": "red",
+                  "text": "DOWN"
+                },
+                "1": {
+                  "color": "green",
+                  "text": "UP"
+                }
+              }
+            }
+          ],
+          "noValue": "no scrape"
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "orientation": "auto",
+        "textMode": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "min by (job) (up{job=~\"$service\", svcup!=\"false\"})",
+          "legendFormat": "{{job}}",
+          "instant": true,
+          "range": false
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "id": 3,
+      "type": "stat",
+      "title": "Ready Pods",
+      "description": "Containers of this service passing their readiness probe.",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 4,
+        "y": 6
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          },
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "orientation": "auto",
+        "textMode": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (container) (kube_pod_container_status_ready{namespace=\"default\", container=~\"$service\"})",
+          "legendFormat": "{{container}}",
+          "instant": true,
+          "range": false
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "id": 4,
+      "type": "stat",
+      "title": "Restarts (24h)",
+      "description": "Container restarts in the last 24 hours. Any value here means the process exited or was killed; see Last Termination for why.",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 8,
+        "y": 6
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 3
+              }
+            ]
+          },
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "orientation": "auto",
+        "textMode": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (container) (increase(kube_pod_container_status_restarts_total{namespace=\"default\", container=~\"$service\"}[24h]))",
+          "legendFormat": "{{container}}",
+          "instant": true,
+          "range": false
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "id": 5,
+      "type": "stat",
+      "title": "Running For",
+      "description": "Age of the current container. Red for the first ten minutes after a start, so a fresh restart stands out.",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 12,
+        "y": 6
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 600
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "orientation": "auto",
+        "textMode": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "time() - max by (container) (container_start_time_seconds{namespace=\"default\", container=~\"$service\"})",
+          "legendFormat": "{{container}}",
+          "instant": true,
+          "range": false
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "id": 6,
+      "type": "stat",
+      "title": "Partitions Assigned",
+      "description": "Platform partitions this instance owns. 0 is a standby: another datacenter holds the partitions (platform-services is a singleton across the fleet). Blank for services that don't partition.",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 16,
+        "y": 6
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          },
+          "noValue": "n/a",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "orientation": "auto",
+        "textMode": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (job) (platform_partitions_assigned{job=~\"$service\", svcup!=\"false\"})",
+          "legendFormat": "{{job}}",
+          "instant": true,
+          "range": false
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "id": 7,
+      "type": "stat",
+      "title": "Last Termination",
+      "description": "Why the previous container of this pod stopped. OOMKilled means the memory limit was hit; Error means the JVM exited non-zero (check the logs around the restart).",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 20,
+        "y": 6
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
+          },
+          "noValue": "none"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "OOMKilled|Error"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "red"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "orientation": "auto",
+        "textMode": "name",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max by (container, reason) (kube_pod_container_status_last_terminated_reason{namespace=\"default\", container=~\"$service\"})",
+          "legendFormat": "{{reason}}",
+          "instant": true,
+          "range": false
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 10
+      },
+      "id": 200,
+      "title": "Availability",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "id": 8,
+      "type": "state-timeline",
+      "title": "Up / Down",
+      "description": "Scrape result over time: a gap or DOWN is a restart, a rollout, or the metrics port not answering.",
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 11
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "color": "red",
+                  "text": "DOWN"
+                },
+                "1": {
+                  "color": "green",
+                  "text": "UP"
+                }
+              }
+            }
+          ],
+          "custom": {
+            "fillOpacity": 80,
+            "lineWidth": 0
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "mergeValues": true,
+        "showValue": "never",
+        "alignValue": "left",
+        "rowHeight": 0.8,
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "min by (job) (up{job=~\"$service\", svcup!=\"false\"})",
+          "legendFormat": "{{job}}"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "id": 9,
+      "type": "timeseries",
+      "title": "Restarts per Hour",
+      "description": "Container restarts, per pod, in each hour. Lines up with Last Termination and the logs below.",
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 11
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 60,
+            "lineWidth": 1,
+            "showPoints": "never",
+            "drawStyle": "bars"
+          },
+          "decimals": 0,
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [
+            "sum"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "sortBy": "Max",
+          "sortDesc": true
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (pod) (increase(kube_pod_container_status_restarts_total{namespace=\"default\", container=~\"$service\"}[1h]))",
+          "legendFormat": "{{pod}}"
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 18
+      },
+      "id": 300,
+      "title": "Platform Messages",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "id": 10,
+      "type": "timeseries",
+      "title": "Platform Messages (/s)",
+      "description": "Messages on the platform bus (Kafka) for this service: read off the topic, received for processing, sent, and discarded as not for this instance. A send-error rate above zero means Kafka rejected writes.",
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 19
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 0,
+            "lineWidth": 1,
+            "showPoints": "never"
+          },
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "sortBy": "Max",
+          "sortDesc": true
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (job) (rate(messages_platform_read{job=~\"$service\"}[5m]))",
+          "legendFormat": "{{job}} read"
+        },
+        {
+          "refId": "B",
+          "expr": "sum by (job) (rate(messages_platform_recv{job=~\"$service\"}[5m]))",
+          "legendFormat": "{{job}} received"
+        },
+        {
+          "refId": "C",
+          "expr": "sum by (job) (rate(messages_platform_sent{job=~\"$service\"}[5m]))",
+          "legendFormat": "{{job}} sent"
+        },
+        {
+          "refId": "D",
+          "expr": "sum by (job) (rate(messages_platform_disc{job=~\"$service\"}[5m]))",
+          "legendFormat": "{{job}} discarded"
+        },
+        {
+          "refId": "E",
+          "expr": "sum by (job) (rate(messages_platform_sent_errors{job=~\"$service\"}[5m]))",
+          "legendFormat": "{{job}} send errors"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "id": 11,
+      "type": "timeseries",
+      "title": "Message Timing p95",
+      "description": "95th percentile of how long a received message had waited on the bus before this service read it (receive delay), and of the time to send one. Same timer units as the DAO panels.",
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 19
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 0,
+            "lineWidth": 1,
+            "showPoints": "never"
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "sortBy": "Max",
+          "sortDesc": true
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max by (job) (messages_platform_recv_delay{job=~\"$service\", quantile=\"0.95\"})",
+          "legendFormat": "{{job}} receive delay"
+        },
+        {
+          "refId": "B",
+          "expr": "max by (job) (messages_platform_sent_time{job=~\"$service\", quantile=\"0.95\"})",
+          "legendFormat": "{{job}} send time"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "id": 12,
+      "type": "timeseries",
+      "title": "Messages Processed by Type (/s)",
+      "description": "Platform messages this service handled, by message type (the metric name with the messages_platform_proc_type_ prefix removed). The sum across metric names needs the label_replace and subquery; a plain rate collides on identical label sets.",
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 28
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 0,
+            "lineWidth": 1,
+            "showPoints": "never"
+          },
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "sortBy": "Max",
+          "sortDesc": true
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (job, type) (rate(label_replace({__name__=~\"messages_platform_proc_type_.+_count\", job=~\"$service\"}, \"type\", \"$1\", \"__name__\", \"messages_platform_proc_type_(.+)_count\")[5m:15s]))",
+          "legendFormat": "{{job}} {{type}}"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "id": 13,
+      "type": "timeseries",
+      "title": "Intra-service Messages (/s)",
+      "description": "Messages on the intra-service bus (heartbeats, partition traffic between instances).",
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 28
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 0,
+            "lineWidth": 1,
+            "showPoints": "never"
+          },
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "sortBy": "Max",
+          "sortDesc": true
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (job) (rate(messages_intraservice_read{job=~\"$service\"}[5m]))",
+          "legendFormat": "{{job}} read"
+        },
+        {
+          "refId": "B",
+          "expr": "sum by (job) (rate(messages_intraservice_sent{job=~\"$service\"}[5m]))",
+          "legendFormat": "{{job}} sent"
+        },
+        {
+          "refId": "C",
+          "expr": "sum by (job) (rate(messages_intraservice_disc{job=~\"$service\"}[5m]))",
+          "legendFormat": "{{job}} discarded"
+        },
+        {
+          "refId": "D",
+          "expr": "sum by (job) (rate(messages_intraservice_sent_errors{job=~\"$service\"}[5m]))",
+          "legendFormat": "{{job}} send errors"
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 37
+      },
+      "id": 400,
+      "title": "Cassandra DAO",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "id": 14,
+      "type": "timeseries",
+      "title": "DAO Latency p95",
+      "description": "95th percentile Cassandra operation time, slowest DAO per operation type. A step up across every service at once is Cassandra; one service alone is its query pattern.",
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 38
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 0,
+            "lineWidth": 1,
+            "showPoints": "never"
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "sortBy": "Max",
+          "sortDesc": true
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max by (job) (dao_read_time{job=~\"$service\", quantile=\"0.95\"})",
+          "legendFormat": "{{job}} read"
+        },
+        {
+          "refId": "B",
+          "expr": "max by (job) (dao_insert_time{job=~\"$service\", quantile=\"0.95\"})",
+          "legendFormat": "{{job}} insert"
+        },
+        {
+          "refId": "C",
+          "expr": "max by (job) (dao_update_time{job=~\"$service\", quantile=\"0.95\"})",
+          "legendFormat": "{{job}} update"
+        },
+        {
+          "refId": "D",
+          "expr": "max by (job) (dao_upsert_time{job=~\"$service\", quantile=\"0.95\"})",
+          "legendFormat": "{{job}} upsert"
+        },
+        {
+          "refId": "E",
+          "expr": "max by (job) (dao_delete_time{job=~\"$service\", quantile=\"0.95\"})",
+          "legendFormat": "{{job}} delete"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "id": 15,
+      "type": "timeseries",
+      "title": "DAO Throughput (ops/s)",
+      "description": "Cassandra operations per second by type.",
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 38
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 0,
+            "lineWidth": 1,
+            "showPoints": "never"
+          },
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "sortBy": "Max",
+          "sortDesc": true
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (job) (rate(dao_read_time_count{job=~\"$service\"}[5m]))",
+          "legendFormat": "{{job}} read"
+        },
+        {
+          "refId": "B",
+          "expr": "sum by (job) (rate(dao_insert_time_count{job=~\"$service\"}[5m]))",
+          "legendFormat": "{{job}} insert"
+        },
+        {
+          "refId": "C",
+          "expr": "sum by (job) (rate(dao_update_time_count{job=~\"$service\"}[5m]))",
+          "legendFormat": "{{job}} update"
+        },
+        {
+          "refId": "D",
+          "expr": "sum by (job) (rate(dao_upsert_time_count{job=~\"$service\"}[5m]))",
+          "legendFormat": "{{job}} upsert"
+        },
+        {
+          "refId": "E",
+          "expr": "sum by (job) (rate(dao_delete_time_count{job=~\"$service\"}[5m]))",
+          "legendFormat": "{{job}} delete"
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 47
+      },
+      "id": 500,
+      "title": "JVM",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "id": 16,
+      "type": "timeseries",
+      "title": "Heap Used vs Max",
+      "description": "Heap in use against -Xmx. Used climbing to max with Old Gen After GC high as well means the service is short of heap, not just between collections.",
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 0,
+        "y": 48
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 0,
+            "lineWidth": 1,
+            "showPoints": "never"
+          },
+          "unit": "bytes",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "sortBy": "Max",
+          "sortDesc": true
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max by (job) (jvm_memory_heap_used{job=~\"$service\"})",
+          "legendFormat": "{{job}} used"
+        },
+        {
+          "refId": "B",
+          "expr": "max by (job) (jvm_memory_heap_max{job=~\"$service\"})",
+          "legendFormat": "{{job}} max"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "id": 17,
+      "type": "timeseries",
+      "title": "Old Gen After GC (% of max)",
+      "description": "Old-generation heap still in use after the last collection, as a share of its max: live data the service cannot free. Above 90% for long means it needs more heap. Covers the Serial (Tenured Gen) and G1 (G1 Old Gen) collectors.",
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 8,
+        "y": 48
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 0,
+            "lineWidth": 1,
+            "showPoints": "never",
+            "thresholdsStyle": {
+              "mode": "dashed"
+            }
+          },
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "transparent",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.9
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "sortBy": "Max",
+          "sortDesc": true
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max by (job) ({__name__=~\"jvm_memory_pools_(Tenured_Gen|G1_Old_Gen)_used_after_gc\", job=~\"$service\"}) / max by (job) ({__name__=~\"jvm_memory_pools_(Tenured_Gen|G1_Old_Gen)_max\", job=~\"$service\"})",
+          "legendFormat": "{{job}}"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "id": 18,
+      "type": "timeseries",
+      "title": "Non-Heap (Metaspace) Used",
+      "description": "Memory outside the heap: class metadata, code cache. Grows with loaded classes; a steady climb is a class-loader leak.",
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 16,
+        "y": 48
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 0,
+            "lineWidth": 1,
+            "showPoints": "never"
+          },
+          "unit": "bytes",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "sortBy": "Max",
+          "sortDesc": true
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max by (job) (jvm_memory_non_heap_used{job=~\"$service\"})",
+          "legendFormat": "{{job}}"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "id": 19,
+      "type": "timeseries",
+      "title": "GC Rate (/s)",
+      "description": "Collections per second by collector, whichever collector the JVM runs (Serial: Copy and MarkSweepCompact; G1: Young and Old Generation).",
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 0,
+        "y": 57
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 0,
+            "lineWidth": 1,
+            "showPoints": "never"
+          },
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "sortBy": "Max",
+          "sortDesc": true
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (job, collector) (rate(label_replace({__name__=~\"jvm_gc_.+_count\", job=~\"$service\"}, \"collector\", \"$1\", \"__name__\", \"jvm_gc_(.+)_count\")[5m:15s]))",
+          "legendFormat": "{{job}} {{collector}}"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "id": 20,
+      "type": "timeseries",
+      "title": "GC Time (ms/s)",
+      "description": "Milliseconds per second spent in garbage collection, by collector. Sustained time in the old-generation collector is the service running out of heap.",
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 8,
+        "y": 57
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 0,
+            "lineWidth": 1,
+            "showPoints": "never"
+          },
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "sortBy": "Max",
+          "sortDesc": true
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (job, collector) (rate(label_replace({__name__=~\"jvm_gc_.+_time\", job=~\"$service\"}, \"collector\", \"$1\", \"__name__\", \"jvm_gc_(.+)_time\")[5m:15s]))",
+          "legendFormat": "{{job}} {{collector}}"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "id": 21,
+      "type": "timeseries",
+      "title": "Threads",
+      "description": "Live JVM threads, with the blocked and deadlocked counts. Deadlocked above zero is a stuck service even if it still answers probes.",
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 16,
+        "y": 57
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 0,
+            "lineWidth": 1,
+            "showPoints": "never"
+          },
+          "min": 0,
+          "decimals": 0
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".* deadlocked"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "red"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".* blocked"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "orange"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "sortBy": "Max",
+          "sortDesc": true
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max by (job) (jvm_threads_count{job=~\"$service\"})",
+          "legendFormat": "{{job}} total"
+        },
+        {
+          "refId": "B",
+          "expr": "max by (job) (jvm_threads_blocked_count{job=~\"$service\"})",
+          "legendFormat": "{{job}} blocked"
+        },
+        {
+          "refId": "C",
+          "expr": "max by (job) (jvm_threads_deadlock_count{job=~\"$service\"})",
+          "legendFormat": "{{job}} deadlocked"
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 66
+      },
+      "id": 600,
+      "title": "Thread Pools",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "id": 22,
+      "type": "timeseries",
+      "title": "Pool Tasks Running",
+      "description": "Tasks executing right now in each executor pool.",
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 0,
+        "y": 67
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 0,
+            "lineWidth": 1,
+            "showPoints": "never"
+          },
+          "min": 0,
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "sortBy": "Max",
+          "sortDesc": true
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "label_replace(max by (job, __name__) ({__name__=~\".+_pool_tasks_running\", job=~\"$service\"}), \"pool\", \"$1\", \"__name__\", \"(.+)_pool_tasks_running\")",
+          "legendFormat": "{{job}} / {{pool}}"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "id": 23,
+      "type": "timeseries",
+      "title": "Pool Tasks Queued",
+      "description": "Tasks waiting for a thread. A queue that grows and doesn't drain is a pool too small for its load, or work stuck behind a slow dependency.",
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 8,
+        "y": 67
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 0,
+            "lineWidth": 1,
+            "showPoints": "never"
+          },
+          "min": 0,
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "sortBy": "Max",
+          "sortDesc": true
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "label_replace(max by (job, __name__) ({__name__=~\".+_pool_tasks_queued\", job=~\"$service\"}), \"pool\", \"$1\", \"__name__\", \"(.+)_pool_tasks_queued\")",
+          "legendFormat": "{{job}} / {{pool}}"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "id": 24,
+      "type": "timeseries",
+      "title": "Pool Tasks Failed (/s)",
+      "description": "Tasks that ended in an exception, per pool. Pair with Error Logs below.",
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 16,
+        "y": 67
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 0,
+            "lineWidth": 1,
+            "showPoints": "never"
+          },
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "sortBy": "Max",
+          "sortDesc": true
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (job, pool) (rate(label_replace({__name__=~\".+_pool_tasks_failed_count\", job=~\"$service\"}, \"pool\", \"$1\", \"__name__\", \"(.+)_pool_tasks_failed_count\")[5m:15s]))",
+          "legendFormat": "{{job}} / {{pool}}"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "id": 25,
+      "type": "timeseries",
+      "title": "Pool Enqueue Time p95",
+      "description": "How long a task waited in the queue before a thread picked it up, 95th percentile, per pool. Same timer units as the DAO panels.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 76
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 0,
+            "lineWidth": 1,
+            "showPoints": "never"
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "sortBy": "Max",
+          "sortDesc": true
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "label_replace(max by (job, __name__) ({__name__=~\".+_pool_enqueuetime\", job=~\"$service\", quantile=\"0.95\"}), \"pool\", \"$1\", \"__name__\", \"(.+)_pool_enqueuetime\")",
+          "legendFormat": "{{job}} / {{pool}}"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "id": 26,
+      "type": "timeseries",
+      "title": "Pool Threads",
+      "description": "Threads alive in each pool.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 76
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 0,
+            "lineWidth": 1,
+            "showPoints": "never"
+          },
+          "min": 0,
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "sortBy": "Max",
+          "sortDesc": true
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "label_replace(max by (job, __name__) ({__name__=~\".+_pool_threads\", job=~\"$service\"}), \"pool\", \"$1\", \"__name__\", \"(.+)_pool_threads\")",
+          "legendFormat": "{{job}} / {{pool}}"
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 84
+      },
+      "id": 700,
+      "title": "Logs",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "id": 27,
+      "type": "timeseries",
+      "title": "Log Volume by Level (lines/min)",
+      "description": "Log lines per minute by level, from the level label Alloy sets on every stream. Error and warn climbing while info stays flat is the service hitting a problem; everything climbing is a restart or debug logging left on.",
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 85
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 0,
+            "lineWidth": 1,
+            "showPoints": "never"
+          },
+          "min": 0
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "error"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "red"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "warn"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "orange"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "info"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "green"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "debug"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "blue"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "trace"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "purple"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "sortBy": "Max",
+          "sortDesc": true
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (level) (rate({app=~\"$service\"}[$__auto])) * 60",
+          "legendFormat": "{{level}}"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "id": 28,
+      "type": "timeseries",
+      "title": "ZooKeeper Client Events",
+      "description": "Session timeouts, expirations and reconnects logged by this service's ZooKeeper client. An expiry makes the service exit (see ZooKeeper Session Expired).",
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 85
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 0,
+            "lineWidth": 1,
+            "showPoints": "never"
+          },
+          "min": 0,
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [
+            "sum"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true,
+          "sortBy": "Max",
+          "sortDesc": true
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (app) (count_over_time({app=~\"$service\"} |= \"Client session timed out\" [$__auto]))",
+          "legendFormat": "{{app}} timed out"
+        },
+        {
+          "refId": "B",
+          "expr": "sum by (app) (count_over_time({app=~\"$service\"} |= \"Zookeeper session expired\" [$__auto]))",
+          "legendFormat": "{{app}} expired"
+        },
+        {
+          "refId": "C",
+          "expr": "sum by (app) (count_over_time({app=~\"$service\"} |= \"Connected to zookeeper\" [$__auto]))",
+          "legendFormat": "{{app}} connected"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "id": 29,
+      "type": "logs",
+      "title": "Logs",
+      "description": "Latest log lines for the selected service, filtered by \"Search\" (case-insensitive regex). Stack traces are joined onto the line that raised them.",
+      "gridPos": {
+        "h": 14,
+        "w": 24,
+        "x": 0,
+        "y": 94
+      },
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "prettifyLogMessage": false,
+        "showCommonLabels": false,
+        "showLabels": false,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "{app=~\"$service\"} |~ `(?i)$search`",
+          "maxLines": 500
+        }
+      ]
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 37,
+  "style": "dark",
+  "tags": [
+    "arcus"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {},
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "definition": "label_values(jvm_threads_count, job)",
+        "description": "The Arcus services are the only JVMs Prometheus scrapes, so this lists exactly them. Pick more than one to compare.",
+        "includeAll": false,
+        "label": "Service",
+        "multi": true,
+        "name": "service",
+        "options": [],
+        "query": {
+          "query": "label_values(jvm_threads_count, job)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "refresh": 2,
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "",
+          "value": ""
+        },
+        "description": "Case-insensitive regex applied to the Logs panel.",
+        "label": "Search",
+        "name": "search",
+        "options": [
+          {
+            "selected": true,
+            "text": "",
+            "value": ""
+          }
+        ],
+        "query": "",
+        "type": "textbox"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Arcus Service",
+  "uid": "arcus-service",
+  "version": 1
+}

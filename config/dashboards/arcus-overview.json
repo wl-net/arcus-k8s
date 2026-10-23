@@ -638,7 +638,13 @@
                 "value": 1
               }
             ]
-          }
+          },
+          "links": [
+            {
+              "title": "Open ${__field.labels.job} in Arcus Service",
+              "url": "/d/arcus-service/arcus-service?var-service=${__field.labels.job}&${__url_time_range}"
+            }
+          ]
         },
         "overrides": []
       },
@@ -720,7 +726,13 @@
                 "value": 1
               }
             ]
-          }
+          },
+          "links": [
+            {
+              "title": "Open ${__field.labels.job} in Arcus Service",
+              "url": "/d/arcus-service/arcus-service?var-service=${__field.labels.job}&${__url_time_range}"
+            }
+          ]
         },
         "overrides": []
       },
@@ -784,7 +796,13 @@
             },
             "axisLabel": "lines / min"
           },
-          "min": 0
+          "min": 0,
+          "links": [
+            {
+              "title": "Open ${__field.labels.app} in Arcus Service",
+              "url": "/d/arcus-service/arcus-service?var-service=${__field.labels.app}&${__url_time_range}"
+            }
+          ]
         },
         "overrides": []
       },
@@ -841,7 +859,13 @@
             "axisLabel": "lines / min",
             "drawStyle": "bars"
           },
-          "min": 0
+          "min": 0,
+          "links": [
+            {
+              "title": "Open ${__field.labels.app} in Arcus Service",
+              "url": "/d/arcus-service/arcus-service?var-service=${__field.labels.app}&${__url_time_range}"
+            }
+          ]
         },
         "overrides": []
       },
@@ -2407,7 +2431,13 @@
             "showPoints": "never"
           },
           "unit": "s",
-          "min": 0
+          "min": 0,
+          "links": [
+            {
+              "title": "Open ${__field.labels.job} in Arcus Service",
+              "url": "/d/arcus-service/arcus-service?var-service=${__field.labels.job}&${__url_time_range}"
+            }
+          ]
         },
         "overrides": []
       },
@@ -2480,7 +2510,13 @@
             "showPoints": "never"
           },
           "unit": "ops",
-          "min": 0
+          "min": 0,
+          "links": [
+            {
+              "title": "Open ${__field.labels.job} in Arcus Service",
+              "url": "/d/arcus-service/arcus-service?var-service=${__field.labels.job}&${__url_time_range}"
+            }
+          ]
         },
         "overrides": []
       },
@@ -2988,7 +3024,13 @@
               }
             ]
           },
-          "min": 0
+          "min": 0,
+          "links": [
+            {
+              "title": "Open ${__field.labels.job} in Arcus Service",
+              "url": "/d/arcus-service/arcus-service?var-service=${__field.labels.job}&${__url_time_range}"
+            }
+          ]
         },
         "overrides": []
       },
@@ -3041,7 +3083,13 @@
             "showPoints": "never"
           },
           "unit": "bytes",
-          "min": 0
+          "min": 0,
+          "links": [
+            {
+              "title": "Open ${__field.labels.job} in Arcus Service",
+              "url": "/d/arcus-service/arcus-service?var-service=${__field.labels.job}&${__url_time_range}"
+            }
+          ]
         },
         "overrides": []
       },
@@ -3093,7 +3141,13 @@
             "showPoints": "never"
           },
           "unit": "ops",
-          "min": 0
+          "min": 0,
+          "links": [
+            {
+              "title": "Open ${__field.labels.job} in Arcus Service",
+              "url": "/d/arcus-service/arcus-service?var-service=${__field.labels.job}&${__url_time_range}"
+            }
+          ]
         },
         "overrides": []
       },
@@ -3150,7 +3204,13 @@
             "showPoints": "never"
           },
           "unit": "ms",
-          "min": 0
+          "min": 0,
+          "links": [
+            {
+              "title": "Open ${__field.labels.job} in Arcus Service",
+              "url": "/d/arcus-service/arcus-service?var-service=${__field.labels.job}&${__url_time_range}"
+            }
+          ]
         },
         "overrides": []
       },
@@ -3206,7 +3266,13 @@
             "lineWidth": 1,
             "showPoints": "never"
           },
-          "min": 0
+          "min": 0,
+          "links": [
+            {
+              "title": "Open ${__field.labels.job} in Arcus Service",
+              "url": "/d/arcus-service/arcus-service?var-service=${__field.labels.job}&${__url_time_range}"
+            }
+          ]
         },
         "overrides": []
       },
@@ -3347,7 +3413,13 @@
             "lineWidth": 1,
             "showPoints": "never"
           },
-          "min": 0
+          "min": 0,
+          "links": [
+            {
+              "title": "Open ${__field.labels.job} in Arcus Service",
+              "url": "/d/arcus-service/arcus-service?var-service=${__field.labels.job}&${__url_time_range}"
+            }
+          ]
         },
         "overrides": []
       },
@@ -3398,7 +3470,13 @@
             "lineWidth": 1,
             "showPoints": "never"
           },
-          "min": 0
+          "min": 0,
+          "links": [
+            {
+              "title": "Open ${__field.labels.job} in Arcus Service",
+              "url": "/d/arcus-service/arcus-service?var-service=${__field.labels.job}&${__url_time_range}"
+            }
+          ]
         },
         "overrides": []
       },

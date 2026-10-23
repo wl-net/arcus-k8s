@@ -254,6 +254,23 @@ for doc in yaml.safe_load_all(open(sys.argv[1])):
       docker logs "$name" 2>&1 | grep -iE 'error|fail|provision' | tail -n 20 | sed 's/^/        /'
       failed=1
     fi
+    # Every dashboard in config/dashboards/ must have been provisioned: Grafana logs
+    # and skips a dashboard whose JSON is invalid, so a typo would only show up as
+    # a missing dashboard (and alert rules that lose their panel links) after apply.
+    local dash_file dash_uid dash_loaded=0 dash_total=0
+    for dash_file in "$ROOT"/config/dashboards/*.json; do
+      dash_total=$((dash_total + 1))
+      dash_uid=$(python3 -c 'import sys, json; print(json.load(open(sys.argv[1]))["uid"])' "$dash_file" 2>/dev/null) || dash_uid=""
+      if [[ -n "$dash_uid" ]] && docker exec "$name" curl -sf -u admin:validate "http://localhost:3000/api/dashboards/uid/${dash_uid}" > /dev/null 2>&1; then
+        dash_loaded=$((dash_loaded + 1))
+      else
+        echo "  FAIL: dashboard $(basename "$dash_file") (uid ${dash_uid:-unreadable}) was not provisioned"
+        failed=1
+      fi
+    done
+    if [[ "$dash_loaded" -eq "$dash_total" ]]; then
+      echo "  OK:   all $dash_total dashboards provisioned"
+    fi
     local policy
     policy=$(docker exec "$name" curl -sf -u admin:validate http://localhost:3000/api/v1/provisioning/policies 2>/dev/null)
     if [[ "$policy" == *'"receiver":"arcus-discord"'* ]]; then
