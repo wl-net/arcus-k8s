@@ -29,7 +29,34 @@ kubelet-arg+:
   - image-gc-low-threshold=65
 EOF
 
+  # On an upgrade the installer stops the running k3s to swap the binary. If
+  # the kubelet is mid-write on its CPU manager checkpoint at that moment the
+  # file is left truncated, and the new kubelet then refuses to start
+  # ("checkpoint is corrupted ... delete the CPU manager checkpoint file"), so
+  # k3s crash-loops and the API is only up for a few seconds per cycle (dev,
+  # 2026-10-23, v1.36.5 -> v1.37.1). Stop k3s ourselves and remove the file
+  # while nothing is writing it: no CPU manager policy is configured, so it
+  # holds nothing to keep and the kubelet recreates it. Pods keep running
+  # under containerd while k3s is down; only the API is away.
+  if sudo systemctl is-active --quiet k3s; then
+    echo "Stopping k3s for the upgrade (pods keep running; the API is unavailable until it is back)..."
+    sudo systemctl stop k3s
+    sudo rm -f /var/lib/kubelet/cpu_manager_state
+  fi
+
   curl -sfL https://get.k3s.io | sudo INSTALL_K3S_VERSION="${K3S_VERSION}" INSTALL_K3S_EXEC='--disable=servicelb --write-kubeconfig-mode 644' sh -
+
+  # The installer returns as soon as the service is started; make sure the
+  # kubelet actually came up rather than leaving a crash loop for later.
+  local deadline=$((SECONDS + 180))
+  until $KUBECTL get nodes &>/dev/null && [[ "$(sudo systemctl is-active k3s)" == "active" ]]; do
+    if ((SECONDS >= deadline)); then
+      echo "k3s did not become ready within 3 minutes. Check: sudo journalctl -u k3s -n 50"
+      return 1
+    fi
+    sleep 5
+  done
+  $KUBECTL get nodes
 
   local inotify_watches
   inotify_watches=$(cat /proc/sys/fs/inotify/max_user_watches 2>/dev/null) || true
