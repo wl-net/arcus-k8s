@@ -220,7 +220,6 @@ metadata:
     app: grafana-renderer
   name: grafana-renderer
 spec:
-  externalTrafficPolicy: Cluster
   ports:
   - port: 8081
     protocol: TCP
