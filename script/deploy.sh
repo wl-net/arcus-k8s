@@ -386,6 +386,7 @@ function apply() {
   fi
 
   ensure_grafana_renderer_token
+  ensure_grafana_admin_password
   $KUBECTL create secret generic shared --from-file secret/ --dry-run=client -o yaml | $KUBECTL apply -f - > /dev/null
 
   # Show what would change before applying.

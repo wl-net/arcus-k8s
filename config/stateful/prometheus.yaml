@@ -20,6 +20,11 @@ spec:
       - image: prom/prometheus:v3.15.0
         imagePullPolicy: IfNotPresent
         name: prometheus
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop: ["ALL"]
         resources:
           limits:
             cpu: "1"
@@ -54,10 +59,20 @@ spec:
         args: ['--web.listen-address=0.0.0.0:9080', '--config.file=/etc/prometheus/prometheus.yaml',
                '--storage.tsdb.path=/prometheus-data/data', '--storage.tsdb.retention.time=30d',
                '--storage.tsdb.retention.size=4GB']
+      # The service account token stays mounted: kubernetes_sd_configs in
+      # prometheus.yaml discovers scrape targets through the API (clusterrole.yaml).
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
-      securityContext: {}
+      # 65534 is the image's own nobody user, which already owns the data on
+      # existing volumes.
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        fsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault
       terminationGracePeriodSeconds: 10
       volumes:
       - name: config

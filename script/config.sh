@@ -203,6 +203,7 @@ function configure() {
   fi
 
   ensure_grafana_renderer_token
+  ensure_grafana_admin_password
 
   if [[ ! -e secret/smarty.auth.id ]]; then
     echo "Setting up default secret for smarty.auth.id"
@@ -302,6 +303,19 @@ function ensure_grafana_renderer_token() {
     echo "Generating secret for grafana.renderer.token"
     mkdir -p secret
     openssl rand -hex 32 | tr -d '\n' > secret/grafana.renderer.token
+  fi
+}
+
+# Initial Grafana admin password (GF_SECURITY_ADMIN_PASSWORD). Grafana reads it
+# only when it creates the admin user, so this sets the password on a new
+# datacenter and leaves the one already stored in an existing Grafana alone.
+# Called from apply too, so the Secret key exists before the StatefulSet
+# references it.
+function ensure_grafana_admin_password() {
+  if [[ ! -s secret/grafana.admin.password ]]; then
+    echo "Generating secret for grafana.admin.password"
+    mkdir -p secret
+    openssl rand -base64 24 | tr -d '\n/+=' > secret/grafana.admin.password
   fi
 }
 
@@ -430,6 +444,7 @@ function verify_config() {
     iris.aes.secret
     questions.aes.secret
     grafana.renderer.token
+    grafana.admin.password
     smarty.auth.id
     smarty.auth.token
     tls.server.truststore.password

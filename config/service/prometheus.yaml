@@ -13,5 +13,5 @@ spec:
   selector:
     app: prometheus
   sessionAffinity: None
-  type: NodePort
+  type: ClusterIP
 

@@ -22,6 +22,11 @@ spec:
         name: loki
         args:
         - -config.file=/etc/loki/loki.yaml
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop: ["ALL"]
         resources:
           limits:
             cpu: "1"
@@ -52,10 +57,19 @@ spec:
           name: loki-storage
         - mountPath: /etc/loki
           name: config
+      automountServiceAccountToken: false
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
-      securityContext: {}
+      # 10001 is the image's own loki user, which already owns the data on
+      # existing volumes. Everything Loki writes is under /loki (path_prefix).
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
       terminationGracePeriodSeconds: 10
       volumes:
       - name: config
