@@ -623,7 +623,7 @@ function killallpods() {
   local bridges="hub-bridge api-bridge client-bridge"
   local core="driver-services rule-service scheduler-service"
   local rest="" app
-  for app in $APPS static-server; do
+  for app in $APPS; do
     [[ " $bridges $core " == *" $app "* ]] || rest+="$app "
   done
   echo "$bridges" | tr ' ' '\n' | xargs -P 2 -I{} "$KUBECTL" delete pod -l app={} --ignore-not-found 2>/dev/null

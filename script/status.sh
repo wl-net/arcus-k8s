@@ -182,7 +182,7 @@ function _arcus_builds() {
     apps_by_build[$build]+="${apps_by_build[$build]:+, }$app"
   done < <(
     # shellcheck disable=SC2086
-    $KUBECTL get deployments $APPS static-server --ignore-not-found \
+    $KUBECTL get deployments $APPS --ignore-not-found \
       -o jsonpath='{range .items[*]}{.metadata.name}{" "}{.spec.template.spec.containers[0].image}{"\n"}{end}' 2>/dev/null
   )
   if [[ ${#builds[@]} -eq 0 ]]; then
