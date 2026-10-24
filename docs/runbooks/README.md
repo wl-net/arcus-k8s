@@ -72,7 +72,7 @@ node or pod with the alert's labels where the description does.
 | [Certificate Expiring Soon](cert-expiring-soon.md) | critical | Fires when a cert-manager Certificate expires in less than 14 days (for 1 hour) |
 | [Unexpected Hub Connections](unexpected-hubs.md) | critical | Fires when more hubs than `.config/expected-hubs` allows (default 4) have been connected for 5 minutes |
 | [Password Changed](password-changed.md) | warning | Fires as soon as the platform processes a person's password change |
-| [Unauthorized Access Attempt](unauthorized-access.md) | warning | Fires as soon as a bridge rejects a request for a place, person or support role the session is not allowed to use |
+| [Unauthorized Access Attempt](unauthorized-access.md) | warning | Fires as soon as client-bridge refuses a session's request: a place, person or role it may not use, or no place chosen yet |
 | [Login Failures Elevated](login-failures-elevated.md) | warning | Fires when password logins have failed with unknown accounts or bad credentials more than 10 times in 15 minutes, for 5 minutes |
 | [PIN Verification Failures](pin-verify-failures.md) | warning | Fires when place PIN checks have mismatched more than 5 times in 15 minutes |
 | [Hub Authorization Violations](hub-authz-violations.md) | warning | Fires as soon as hub-bridge refuses a hub message for a source, place or authorization violation |

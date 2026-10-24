@@ -896,8 +896,10 @@ groups:
         # '+' would drop a job that has not registered all of them yet. The
         # label_replace keeps a reason label so increase() (which strips the
         # metric name) does not see duplicate series; that needs the subquery.
+        # The reason stays on the alert, so the notification says which check
+        # refused the requests (the counters are all the record there is).
         expr: >-
-          sum by (job) (increase(label_replace({__name__=~"bridge_authz_unauthorized_.+"},
+          sum by (job, reason) (increase(label_replace({__name__=~"bridge_authz_unauthorized_.+"},
           "reason", "$1", "__name__", "bridge_authz_unauthorized_(.+)")[5m:15s]))
         instant: true
         refId: A
@@ -938,7 +940,7 @@ groups:
       __dashboardUid__: arcus-overview
       __panelId__: "6"
       summary: 'Unauthorized access attempt detected'
-      description: '{{ $labels.job }} received unauthorized access attempts in the last 5 minutes. First steps: ./arcuscmd.sh logs client-bridge (or the bridge behind {{ $labels.job }}) and look at the authorization failures: which person, which place and which source address. Many places tried from one source points to probing; one person hitting the wrong place is more often a stale app session.'
+      description: '{{ $labels.job }} refused {{ printf "%.0f" $values.B.Value }} requests in the last 5 minutes, reason {{ $labels.reason }}. noplace means a client sent requests before choosing a place, usually a client bug; the other reasons mean a session asked for a place, person or role it has no right to. First steps: find the person, place and client address in Grafana Explore with {app="client-bridge", level="warn"} around this time; the runbook says what each reason points to.'
       runbook_url: https://github.com/wl-net/arcus-k8s/blob/PLACEHOLDER_RUNBOOK_REF/docs/runbooks/unauthorized-access.md
   - uid: notification-email-errors
     title: Email Notification Errors
