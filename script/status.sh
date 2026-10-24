@@ -166,16 +166,22 @@ for r in json.loads(rules):
 # Print the build each service runs, grouped so a mixed rollout stands out.
 # The build (version, commit and build time) comes from the banner a service
 # logs at startup. Once that has rotated out of the log, and for the nginx
-# images, which log none, fall back to the image tag.
+# images, which log none, fall back to the image tag. The images of one release
+# are built seconds apart, so services group by version and commit, under the
+# build time of the first one listed.
 function _arcus_builds() {
-  local -A apps_by_build=()
+  local -A apps_by_build=() built_at=()
   local -a builds=()
-  local app image build
+  local app image build built
   while read -r app image; do
-    build=$($KUBECTL logs "deploy/$app" --limit-bytes=4194304 2>/dev/null | grep -m1 -F '[built: ' \
-      | sed -E 's/^[[:space:]]*[^ ]+ v([^ ]+) \(([^)]*)\) \[built: ([^]]*)\].*/v\1 (\2), built \3/') || true
+    IFS='|' read -r build built < <($KUBECTL logs "deploy/$app" --limit-bytes=4194304 2>/dev/null \
+      | grep -m1 -F '[built: ' \
+      | sed -E 's/^[[:space:]]*[^ ]+ v([^ ]+) \(([^)]*)\) \[built: ([^]]*)\].*/v\1 (\2)|\3/') || true
     [[ -n "$build" ]] || build="image tag ${image##*:} (build not in log)"
-    [[ -n "${apps_by_build[$build]+x}" ]] || builds+=("$build")
+    if [[ -z "${apps_by_build[$build]+x}" ]]; then
+      builds+=("$build")
+      built_at[$build]=$built
+    fi
     apps_by_build[$build]+="${apps_by_build[$build]:+, }$app"
   done < <(
     # shellcheck disable=SC2086
@@ -187,7 +193,7 @@ function _arcus_builds() {
     return
   fi
   for build in "${builds[@]}"; do
-    echo "  $build"
+    echo "  $build${built_at[$build]:+, built ${built_at[$build]}}"
     fold -s -w 92 <<< "${apps_by_build[$build]}" | sed 's/ *$//; s/^/    /'
   done
 }
