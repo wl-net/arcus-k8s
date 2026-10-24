@@ -13,6 +13,11 @@ data:
   BOOTSTRAP_SERVERS: PLACEHOLDER_KAFKA_HOST
   CLUSTER_SERVICE_DAO: zookeeper
   CLUSTER_ZK_HOST: PLACEHOLDER_ZOOKEEPER_HOST
+  # Session timeout must ride out brief WAN stalls between sites: the ZK
+  # leader is across the public internet, and with the 4s default a ~5s blip
+  # expired every service's session at once and restarted the whole platform
+  # (2026-10-24 01:36 UTC). Must stay under ZK's maxSessionTimeout (40s).
+  CLUSTER_ZK_TIMEOUT: "15000"
   cassandra_history_contactPoints: PLACEHOLDER_CASSANDRA_HOST
   cassandra_contactPoints: PLACEHOLDER_CASSANDRA_HOST
   CASSANDRA_CONTACTPOINTS: PLACEHOLDER_CASSANDRA_HOST
