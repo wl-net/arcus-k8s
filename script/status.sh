@@ -164,9 +164,8 @@ for r in json.loads(rules):
 }
 
 # Print the build each service runs, grouped so a mixed rollout stands out.
-# The build (version, commit and build time) comes from the banner a service
-# logs at startup. Once that has rotated out of the log, and for the nginx
-# images, which log none, fall back to the image tag. The images of one release
+# The build (version, commit and build time) comes from _app_build; the nginx
+# images carry none, so they show their image tag. The images of one release
 # are built seconds apart, so services group by version and commit, under the
 # build time of the first one listed.
 function _arcus_builds() {
@@ -174,10 +173,8 @@ function _arcus_builds() {
   local -a builds=()
   local app image build built
   while read -r app image; do
-    IFS='|' read -r build built < <($KUBECTL logs "deploy/$app" --limit-bytes=4194304 2>/dev/null \
-      | grep -m1 -F '[built: ' \
-      | sed -E 's/^[[:space:]]*[^ ]+ v([^ ]+) \(([^)]*)\) \[built: ([^]]*)\].*/v\1 (\2)|\3/') || true
-    [[ -n "$build" ]] || build="image tag ${image##*:} (build not in log)"
+    IFS='|' read -r build built < <(_app_build "$app") || true
+    [[ -n "$build" ]] || build="image tag ${image##*:} (no build info)"
     if [[ -z "${apps_by_build[$build]+x}" ]]; then
       builds+=("$build")
       built_at[$build]=$built
@@ -196,6 +193,26 @@ function _arcus_builds() {
     echo "  $build${built_at[$build]:+, built ${built_at[$build]}}"
     fold -s -w 92 <<< "${apps_by_build[$build]}" | sed 's/ *$//; s/^/    /'
   done
+}
+
+# Print "v<version> (<commit>)|<build time>" for a service, or nothing. It reads
+# META-INF/application.properties from the service's jar in the running pod:
+# the jar's entries are stored uncompressed, so grep finds the lines there. A
+# pod that can't be exec'd into (crash looping, say) falls back to the banner
+# the service logs at startup, which the kubelet's log rotation eventually drops.
+function _app_build() {
+  local app=$1 build
+  build=$($KUBECTL exec "deploy/$app" -- sh -c \
+    "grep -a -h -m3 -E '^(application\.version|build\.timestamp|build\.commit)=' /$app-[0-9]*/lib/$app-[0-9]*.jar" 2>/dev/null \
+    | awk -F= '{ v[$1] = $2 }
+      END { if (v["application.version"] != "" && v["build.commit"] != "")
+              printf "v%s (%s)|%s\n", v["application.version"], v["build.commit"], v["build.timestamp"] }') || true
+  if [[ -n "$build" ]]; then
+    echo "$build"
+    return
+  fi
+  $KUBECTL logs "deploy/$app" --limit-bytes=4194304 2>/dev/null | grep -m1 -F '[built: ' \
+    | sed -E 's/^[[:space:]]*[^ ]+ v([^ ]+) \(([^)]*)\) \[built: ([^]]*)\].*/v\1 (\2)|\3/' || true
 }
 
 function infra_versions() {
