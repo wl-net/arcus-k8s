@@ -1,6 +1,6 @@
 # Hub Heartbeats Stale
 
-Severity **warning** · group Service Health · fires when an online hub has gone more than 2 minutes without a heartbeat, for 10 minutes.
+Severity **warning** · group Service Health · fires when an online hub has gone more than 2 minutes without a heartbeat, for 3 minutes.
 Rule `hub-heartbeats-stale` in [`config/grafana/alerting.yaml`](../../config/grafana/alerting.yaml).
 
 ## What it means
@@ -10,7 +10,10 @@ online but whose newest heartbeat is older than `hub.staleHeartbeatSec`
 (default 120 seconds, against a ~30 second heartbeat interval). A stale hub
 is degraded — its commands and events may already be failing — but the
 10-minute offline timeout has not removed it yet; this alert is the early
-warning in that gap.
+warning in that gap. The gap is only about 8 minutes, so the rule waits 3.
+When the timeout removes the hub the alert clears: the hub went offline, it
+did not recover, so check the online count on the Hub & IPCD Device Registry
+panel before treating a resolved notification as good news.
 
 One stale hub points at that hub or its network. All hubs going stale at
 once points at the heartbeat pipeline instead: hub-bridge not forwarding,

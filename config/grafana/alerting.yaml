@@ -2100,7 +2100,7 @@ groups:
           reducer:
             type: last
         refId: C
-    for: 10m
+    for: 3m
     noDataState: OK
     execErrState: KeepLast
     labels:
@@ -2109,7 +2109,7 @@ groups:
       __dashboardUid__: arcus-overview
       __panelId__: "40"
       summary: 'Hubs with stale heartbeats'
-      description: '{{ printf "%.0f" $values.B.Value }} online hubs have not heartbeated for over 2 minutes (expected every ~30 seconds). A hub is marked offline after 10 minutes; this is the early warning. One hub points at that hub''s network; all hubs at once points at the heartbeat pipeline: hub-bridge, Kafka or platform-services. First steps: the Hub & IPCD Device Registry panel shows the count; ./arcuscmd.sh logs platform-services and logs hub-bridge for heartbeat errors.'
+      description: '{{ printf "%.0f" $values.B.Value }} online hubs have not heartbeated for over 2 minutes (expected every ~30 seconds). A hub is marked offline after 10 minutes, which also clears this early warning without the hub having recovered. One hub points at that hub''s network; all hubs at once points at the heartbeat pipeline: hub-bridge, Kafka or platform-services. First steps: the Hub & IPCD Device Registry panel shows the count; ./arcuscmd.sh logs platform-services and logs hub-bridge for heartbeat errors.'
       runbook_url: https://github.com/wl-net/arcus-k8s/blob/PLACEHOLDER_RUNBOOK_REF/docs/runbooks/hub-heartbeats-stale.md
 - orgId: 1
   name: Monitoring Health

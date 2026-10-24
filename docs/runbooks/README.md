@@ -86,7 +86,7 @@ node or pod with the alert's labels where the description does.
 | [Hub Certificate Expiring](hub-cert-expiring.md) | critical | Fires when the certificate hub-bridge serves on port 8082 expires in less than 21 days (for 1 hour) |
 | [Hub Firmware Upgrade Stuck](hub-firmware-upgrade-stuck.md) | warning | Fires when hub-bridge has logged more than 2 firmware upgrade failures for one hub in 6 hours, with failures both in the last 2 hours and 4 to 6 hours ago |
 | [Session Churn High](session-churn-high.md) | warning | Fires when a bridge has closed more than 15 sessions younger than 60 seconds in 15 minutes, for 5 minutes |
-| [Hub Heartbeats Stale](hub-heartbeats-stale.md) | warning | Fires when an online hub has gone more than 2 minutes without a heartbeat, for 10 minutes |
+| [Hub Heartbeats Stale](hub-heartbeats-stale.md) | warning | Fires when an online hub has gone more than 2 minutes without a heartbeat, for 3 minutes |
 | [Alloy Inotify Errors](alloy-inotify-errors.md) | warning | Fires when Alloy has logged "too many open files" in the last 5 minutes, for 2 minutes |
 | [Log Ingestion Stopped](log-ingestion-stopped.md) | warning | Fires when Loki has received no log lines from any pod for 15 minutes (for 5 minutes) |
 | [Peer Datacenter Unreachable](peer-datacenter-unreachable.md) | critical | Fires when a check of another datacenter has failed for 5 minutes |
