@@ -1793,6 +1793,11 @@
           "expr": "sum by (job) (rate({__name__=~\"com_iris_bridge_metrics_bridge_metrics_bridge_(client|api)_session_destroyed\"}[$__rate_interval])) * 300",
           "legendFormat": "{{job}} closed",
           "refId": "B"
+        },
+        {
+          "expr": "sum by (job) (rate(bridge_sessions_shortlived[$__rate_interval])) * 300",
+          "refId": "C",
+          "legendFormat": "{{job}} short-lived (<60s)"
         }
       ],
       "title": "Sessions Opened / Closed (per 5m)",
@@ -1925,12 +1930,168 @@
       }
     },
     {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 10,
+            "lineWidth": 2,
+            "showPoints": "never"
+          },
+          "unit": "ops",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "id": 218,
+      "targets": [
+        {
+          "expr": "sum by (job, cause) (rate(label_replace({__name__=~\"security_login_failed_.+\"}, \"cause\", \"$1\", \"__name__\", \"security_login_failed_(.+)\")[5m:15s]))",
+          "refId": "A",
+          "legendFormat": "{{job}} {{cause}}"
+        },
+        {
+          "expr": "sum by (job) (rate({__name__=~\"com_iris_bridge_metrics_bridge_metrics_bridge_(client|api)_authentication_displaced\"}[5m]))",
+          "refId": "B",
+          "legendFormat": "{{job}} session displaced"
+        }
+      ],
+      "title": "Login Failures by Cause (/s)",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 88
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
+      },
+      "description": "Password login failures counted in the authentication realm, by cause. unknown_account at volume is account enumeration or credential stuffing; bad_credentials concentrated on one account is targeted guessing. Displaced means a new login logged out a live session for the same principal."
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 10,
+            "lineWidth": 2,
+            "showPoints": "never"
+          },
+          "unit": "ops",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "id": 219,
+      "targets": [
+        {
+          "expr": "sum by (job) (rate({__name__=~\"com_iris_bridge_metrics_bridge_metrics_bridge_(client|api)_pin_verify_succeeded\"}[5m]))",
+          "refId": "A",
+          "legendFormat": "{{job}} succeeded"
+        },
+        {
+          "expr": "sum by (job) (rate({__name__=~\"com_iris_bridge_metrics_bridge_metrics_bridge_(client|api)_pin_verify_mismatched\"}[5m]))",
+          "refId": "B",
+          "legendFormat": "{{job}} mismatched"
+        }
+      ],
+      "title": "PIN Verification (/s)",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 88
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
+      },
+      "description": "PIN checks against places. Mismatches surface to clients as generic HTTP 500s, so this counter is the only operational signal of PIN guessing."
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 10,
+            "lineWidth": 2,
+            "showPoints": "never"
+          },
+          "unit": "s",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "id": 220,
+      "targets": [
+        {
+          "expr": "max by (job) (bridge_sessions_duration{quantile=\"0.5\"})",
+          "refId": "A",
+          "legendFormat": "{{job}} p50"
+        },
+        {
+          "expr": "max by (job) (bridge_sessions_duration{quantile=\"0.95\"})",
+          "refId": "B",
+          "legendFormat": "{{job}} p95"
+        }
+      ],
+      "title": "Session Duration (s)",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 88
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
+      },
+      "description": "Session lifetime quantiles recorded on session destroy, per bridge. A falling p50 with rising short-lived counts on the Sessions panel means a client or hub is stuck in a connect/drop loop."
+    },
+    {
       "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 88
+        "y": 96
       },
       "id": 101,
       "title": "Hub & Client Bridge",
@@ -1956,7 +2117,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 89
+        "y": 97
       },
       "id": 2,
       "targets": [
@@ -2011,7 +2172,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 89
+        "y": 97
       },
       "id": 3,
       "targets": [
@@ -2102,7 +2263,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 89
+        "y": 97
       },
       "id": 4,
       "targets": [
@@ -2163,7 +2324,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 97
+        "y": 105
       },
       "id": 5,
       "targets": [
@@ -2213,7 +2374,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 97
+        "y": 105
       },
       "id": 6,
       "targets": [
@@ -2284,7 +2445,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 97
+        "y": 105
       },
       "id": 7,
       "targets": [
@@ -2329,7 +2490,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 105
+        "y": 113
       },
       "id": 8,
       "targets": [
@@ -2393,6 +2554,21 @@
           "expr": "sum by (job) (rate(bridge_ssl_connect_refused[5m]))",
           "refId": "C",
           "legendFormat": "{{job}} TLS connect refused"
+        },
+        {
+          "expr": "sum(rate(bridge_hub_ssl_cert_blacklisted[5m]))",
+          "refId": "D",
+          "legendFormat": "hub cert blacklisted"
+        },
+        {
+          "expr": "sum(rate(bridge_hub_ssl_cert_rejected[5m]))",
+          "refId": "E",
+          "legendFormat": "hub cert rejected"
+        },
+        {
+          "expr": "sum(rate(bridge_hub_ssl_cert_missing[5m]))",
+          "refId": "F",
+          "legendFormat": "hub cert missing"
         }
       ],
       "title": "Connection Rejections (/s)",
@@ -2401,7 +2577,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 105
+        "y": 113
       },
       "options": {
         "tooltip": {
@@ -2438,7 +2614,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 105
+        "y": 113
       },
       "id": 16,
       "targets": [
@@ -2464,12 +2640,158 @@
       }
     },
     {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 10,
+            "lineWidth": 2,
+            "showPoints": "never"
+          },
+          "unit": "ops",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "id": 17,
+      "targets": [
+        {
+          "expr": "sum by (reason) (rate(label_replace({__name__=~\"bridge_hub_authz_.+\"}, \"reason\", \"$1\", \"__name__\", \"bridge_hub_authz_(.+)\")[5m:15s]))",
+          "refId": "A",
+          "legendFormat": "{{reason}}"
+        }
+      ],
+      "title": "Hub Authorization Violations (/s)",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 121
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
+      },
+      "description": "Hub messages hub-bridge refused: a hub claiming another hub's source address, messages for a place the hub does not belong to, admin-only message types, and messages from sessions that never authorized."
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 10,
+            "lineWidth": 2,
+            "showPoints": "never"
+          },
+          "unit": "s",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "id": 18,
+      "targets": [
+        {
+          "expr": "max by (quantile) (bridge_hub_sessions_authorized_latency{quantile=~\"0.5|0.95|0.99\"})",
+          "refId": "A",
+          "legendFormat": "p{{quantile}}"
+        }
+      ],
+      "title": "Hub Authorization Latency (s)",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 121
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
+      },
+      "description": "Socket accept to AUTHORIZED, recorded once per hub session. A rising p95 points at TLS, registry lookups or the platform bus slowing hub connects down."
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 10,
+            "lineWidth": 2,
+            "showPoints": "never"
+          },
+          "unit": "none",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "id": 19,
+      "targets": [
+        {
+          "expr": "sum(increase(hub_registration_firmware_upgrade_offered[1h]))",
+          "refId": "A",
+          "legendFormat": "offered"
+        },
+        {
+          "expr": "sum by (code) (increase(label_replace({__name__=~\"hub_registration_firmware_upgrade_failures_.+\"}, \"code\", \"$1\", \"__name__\", \"hub_registration_firmware_upgrade_failures_(.+)\")[1h:1m]))",
+          "refId": "B",
+          "legendFormat": "failed: {{code}}"
+        }
+      ],
+      "title": "Hub Firmware Upgrades (per hour)",
+      "type": "timeseries",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 121
+      },
+      "options": {
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        },
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
+      },
+      "description": "Firmware upgrades offered to registering hubs and failures by error code, from the platform's hub registration registry. The log-based panel to the left shows which hub is failing."
+    },
+    {
       "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 113
+        "y": 129
       },
       "id": 103,
       "title": "Cassandra DAO",
@@ -2502,7 +2824,7 @@
         "h": 10,
         "w": 12,
         "x": 0,
-        "y": 114
+        "y": 130
       },
       "id": 20,
       "targets": [
@@ -2581,7 +2903,7 @@
         "h": 10,
         "w": 12,
         "x": 12,
-        "y": 114
+        "y": 130
       },
       "id": 21,
       "targets": [
@@ -2638,7 +2960,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 124
+        "y": 140
       },
       "id": 104,
       "title": "Scheduler",
@@ -2665,7 +2987,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 125
+        "y": 141
       },
       "id": 30,
       "targets": [
@@ -2730,7 +3052,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 125
+        "y": 141
       },
       "id": 31,
       "targets": [
@@ -2796,7 +3118,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 125
+        "y": 141
       },
       "options": {
         "tooltip": {
@@ -2817,7 +3139,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 133
+        "y": 149
       },
       "id": 105,
       "title": "Platform & Drivers",
@@ -2843,7 +3165,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 134
+        "y": 150
       },
       "id": 40,
       "targets": [
@@ -2876,6 +3198,11 @@
           "expr": "max(service_platform_ipcdregistry_timedout) by (job)",
           "legendFormat": "IPCD timed out",
           "refId": "F"
+        },
+        {
+          "expr": "max(service_platform_hubregistry_heartbeat_stale) by (job)",
+          "refId": "G",
+          "legendFormat": "Hubs stale heartbeat"
         }
       ],
       "title": "Hub & IPCD Device Registry",
@@ -2930,7 +3257,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 134
+        "y": 150
       },
       "id": 41,
       "targets": [
@@ -3003,7 +3330,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 134
+        "y": 150
       },
       "id": 42,
       "targets": [
@@ -3045,7 +3372,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 142
+        "y": 158
       },
       "id": 102,
       "title": "JVM Memory",
@@ -3095,7 +3422,7 @@
         "h": 10,
         "w": 12,
         "x": 0,
-        "y": 143
+        "y": 159
       },
       "id": 10,
       "targets": [
@@ -3154,7 +3481,7 @@
         "h": 10,
         "w": 12,
         "x": 12,
-        "y": 143
+        "y": 159
       },
       "id": 11,
       "targets": [
@@ -3212,7 +3539,7 @@
         "h": 10,
         "w": 12,
         "x": 0,
-        "y": 153
+        "y": 169
       },
       "id": 12,
       "targets": [
@@ -3275,7 +3602,7 @@
         "h": 10,
         "w": 12,
         "x": 12,
-        "y": 153
+        "y": 169
       },
       "id": 13,
       "targets": [
@@ -3337,7 +3664,7 @@
         "h": 10,
         "w": 12,
         "x": 0,
-        "y": 163
+        "y": 179
       },
       "id": 14,
       "targets": [
@@ -3443,7 +3770,7 @@
         "h": 10,
         "w": 12,
         "x": 12,
-        "y": 163
+        "y": 179
       }
     },
     {
@@ -3452,7 +3779,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 173
+        "y": 189
       },
       "id": 106,
       "title": "Thread Pools",
@@ -3484,7 +3811,7 @@
         "h": 10,
         "w": 9,
         "x": 0,
-        "y": 174
+        "y": 190
       },
       "id": 50,
       "targets": [
@@ -3541,7 +3868,7 @@
         "h": 10,
         "w": 9,
         "x": 9,
-        "y": 174
+        "y": 190
       },
       "id": 51,
       "targets": [
@@ -3661,7 +3988,7 @@
         "h": 10,
         "w": 6,
         "x": 18,
-        "y": 174
+        "y": 190
       }
     }
   ],

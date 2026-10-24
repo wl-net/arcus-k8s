@@ -73,6 +73,10 @@ node or pod with the alert's labels where the description does.
 | [Unexpected Hub Connections](unexpected-hubs.md) | critical | Fires when more hubs than `.config/expected-hubs` allows (default 4) have been connected for 5 minutes |
 | [Password Changed](password-changed.md) | warning | Fires as soon as the platform processes a person's password change |
 | [Unauthorized Access Attempt](unauthorized-access.md) | warning | Fires as soon as a bridge rejects a request for a place, person or support role the session is not allowed to use |
+| [Login Failures Elevated](login-failures-elevated.md) | warning | Fires when password logins have failed with unknown accounts or bad credentials more than 10 times in 15 minutes, for 5 minutes |
+| [PIN Verification Failures](pin-verify-failures.md) | warning | Fires when place PIN checks have mismatched more than 5 times in 15 minutes |
+| [Hub Authorization Violations](hub-authz-violations.md) | warning | Fires as soon as hub-bridge refuses a hub message for a source, place or authorization violation |
+| [Hub Certificate Rejected](hub-cert-rejections.md) | warning | Fires as soon as hub-bridge rejects a hub TLS handshake over its certificate |
 | [Email Notification Errors](notification-email-errors.md) | warning | Fires when notification-services has failed to send email for 5 minutes |
 | [Scheduler Errors](scheduler-errors.md) | warning | Fires when scheduler-service has been failing scheduled commands for 5 minutes |
 | [Datastore Unreachable](datastore-unreachable.md) | critical | Fires when the blackbox exporter has not been able to open a TCP connection to a Cassandra, Kafka or ZooKeeper host for 2 minutes |
@@ -81,6 +85,8 @@ node or pod with the alert's labels where the description does.
 | [Hub TLS Failing](hub-tls-failing.md) | critical | Fires when the blackbox exporter has not been able to complete a TLS handshake with hub-bridge on port 8082 for 5 minutes |
 | [Hub Certificate Expiring](hub-cert-expiring.md) | critical | Fires when the certificate hub-bridge serves on port 8082 expires in less than 21 days (for 1 hour) |
 | [Hub Firmware Upgrade Stuck](hub-firmware-upgrade-stuck.md) | warning | Fires when hub-bridge has logged more than 2 firmware upgrade failures for one hub in 6 hours, with failures both in the last 2 hours and 4 to 6 hours ago |
+| [Session Churn High](session-churn-high.md) | warning | Fires when a bridge has closed more than 15 sessions younger than 60 seconds in 15 minutes, for 5 minutes |
+| [Hub Heartbeats Stale](hub-heartbeats-stale.md) | warning | Fires when an online hub has gone more than 2 minutes without a heartbeat, for 10 minutes |
 | [Alloy Inotify Errors](alloy-inotify-errors.md) | warning | Fires when Alloy has logged "too many open files" in the last 5 minutes, for 2 minutes |
 | [Log Ingestion Stopped](log-ingestion-stopped.md) | warning | Fires when Loki has received no log lines from any pod for 15 minutes (for 5 minutes) |
 | [Peer Datacenter Unreachable](peer-datacenter-unreachable.md) | critical | Fires when a check of another datacenter has failed for 5 minutes |

@@ -1788,6 +1788,329 @@ groups:
       summary: '{{ $labels.instance }} is not answering from the internet side'
       description: 'The probe resolves the public name and connects like a user or hub would, and has failed for 5 minutes (unreachable, not a 2xx/3xx answer, or an invalid certificate). DNS, the Route 53 record, port forwarding, Traefik or the certificate can be at fault; the in-cluster services may well be fine. A drained cluster still passes, because the name then points at the other datacenter. First steps: ./arcuscmd.sh check and ./arcuscmd.sh info, then curl -v {{ $labels.instance }} from outside the LAN; for hub.<domain>:8082, openssl s_client -connect against it.'
       runbook_url: https://github.com/wl-net/arcus-k8s/blob/PLACEHOLDER_RUNBOOK_REF/docs/runbooks/public-endpoint-unreachable.md
+  # The realm counts login failures by cause; the label_replace keeps the cause
+  # as a label so increase() (which strips the metric name) does not see
+  # duplicate series, which needs the subquery. no_username and error are left
+  # out: they are malformed requests and server errors, not guessing.
+  - uid: login-failures-elevated
+    title: Login Failures Elevated
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 900
+        to: 0
+      datasourceUid: prometheus
+      model:
+        expr: >-
+          sum by (cause) (increase(label_replace({__name__=~"security_login_failed_(unknown_account|bad_credentials)"},
+          "cause", "$1", "__name__", "security_login_failed_(.+)")[15m:15s]))
+        instant: true
+        refId: A
+    - refId: B
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: reduce
+        expression: A
+        reducer: last
+        refId: B
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: threshold
+        expression: B
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 10
+          operator:
+            type: and
+          reducer:
+            type: last
+        refId: C
+    for: 5m
+    noDataState: OK
+    execErrState: KeepLast
+    labels:
+      severity: warning
+    annotations:
+      __dashboardUid__: arcus-overview
+      __panelId__: "218"
+      summary: 'Login failures elevated'
+      description: '{{ printf "%.0f" $values.B.Value }} password logins failed with {{ $labels.cause }} in 15 minutes. Many unknown_account failures are account enumeration or credential stuffing; bad_credentials concentrated on one account is targeted guessing. First steps: ./arcuscmd.sh logs client-bridge and look at the usernames and source addresses on the failures; many accounts from one address is an attack, one account failing repeatedly is a person or a stale app retrying.'
+      runbook_url: https://github.com/wl-net/arcus-k8s/blob/PLACEHOLDER_RUNBOOK_REF/docs/runbooks/login-failures-elevated.md
+  - uid: pin-verify-failures
+    title: PIN Verification Failures
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 900
+        to: 0
+      datasourceUid: prometheus
+      model:
+        expr: >-
+          sum(increase({__name__=~"com_iris_bridge_metrics_bridge_metrics_bridge_(client|api)_pin_verify_mismatched"}[15m]))
+        instant: true
+        refId: A
+    - refId: B
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: reduce
+        expression: A
+        reducer: last
+        refId: B
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: threshold
+        expression: B
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 5
+          operator:
+            type: and
+          reducer:
+            type: last
+        refId: C
+    for: 0s
+    noDataState: OK
+    execErrState: KeepLast
+    labels:
+      severity: warning
+    annotations:
+      __dashboardUid__: arcus-overview
+      __panelId__: "219"
+      summary: 'PIN verification failures'
+      description: '{{ printf "%.0f" $values.B.Value }} place PIN checks mismatched in 15 minutes. A PIN is four digits and a mismatch surfaces to the app as a generic error, so this counter is the only visible sign of PIN guessing. First steps: ./arcuscmd.sh logs client-bridge | grep -i pin for the person and source address; one person failing a few times forgot their PIN, steady volume or many places is an attack.'
+      runbook_url: https://github.com/wl-net/arcus-k8s/blob/PLACEHOLDER_RUNBOOK_REF/docs/runbooks/pin-verify-failures.md
+  - uid: hub-authz-violations
+    title: Hub Authorization Violations
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 300
+        to: 0
+      datasourceUid: prometheus
+      model:
+        expr: >-
+          sum by (reason) (increase(label_replace({__name__=~"bridge_hub_authz_.+"},
+          "reason", "$1", "__name__", "bridge_hub_authz_(.+)")[5m:15s]))
+        instant: true
+        refId: A
+    - refId: B
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: reduce
+        expression: A
+        reducer: last
+        refId: B
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: threshold
+        expression: B
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0
+          operator:
+            type: and
+          reducer:
+            type: last
+        refId: C
+    for: 0s
+    noDataState: OK
+    execErrState: KeepLast
+    labels:
+      severity: warning
+    annotations:
+      __dashboardUid__: arcus-overview
+      __panelId__: "17"
+      summary: 'Hub authorization violation detected'
+      description: 'hub-bridge refused hub messages ({{ $labels.reason }}) in the last 5 minutes. source.mismatch is a hub claiming another hub''s address (spoofing, or a cloned or restored hub); place.mismatch is a hub sending for a place it does not belong to; unauthorized is traffic from a session that never authorized. First steps: ./arcuscmd.sh logs hub-bridge and find the hub ID and source address on the warn lines, then compare with the hubs registered to that place.'
+      runbook_url: https://github.com/wl-net/arcus-k8s/blob/PLACEHOLDER_RUNBOOK_REF/docs/runbooks/hub-authz-violations.md
+  - uid: hub-cert-rejections
+    title: Hub Certificate Rejected
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 300
+        to: 0
+      datasourceUid: prometheus
+      model:
+        expr: >-
+          sum by (reason) (increase(label_replace({__name__=~"bridge_hub_ssl_cert_.+"},
+          "reason", "$1", "__name__", "bridge_hub_ssl_cert_(.+)")[5m:15s]))
+        instant: true
+        refId: A
+    - refId: B
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: reduce
+        expression: A
+        reducer: last
+        refId: B
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: threshold
+        expression: B
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0
+          operator:
+            type: and
+          reducer:
+            type: last
+        refId: C
+    for: 0s
+    noDataState: OK
+    execErrState: KeepLast
+    labels:
+      severity: warning
+    annotations:
+      __dashboardUid__: arcus-overview
+      __panelId__: "9"
+      summary: 'Hub TLS certificate rejected'
+      description: 'hub-bridge rejected hub TLS handshakes ({{ $labels.reason }}) in the last 5 minutes. blacklisted is a certificate on the revocation blacklist — possibly a stolen or factory-reset hub trying to connect; rejected is an untrusted certificate; missing is a hub that presented none where mutual auth is required. First steps: ./arcuscmd.sh logs hub-bridge | grep -i cert for the certificate subject and source address.'
+      runbook_url: https://github.com/wl-net/arcus-k8s/blob/PLACEHOLDER_RUNBOOK_REF/docs/runbooks/hub-cert-rejections.md
+  - uid: session-churn-high
+    title: Session Churn High
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 900
+        to: 0
+      datasourceUid: prometheus
+      model:
+        expr: sum by (job) (increase(bridge_sessions_shortlived[15m]))
+        instant: true
+        refId: A
+    - refId: B
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: reduce
+        expression: A
+        reducer: last
+        refId: B
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: threshold
+        expression: B
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 15
+          operator:
+            type: and
+          reducer:
+            type: last
+        refId: C
+    for: 5m
+    noDataState: OK
+    execErrState: KeepLast
+    labels:
+      severity: warning
+    annotations:
+      __dashboardUid__: arcus-overview
+      __panelId__: "215"
+      summary: '{{ $labels.job }} session churn high'
+      description: '{{ printf "%.0f" $values.B.Value }} sessions on {{ $labels.job }} lived under 60 seconds in 15 minutes: a client or hub is stuck in a connect/drop loop. First steps: the Session Duration and Sessions Opened / Closed panels show when it started; ./arcuscmd.sh logs {{ $labels.job }} and look for one source address or hub ID connecting over and over; hub churn also shows on Hub Connect / Disconnect Events.'
+      runbook_url: https://github.com/wl-net/arcus-k8s/blob/PLACEHOLDER_RUNBOOK_REF/docs/runbooks/session-churn-high.md
+  - uid: hub-heartbeats-stale
+    title: Hub Heartbeats Stale
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 300
+        to: 0
+      datasourceUid: prometheus
+      model:
+        expr: max(service_platform_hubregistry_heartbeat_stale)
+        instant: true
+        refId: A
+    - refId: B
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: reduce
+        expression: A
+        reducer: last
+        refId: B
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: threshold
+        expression: B
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0
+          operator:
+            type: and
+          reducer:
+            type: last
+        refId: C
+    for: 10m
+    noDataState: OK
+    execErrState: KeepLast
+    labels:
+      severity: warning
+    annotations:
+      __dashboardUid__: arcus-overview
+      __panelId__: "40"
+      summary: 'Hubs with stale heartbeats'
+      description: '{{ printf "%.0f" $values.B.Value }} online hubs have not heartbeated for over 2 minutes (expected every ~30 seconds). A hub is marked offline after 10 minutes; this is the early warning. One hub points at that hub''s network; all hubs at once points at the heartbeat pipeline: hub-bridge, Kafka or platform-services. First steps: the Hub & IPCD Device Registry panel shows the count; ./arcuscmd.sh logs platform-services and logs hub-bridge for heartbeat errors.'
+      runbook_url: https://github.com/wl-net/arcus-k8s/blob/PLACEHOLDER_RUNBOOK_REF/docs/runbooks/hub-heartbeats-stale.md
 - orgId: 1
   name: Monitoring Health
   folder: Provisioned
