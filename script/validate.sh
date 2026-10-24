@@ -196,9 +196,12 @@ function _validate_monitoring() {
     docker run --rm -v "$ROOT/config/extrafiles/blackbox.yaml:/check/blackbox.yaml:ro" \
     "$image" --config.check --config.file=/check/blackbox.yaml || failed=1
 
+  # Rendered with the default retention, as apply would
   image=$(_manifest_image stateful/loki.yaml)
+  ARCUS_LOKI_RETENTION_DAYS="" _render_loki_config "$work/loki.yaml"
+  chmod a+r "$work/loki.yaml"
   _docker_check "loki.yaml ($image)" \
-    docker run --rm -v "$ROOT/config/extrafiles/loki.yaml:/check/loki.yaml:ro" \
+    docker run --rm -v "$work/loki.yaml:/check/loki.yaml:ro" \
     "$image" -config.file=/check/loki.yaml -verify-config || failed=1
 
   image=$(_manifest_image logging/alloy.yaml)

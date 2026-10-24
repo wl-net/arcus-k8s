@@ -74,6 +74,18 @@ function _render_alert_rules() {
     "$ROOT/config/grafana/alerting.yaml" > "$1"
 }
 
+# Write config/extrafiles/loki.yaml to $1 with PLACEHOLDER_LOKI_RETENTION filled
+# from .config/loki-retention-days (default 7), how many days Loki keeps logs.
+# Grafana's alert state history keeps its own 30 days (retention_stream).
+function _render_loki_config() {
+  local days="${ARCUS_LOKI_RETENTION_DAYS:-7}"
+  if ! [[ "$days" =~ ^[1-9][0-9]*$ ]]; then
+    echo "Error: .config/loki-retention-days must be a whole number of days, not '${days}'."
+    return 1
+  fi
+  sed "s/PLACEHOLDER_LOKI_RETENTION/$((days * 24))h/" "$ROOT/config/extrafiles/loki.yaml" > "$1"
+}
+
 # Print Grafana alerting provisioning for the contact points in .config/alert-*:
 # a Discord contact point, a Pushover one, and a notification policy that sends
 # every alert to Discord and critical ones to Pushover as well (with only
@@ -375,11 +387,13 @@ function apply() {
     --from-file=peers.json="$peers" --from-file=peer-public.json="$peer_public" \
     --from-file=public.json="$public" --dry-run=client -o yaml | $KUBECTL apply -f - > /dev/null
 
-  # Alert rules with this node's thresholds, and the contact points and
-  # notification policy for .config/alert-*; the overlay's generators turn
-  # them into the grafana-alerting ConfigMap and grafana-notifications Secret,
-  # so Grafana restarts and re-reads them when they change.
+  # Alert rules with this node's thresholds, Loki's config with its retention,
+  # and the contact points and notification policy for .config/alert-*; the
+  # overlay's generators turn them into the grafana-alerting and loki-config
+  # ConfigMaps and the grafana-notifications Secret, so Grafana and Loki
+  # restart and re-read them when they change.
   _render_alert_rules "overlays/${ARCUS_OVERLAY_NAME}-local/alerting.yaml"
+  _render_loki_config "overlays/${ARCUS_OVERLAY_NAME}-local/loki.yaml"
   _grafana_notifications > "overlays/${ARCUS_OVERLAY_NAME}-local/grafana-notifications.yaml"
   if [[ -n "${ARCUS_ALERT_DISCORD_WEBHOOK-}${ARCUS_ALERT_PUSHOVER_USER_KEY-}" ]]; then
     echo "Grafana alert notifications provisioned from .config/alert-*:${ARCUS_ALERT_DISCORD_WEBHOOK:+ Discord}${ARCUS_ALERT_PUSHOVER_USER_KEY:+ Pushover (critical)}."

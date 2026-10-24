@@ -36,7 +36,8 @@ compactor:
   delete_request_store: filesystem
 
 limits_config:
-  retention_period: 168h
+  # apply fills this from .config/loki-retention-days (default 7 days)
+  retention_period: PLACEHOLDER_LOKI_RETENTION
   # Grafana's alert state history ({from="state-history"}) is small and worth
   # keeping longer than the logs: a month of a rule's transitions
   retention_stream:
