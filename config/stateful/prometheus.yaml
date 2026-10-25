@@ -28,8 +28,10 @@ spec:
         resources:
           limits:
             cpu: "1"
+            memory: 2Gi
           requests:
             cpu: "0.05"
+            memory: 384Mi
         readinessProbe:
           httpGet:
             path: /-/ready
@@ -59,8 +61,9 @@ spec:
         args: ['--web.listen-address=0.0.0.0:9080', '--config.file=/etc/prometheus/prometheus.yaml',
                '--storage.tsdb.path=/prometheus-data/data', '--storage.tsdb.retention.time=30d',
                '--storage.tsdb.retention.size=4GB']
-      # The service account token stays mounted: kubernetes_sd_configs in
-      # prometheus.yaml discovers scrape targets through the API (clusterrole.yaml).
+      # kubernetes_sd_configs in prometheus.yaml discovers scrape targets through
+      # the API with this account's token (clusterrole.yaml).
+      serviceAccountName: prometheus
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler

@@ -164,8 +164,10 @@ spec:
         resources:
           limits:
             cpu: "1"
+            memory: "768Mi"
           requests:
             cpu: "50m"
+            memory: "384Mi"
         volumeMounts:
         - name: data-secrets
           mountPath: "/data/secrets"

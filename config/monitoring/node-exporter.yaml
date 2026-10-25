@@ -21,6 +21,10 @@ spec:
     spec:
       tolerations:
       - operator: Exists
+      automountServiceAccountToken: false
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
       containers:
       - image: prom/node-exporter:v1.12.1
         imagePullPolicy: IfNotPresent

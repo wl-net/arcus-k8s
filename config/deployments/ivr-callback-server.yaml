@@ -89,9 +89,10 @@ spec:
         resources:
           limits:
             cpu: "1"
+            memory: "768Mi"
           requests:
             cpu: "100m"
-            memory: "128Mi"
+            memory: "384Mi"
         volumeMounts:
           - mountPath: /config
             name: config

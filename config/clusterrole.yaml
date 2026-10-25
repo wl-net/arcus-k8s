@@ -1,8 +1,27 @@
+# Prometheus's own identity, so the ClusterRole below reaches no other pod
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: prometheus
+  namespace: default
+---
+# Pods that name no service account get no API token unless they ask for one.
+# Those that need the API (Prometheus, kube-state-metrics, Alloy, the
+# hub-keystore CronJob) have their own account.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: default
+  namespace: default
+automountServiceAccountToken: false
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: prometheus
 rules:
+# endpoints, services and pods for kubernetes_sd_configs; nodes and
+# nodes/proxy for the kubelet-cadvisor job, which scrapes through the API server
 - apiGroups: [""]
   resources:
   - nodes
@@ -11,13 +30,6 @@ rules:
   - endpoints
   - pods
   verbs: ["get", "list", "watch"]
-- apiGroups:
-  - extensions
-  resources:
-  - ingresses
-  verbs: ["get", "list", "watch"]
-- nonResourceURLs: ["/metrics"]
-  verbs: ["get"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -29,5 +41,5 @@ roleRef:
   name: prometheus
 subjects:
 - kind: ServiceAccount
-  name: default
+  name: prometheus
   namespace: default

@@ -72,8 +72,10 @@ spec:
         resources:
           limits:
             cpu: "1"
+            memory: 1536Mi
           requests:
             cpu: "0.05"
+            memory: 512Mi
         readinessProbe:
           httpGet:
             path: /api/health
@@ -179,11 +181,15 @@ spec:
           readOnlyRootFilesystem: true
           capabilities:
             drop: ["ALL"]
+        # Grafana takes up to 5 alert screenshots at once
+        # (max_concurrent_screenshots), each a Chromium page
         resources:
           limits:
             cpu: "1"
+            memory: 1536Mi
           requests:
             cpu: "10m"
+            memory: 128Mi
         env:
         - name: AUTH_TOKEN
           valueFrom:

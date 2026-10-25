@@ -136,6 +136,15 @@ spec:
         app: alloy
     spec:
       serviceAccountName: alloy
+      # 473 is the image's own alloy user. Alloy reads pod logs through the API,
+      # so it needs no access to the host.
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 473
+        runAsGroup: 473
+        fsGroup: 473
+        seccompProfile:
+          type: RuntimeDefault
       containers:
       - image: grafana/alloy:v1.21.1
         imagePullPolicy: IfNotPresent
@@ -144,6 +153,7 @@ spec:
         - run
         - /etc/alloy/config.alloy
         - --server.http.listen-addr=0.0.0.0:12345
+        - --storage.path=/var/lib/alloy/data
         ports:
         - containerPort: 12345
           name: http
@@ -154,9 +164,16 @@ spec:
           requests:
             cpu: "0.05"
             memory: 64Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop: ["ALL"]
         volumeMounts:
         - mountPath: /etc/alloy
           name: config
+        - mountPath: /var/lib/alloy/data
+          name: data
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       tolerations:
@@ -166,3 +183,8 @@ spec:
       - name: config
         configMap:
           name: alloy-config
+      # Log positions; like the container's own filesystem before, they last
+      # until the pod is replaced
+      - name: data
+        emptyDir:
+          sizeLimit: 128Mi
