@@ -1,0 +1,110 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: egress-proxy
+  name: egress-proxy
+  namespace: default
+spec:
+  # Two, and a rollout that starts the new pod before stopping an old one, so
+  # notification-services always has a way out; Service Down fires only when
+  # neither is ready
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: egress-proxy
+  template:
+    metadata:
+      labels:
+        app: egress-proxy
+    spec:
+      automountServiceAccountToken: false
+      # 65532 is the distroless image's nonroot user
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - image: envoyproxy/envoy:distroless-v1.39.5
+        imagePullPolicy: IfNotPresent
+        name: egress-proxy
+        args:
+        - -c
+        - /etc/envoy/egress-proxy.yaml
+        # Hot restart needs shared memory; the pod is replaced instead
+        - --disable-hot-restart
+        - --log-level
+        - warn
+        # logfmt, so Alloy gives the lines a level label
+        - --log-format
+        - 'level=%l logger=%n msg="%j"'
+        ports:
+        - containerPort: 3128
+          name: proxy
+        - containerPort: 9100
+          name: metrics
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: metrics
+          initialDelaySeconds: 2
+          periodSeconds: 5
+        livenessProbe:
+          tcpSocket:
+            port: proxy
+          initialDelaySeconds: 5
+          timeoutSeconds: 5
+        resources:
+          limits:
+            cpu: 500m
+            memory: 128Mi
+          requests:
+            cpu: 10m
+            memory: 32Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop: ["ALL"]
+        # Out of the Service's endpoints before Envoy stops, so new connections
+        # go to the other replica
+        lifecycle:
+          preStop:
+            sleep:
+              seconds: 5
+        volumeMounts:
+        - mountPath: /etc/envoy
+          name: config
+      terminationGracePeriodSeconds: 10
+      volumes:
+      - name: config
+        configMap:
+          name: egress-proxy-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: egress-proxy
+  name: egress-proxy
+  namespace: default
+spec:
+  ports:
+  - name: proxy
+    port: 3128
+    protocol: TCP
+    targetPort: proxy
+  - name: metrics
+    port: 9100
+    protocol: TCP
+    targetPort: metrics
+  selector:
+    app: egress-proxy
+  type: ClusterIP

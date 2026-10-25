@@ -252,6 +252,28 @@ scrape_configs:
   - source_labels: [__meta_kubernetes_pod_node_name]
     target_label: node
 
+# The egress proxy (config/egress/), one target per pod. svcup is the endpoint's
+# ready flag, as for the Arcus services, so Service Down fires only when no
+# replica is ready.
+- job_name: 'egress-proxy'
+  scrape_interval: 30s
+  kubernetes_sd_configs:
+  - role: endpoints
+    namespaces:
+      names:
+      - default
+  relabel_configs:
+  - source_labels: [__meta_kubernetes_service_name]
+    regex: egress-proxy
+    action: keep
+  - source_labels: [__meta_kubernetes_endpoint_port_name]
+    regex: metrics
+    action: keep
+  - source_labels: [__meta_kubernetes_pod_name]
+    target_label: pod
+  - source_labels: [__meta_kubernetes_endpoint_ready]
+    target_label: svcup
+
 # This cluster's own public URLs, resolved through public DNS like a user would
 # reach them, so a DNS, port-forwarding or certificate problem outside the
 # cluster is noticed. apply writes them from .config/domain.name into the

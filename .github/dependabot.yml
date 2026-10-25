@@ -6,6 +6,7 @@ updates:
       - "/config/logging"
       - "/config/monitoring"
       - "/config/cronjob"
+      - "/config/egress"
       - "/overlays/local-production"
       - "/overlays/local-production-cluster"
     schedule:

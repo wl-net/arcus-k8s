@@ -994,6 +994,58 @@ groups:
       summary: 'Email notification errors'
       description: 'Email notifications are failing to send. First steps: ./arcuscmd.sh logs notification-services | grep -i email for the provider error; a rejected or out-of-credit key (email.provider.apikey in secret/) is the usual cause, and ./arcuscmd.sh verifyconfig confirms the key is present.'
       runbook_url: https://github.com/wl-net/arcus-k8s/blob/PLACEHOLDER_RUNBOOK_REF/docs/runbooks/notification-email-errors.md
+  - uid: egress-unlisted-host
+    title: Egress To Unlisted Host
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 900
+        to: 0
+      datasourceUid: loki
+      model:
+        expr: sum by (destination) (count_over_time({app="egress-proxy"} | logfmt | route="unlisted" [15m]))
+        instant: true
+        refId: A
+    - refId: B
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: reduce
+        expression: A
+        reducer: last
+        refId: B
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: threshold
+        expression: B
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0
+          operator:
+            type: and
+          reducer:
+            type: last
+        refId: C
+    for: 0s
+    noDataState: OK
+    execErrState: KeepLast
+    labels:
+      severity: warning
+    annotations:
+      __dashboardUid__: arcus-cluster
+      __panelId__: "41"
+      summary: 'Egress to unlisted host {{ $labels.destination }}'
+      description: 'The egress proxy forwarded a connection to {{ $labels.destination }}, which is not on its allowlist, in the last 15 minutes. The proxy still forwards unlisted hosts for now; once it refuses them, this call will fail. First steps: {app="egress-proxy"} | logfmt | route="unlisted" in Explore for the client address, kubectl get pods -o wide to find the pod, then either add the host to config/extrafiles/egress-proxy.yaml or stop the call.'
+      runbook_url: https://github.com/wl-net/arcus-k8s/blob/PLACEHOLDER_RUNBOOK_REF/docs/runbooks/egress-unlisted-host.md
   - uid: scheduler-errors
     title: Scheduler Errors
     condition: C

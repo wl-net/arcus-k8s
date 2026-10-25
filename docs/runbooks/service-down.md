@@ -12,7 +12,9 @@ ignored while a ready one is serving; if a service has no ready pod at all,
 whatever pods it has count instead, so a crashed single pod still fires. For a
 `blackbox-*` job it means the blackbox exporter itself could not be scraped;
 the checks it runs have their own alerts ([Datastore Unreachable](datastore-unreachable.md),
-[Public Endpoint Unreachable](public-endpoint-unreachable.md), …).
+[Public Endpoint Unreachable](public-endpoint-unreachable.md), …). For
+`egress-proxy` it means neither proxy replica is ready, so notification-services
+can't reach Twilio or Mailgun: no SMS, voice calls or email go out.
 
 The monitoring stack has its own, warning-level version of this alert:
 [Monitoring Service Down](monitoring-service-down.md).

@@ -27,7 +27,7 @@ spec:
               name: cluster-config
         env:
         - name: JAVA_OPTS
-          value: "-Xms64m -Xmx128m -Dlogback.configurationFile=/config/logback.xml"
+          value: "-Xms64m -Xmx128m -Dlogback.configurationFile=/config/logback.xml -Dhttps.proxyHost=egress-proxy.default.svc.cluster.local -Dhttps.proxyPort=3128 -Dhttp.nonProxyHosts=localhost|127.*|*.svc|*.cluster.local"
         - name: BILLING_URL
           valueFrom:
             configMapKeyRef:

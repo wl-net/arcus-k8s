@@ -55,7 +55,7 @@ function validate_manifests() {
   if command -v docker &>/dev/null && docker info &>/dev/null; then
     _validate_monitoring || errors=$((errors + 1))
   else
-    echo "  SKIP: docker not available (the Prometheus, blackbox, Loki, Alloy and Grafana checks run their images)"
+    echo "  SKIP: docker not available (the Prometheus, blackbox, Envoy, Loki, Alloy and Grafana checks run their images)"
   fi
 
   echo ""
@@ -195,6 +195,11 @@ function _validate_monitoring() {
   _docker_check "blackbox.yaml ($image)" \
     docker run --rm -v "$ROOT/config/extrafiles/blackbox.yaml:/check/blackbox.yaml:ro" \
     "$image" --config.check --config.file=/check/blackbox.yaml || failed=1
+
+  image=$(_manifest_image egress/egress-proxy.yaml)
+  _docker_check "egress-proxy.yaml (envoy --mode validate, $image)" \
+    docker run --rm -v "$ROOT/config/extrafiles/egress-proxy.yaml:/check/egress-proxy.yaml:ro" \
+    "$image" --mode validate -c /check/egress-proxy.yaml || failed=1
 
   # Rendered with the default retention, as apply would
   image=$(_manifest_image stateful/loki.yaml)
