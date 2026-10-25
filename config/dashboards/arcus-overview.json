@@ -391,13 +391,13 @@
       },
       "targets": [
         {
-          "expr": "(sum(rate(traefik_entrypoint_requests_total{entrypoint=~\"web|websecure\", code=~\"5..\"}[5m])) or vector(0)) / (sum(rate(traefik_entrypoint_requests_total{entrypoint=~\"web|websecure\"}[5m])) > 0)",
+          "expr": "((sum(rate(traefik_entrypoint_requests_total{entrypoint=~\"web|websecure\", code=~\"5..\"}[5m])) or vector(0)) - (sum(rate(traefik_service_requests_total{service=~\"default-grafana-service-.+\", code=~\"5..\"}[5m])) or vector(0))) / ((sum(rate(traefik_entrypoint_requests_total{entrypoint=~\"web|websecure\"}[5m])) - (sum(rate(traefik_service_requests_total{service=~\"default-grafana-service-.+\"}[5m])) or vector(0))) > 0)",
           "refId": "A"
         }
       ],
       "title": "",
       "type": "stat",
-      "description": "Share of the responses Traefik sent on ports 80/443 over the last 5 minutes that were 5xx, including errors for requests that never reached a service. n/a means no traffic.",
+      "description": "Share of the responses Traefik sent on ports 80/443 over the last 5 minutes that were 5xx, including errors for requests that never reached a service. Grafana's requests are left out of both sides, so its errors (a failed panel query, a restart during apply) and its dashboard refreshes don't move the figure. n/a means no traffic.",
       "gridPos": {
         "h": 4,
         "w": 3,
