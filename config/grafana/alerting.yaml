@@ -2324,7 +2324,7 @@ groups:
       __dashboardUid__: arcus-cluster
       __panelId__: "33"
       summary: 'Alloy on {{ $labels.node }} dropped {{ printf "%.0f" $values.B.Value }} log entries ({{ $labels.reason }})'
-      description: 'Alloy gave up sending log entries to Loki in the last 10 minutes ({{ $labels.reason }}); those lines are lost. ingester_error covers Loki answering with an error or not at all for the whole retry window (about 8 minutes; Monitoring Service Down) and Loki rejecting a push outright, which drops every line in that batch (Loki Discarding Logs says why). First steps: kubectl logs -l app=alloy --all-pods --prefix --since=15m | grep "final error" for the status and Loki''s message (the pod on {{ $labels.node }}), then ./arcuscmd.sh logs loki.'
+      description: 'Alloy gave up sending log entries to Loki in the last 10 minutes ({{ $labels.reason }}). Lines Loki answered with 429, an error or nothing for the whole retry window (about 8 minutes; Monitoring Service Down) are lost. ingester_error also counts every line of a batch Loki answered with a 400; Loki stored the rest of that batch, so only the entries Loki Discarding Logs counts are lost. First steps: kubectl logs -l app=alloy --all-pods --prefix --since=15m | grep "final error" for the status and Loki''s message (the pod on {{ $labels.node }}), then ./arcuscmd.sh logs loki.'
       runbook_url: https://github.com/wl-net/arcus-k8s/blob/PLACEHOLDER_RUNBOOK_REF/docs/runbooks/alloy-dropping-logs.md
   - uid: loki-discarding-logs
     title: Loki Discarding Logs
@@ -2376,7 +2376,7 @@ groups:
       __dashboardUid__: arcus-cluster
       __panelId__: "33"
       summary: 'Loki discarded {{ printf "%.0f" $values.B.Value }} log lines in 10 minutes ({{ $labels.reason }})'
-      description: 'Loki refused log lines in the last 10 minutes with reason {{ $labels.reason }}: rate_limited means a pod is logging faster than the ingestion limits in config/extrafiles/loki.yaml allow (the Log Volume panel shows which), line_too_long a line over the limit, and the others a label or timestamp problem from the Alloy pipeline in config/logging/alloy.yaml. Those lines are lost. First steps: ./arcuscmd.sh logs loki and the Log Volume by Service panel.'
+      description: 'Loki refused log lines in the last 10 minutes with reason {{ $labels.reason }}: rate_limited means a pod is logging faster than the ingestion limits in config/extrafiles/loki.yaml allow (the Log Volume panel shows which), line_too_long a line over the limit, and the others a label or timestamp problem from the Alloy pipeline in config/logging/alloy.yaml. Those lines are lost, except rate_limited ones Alloy retried in time (Log Shipping Dropping Entries counts the rest) and too_far_behind from an Alloy pod that has just started without its positions: it is re-sending lines Loki already has, and the alert clears by itself. First steps: kubectl get pod -l app=alloy for its age, ./arcuscmd.sh logs loki and the Log Volume by Service panel.'
       runbook_url: https://github.com/wl-net/arcus-k8s/blob/PLACEHOLDER_RUNBOOK_REF/docs/runbooks/loki-discarding-logs.md
   - uid: log-flood
     title: Log Flood

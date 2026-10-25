@@ -136,8 +136,8 @@ spec:
         app: alloy
     spec:
       serviceAccountName: alloy
-      # 473 is the image's own alloy user. Alloy reads pod logs through the API,
-      # so it needs no access to the host.
+      # 473 is the image's own alloy user. Alloy reads pod logs through the API;
+      # its only access to the host is the directory that keeps its positions.
       securityContext:
         runAsNonRoot: true
         runAsUser: 473
@@ -145,6 +145,31 @@ spec:
         fsGroup: 473
         seccompProfile:
           type: RuntimeDefault
+      # The kubelet creates a missing hostPath directory owned by root, and
+      # fsGroup doesn't apply to hostPath, so hand it to 473 before Alloy starts.
+      initContainers:
+      - name: data-owner
+        image: grafana/alloy:v1.21.1
+        imagePullPolicy: IfNotPresent
+        command: ["chown", "473:473", "/var/lib/alloy/data"]
+        resources:
+          limits:
+            cpu: 100m
+            memory: 32Mi
+          requests:
+            cpu: 10m
+            memory: 16Mi
+        securityContext:
+          runAsNonRoot: false
+          runAsUser: 0
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop: ["ALL"]
+            add: ["CHOWN"]
+        volumeMounts:
+        - mountPath: /var/lib/alloy/data
+          name: data
       containers:
       - image: grafana/alloy:v1.21.1
         imagePullPolicy: IfNotPresent
@@ -183,8 +208,10 @@ spec:
       - name: config
         configMap:
           name: alloy-config
-      # Log positions; like the container's own filesystem before, they last
-      # until the pod is replaced
+      # Log positions, kept on the node so a replaced pod carries on where the
+      # last one stopped. Without them it re-sends every pod's whole log, and
+      # Loki refuses the lines it already has as too_far_behind.
       - name: data
-        emptyDir:
-          sizeLimit: 128Mi
+        hostPath:
+          path: /var/lib/arcus/alloy
+          type: DirectoryOrCreate
