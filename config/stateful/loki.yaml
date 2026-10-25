@@ -17,7 +17,7 @@ spec:
         app: loki
     spec:
       containers:
-      - image: grafana/loki:3.7.8
+      - image: grafana/loki:3.7.9
         imagePullPolicy: IfNotPresent
         name: loki
         args:
