@@ -1,6 +1,6 @@
 # Datastore Unreachable
 
-Severity **critical** · group Service Health · fires when the blackbox exporter has not been able to open a TCP connection to a Cassandra, Kafka or ZooKeeper host for 2 minutes.
+Severity **warning** · group Service Health · fires when the blackbox exporter has not been able to open a TCP connection to a Cassandra, Kafka or ZooKeeper host for 2 minutes.
 Rule `datastore-unreachable` in [`config/grafana/alerting.yaml`](../../config/grafana/alerting.yaml).
 
 ## What it means
@@ -10,17 +10,26 @@ and ZooKeeper run outside the cluster, at the hosts in `.config/cassandra-host`,
 `kafka-host` and `zookeeper-host`; `apply` writes them to the
 `prometheus-targets` ConfigMap, which is what the probe reads.
 
-What it costs depends on which one:
+This alert is a warning because one host out of several costs nothing yet:
 
-- **One Cassandra host of several**: the others serve, the services keep
-  running at LOCAL_QUORUM as long as enough replicas are up. Fix it today.
-- **The only Cassandra host, or Kafka, or ZooKeeper**: every service that
-  needs it is failing. Hubs stay connected but commands are not processed,
-  rules do not fire, and the apps cannot load. Fix it now.
+- **One Cassandra host of several**: the others serve, and the services keep
+  running at LOCAL_QUORUM as long as enough replicas are up.
+- **One ZooKeeper member of three**: the other two keep the quorum. Clients
+  connected to the missing member move to another one in seconds and keep
+  their sessions, provided every member is listed in `zookeeper-host`
+  ([ZooKeeper Session Expired](zookeeper-session-expired.md) is what one
+  member's absence costs otherwise).
 
-ZooKeeper is probed at every member in `zookeeper-host`; the services fail
-over between members only if all of them are listed there ([ZooKeeper Session
-Expired](zookeeper-session-expired.md) is what one member's absence costs otherwise).
+It does leave the datastore one failure from an outage, so two rules page:
+[Datastore Quorum Lost](datastore-quorum-lost.md) as soon as half or more of a
+datastore's hosts are unreachable (which includes the only host of one listed
+alone, such as `kafka-host`), and [Datastore Still
+Unreachable](datastore-still-unreachable.md) when this one has stayed
+unreachable for an hour.
+
+The probe runs from this datacenter, so a broken link between sites looks the
+same as a host that is down. If the other datacenter still reaches the host,
+it's the path.
 
 The probe only tests the TCP connect; a datastore that accepts connections but
 misbehaves does not fire this. Those show up as errors in the service logs and
@@ -33,6 +42,10 @@ when a service's readiness probe gives up.
 ./arcuscmd.sh status                      # External Services pings each host
 nc -zv <host> <port>                      # 9042 Cassandra, 9092 Kafka, 2181 ZooKeeper
 ```
+
+Run the same `nc` from the other datacenter, or check whether its Datastore
+Unreachable fired for the same host. Only one datacenter failing points at
+the link between the sites (a VPN tunnel, a router), not the host.
 
 On the datastore host:
 
@@ -51,6 +64,9 @@ The services' view: `./arcuscmd.sh logs platform-services | grep -iE 'NoHostAvai
 - Host down: bring it back. If it is gone for good, point `.config/` at the
   remaining hosts and `./arcuscmd.sh apply`; the services pick up the new
   contact points when they restart (`./arcuscmd.sh deploy`).
+- Reachable from the other datacenter but not this one: the link between
+  the sites. Check its VPN or router on both ends for the time the probe
+  started failing; the datastore needs nothing.
 - Listening but refusing: disk full (`df -h`), out of file descriptors, or a
   firewall change between the cluster and the host. Cassandra refuses
   connections while a node is overloaded or in a long GC pause;
@@ -64,6 +80,8 @@ over its readiness probe may need `./arcuscmd.sh deletepod <app>`.
 
 ## Related alerts
 
+- [Datastore Quorum Lost](datastore-quorum-lost.md) — half or more of the datastore's hosts are unreachable.
+- [Datastore Still Unreachable](datastore-still-unreachable.md) — this host has been unreachable for an hour.
 - [Service Down](service-down.md), [Workload Unavailable](workload-unavailable.md) — services that gave up.
 - [Scheduler Errors](scheduler-errors.md) — the first symptom in the logs.
 - [Peer Datacenter Unreachable](peer-datacenter-unreachable.md) — if the whole site is cut off.

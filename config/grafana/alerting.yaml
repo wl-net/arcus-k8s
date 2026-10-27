@@ -1143,13 +1143,119 @@ groups:
     noDataState: OK
     execErrState: KeepLast
     labels:
-      severity: critical
+      severity: warning
     annotations:
       __dashboardUid__: arcus-cluster
       __panelId__: "22"
       summary: '{{ $labels.datastore }} at {{ $labels.instance }} is not accepting connections'
-      description: 'The blackbox exporter has not been able to open a TCP connection to {{ $labels.datastore }} at {{ $labels.instance }} for 2 minutes. Cassandra, Kafka and ZooKeeper run outside the cluster. First steps: ./arcuscmd.sh status (External Services pings each host), then check the {{ $labels.datastore }} service on that host; services that depend on it will be logging connection errors (./arcuscmd.sh logs platform-services).'
+      description: 'The blackbox exporter has not been able to open a TCP connection to {{ $labels.datastore }} at {{ $labels.instance }} for 2 minutes. While the other {{ $labels.datastore }} hosts answer, the services carry on without this one; it pages as Datastore Quorum Lost once half or more of them are unreachable, or as Datastore Still Unreachable after an hour. First steps: ./arcuscmd.sh status (External Services pings each host), then the {{ $labels.datastore }} service on that host and the network path to it from this datacenter.'
       runbook_url: https://github.com/wl-net/arcus-k8s/blob/PLACEHOLDER_RUNBOOK_REF/docs/runbooks/datastore-unreachable.md
+  - uid: datastore-still-unreachable
+    title: Datastore Still Unreachable
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 300
+        to: 0
+      datasourceUid: prometheus
+      model:
+        expr: probe_success{job="blackbox-datastores"}
+        instant: true
+        refId: A
+    - refId: B
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: reduce
+        expression: A
+        reducer: last
+        refId: B
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: threshold
+        expression: B
+        conditions:
+        - evaluator:
+            type: lt
+            params:
+            - 1
+          operator:
+            type: and
+          reducer:
+            type: last
+        refId: C
+    for: 1h
+    noDataState: OK
+    execErrState: KeepLast
+    labels:
+      severity: critical
+    annotations:
+      __dashboardUid__: arcus-cluster
+      __panelId__: "22"
+      summary: '{{ $labels.datastore }} at {{ $labels.instance }} has not accepted connections for an hour'
+      description: 'The blackbox exporter has not been able to open a TCP connection to {{ $labels.datastore }} at {{ $labels.instance }} for an hour. The other hosts may be carrying the load, but the datastore is now one failure from an outage: for ZooKeeper, a second member out of reach loses the quorum and every service exits. First steps: ./arcuscmd.sh status (External Services pings each host), then the {{ $labels.datastore }} service on that host and the network path to it from this datacenter.'
+      runbook_url: https://github.com/wl-net/arcus-k8s/blob/PLACEHOLDER_RUNBOOK_REF/docs/runbooks/datastore-still-unreachable.md
+  - uid: datastore-quorum-lost
+    title: Datastore Quorum Lost
+    condition: C
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 300
+        to: 0
+      datasourceUid: prometheus
+      model:
+        # 1 when no more than half of a datastore's hosts answer: a ZooKeeper majority
+        # is out of reach, or the only host listed is down
+        expr: sum by (datastore) (probe_success{job="blackbox-datastores"}) * 2 <= bool count by (datastore) (probe_success{job="blackbox-datastores"})
+        instant: true
+        refId: A
+    - refId: B
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: reduce
+        expression: A
+        reducer: last
+        refId: B
+    - refId: C
+      relativeTimeRange:
+        from: 0
+        to: 0
+      datasourceUid: "-100"
+      model:
+        type: threshold
+        expression: B
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0
+          operator:
+            type: and
+          reducer:
+            type: last
+        refId: C
+    for: 2m
+    noDataState: OK
+    execErrState: KeepLast
+    labels:
+      severity: critical
+    annotations:
+      __dashboardUid__: arcus-cluster
+      __panelId__: "22"
+      summary: 'Half or more of the {{ $labels.datastore }} hosts are unreachable from this datacenter'
+      description: 'For 2 minutes the blackbox exporter has reached no more than half of the {{ $labels.datastore }} hosts in .config/ (none, when only one is listed). ZooKeeper clients need a member that is in the quorum, so with most of them out of reach every session from here is likely to expire and every service to exit. Datastore Unreachable names the hosts. First steps: ./arcuscmd.sh status (External Services pings each host), then whether the other datacenter still reaches them: if it does, the link between the sites is down rather than the hosts.'
+      runbook_url: https://github.com/wl-net/arcus-k8s/blob/PLACEHOLDER_RUNBOOK_REF/docs/runbooks/datastore-quorum-lost.md
   - uid: zookeeper-session-expired
     title: ZooKeeper Session Expired
     condition: C

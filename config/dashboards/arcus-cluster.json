@@ -1045,7 +1045,7 @@
       "id": 22,
       "type": "state-timeline",
       "title": "Probe Results",
-      "description": "Every blackbox check: the datastores (TCP), hub-bridge TLS on 8082, this cluster's public URLs and the other datacenters. Datastore Unreachable, Hub TLS Failing, Public Endpoint Unreachable and Peer Datacenter Unreachable fire from these.",
+      "description": "Every blackbox check: the datastores (TCP), hub-bridge TLS on 8082, this cluster's public URLs and the other datacenters. Datastore Unreachable, Datastore Still Unreachable, Datastore Quorum Lost, Hub TLS Failing, Public Endpoint Unreachable and Peer Datacenter Unreachable fire from these.",
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"

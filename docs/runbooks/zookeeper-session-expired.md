@@ -65,5 +65,6 @@ services connected to it were cut off while it rejoined.
 ## Related alerts
 
 - [Datastore Unreachable](datastore-unreachable.md) — the probed member could not be reached at all.
+- [Datastore Quorum Lost](datastore-quorum-lost.md) — most of the ensemble out of reach from this datacenter, the usual cause of every service expiring at once.
 - [Log Flood](log-flood.md) — a service that lost its partitions and is retrying in a tight loop.
 - [Service Down](service-down.md), [Workload Unavailable](workload-unavailable.md) — a service that did not come back.
