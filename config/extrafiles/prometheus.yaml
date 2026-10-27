@@ -19,7 +19,7 @@ scrape_configs:
   relabel_configs:
   - source_labels: [__meta_kubernetes_service_label_app]
     separator: ;
-    regex: (alarm-service|api-bridge|client-bridge|driver-services|hub-bridge|ivr-callback-server|history-service|notification-services|platform-services|rule-service|scheduler-service|subsystem-service)
+    regex: (api-bridge|client-bridge|driver-services|hub-bridge|ivr-callback-server|history-service|notification-services|platform-services|rule-service|scheduler-service|subsystem-service)
     replacement: $1
     action: keep
   - source_labels: [__meta_kubernetes_endpoint_port_name]

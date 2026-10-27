@@ -821,7 +821,7 @@
           "instant": true,
           "range": false,
           "legendFormat": "{{tag}}",
-          "expr": "count by (tag) (label_replace(max by (container, image) (kube_pod_container_info{namespace=\"default\", container=~\"alarm-service|api-bridge|client-bridge|driver-services|history-service|hub-bridge|ivr-callback-server|notification-services|platform-services|rule-service|scheduler-service|static-server|subsystem-service|ui-server\"}), \"tag\", \"$1\", \"image\", \".*:([^:]+)$\"))"
+          "expr": "count by (tag) (label_replace(max by (container, image) (kube_pod_container_info{namespace=\"default\", container=~\"api-bridge|client-bridge|driver-services|history-service|hub-bridge|ivr-callback-server|notification-services|platform-services|rule-service|scheduler-service|static-server|subsystem-service|ui-server\"}), \"tag\", \"$1\", \"image\", \".*:([^:]+)$\"))"
         }
       ]
     },

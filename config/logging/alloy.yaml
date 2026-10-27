@@ -73,7 +73,7 @@ data:
       // when there is one. Older logback.xml copies wrap the start in colour
       // codes, which are stripped so the first character is the level.
       stage.match {
-        selector = "{app=~\"alarm-service|api-bridge|client-bridge|driver-services|history-service|hub-bridge|ivr-callback-server|notification-services|platform-services|rule-service|scheduler-service|subsystem-service|modelmanager\"}"
+        selector = "{app=~\"api-bridge|client-bridge|driver-services|history-service|hub-bridge|ivr-callback-server|notification-services|platform-services|rule-service|scheduler-service|subsystem-service|modelmanager\"}"
 
         stage.replace {
           expression = "(\\x1b\\[[0-9;]*m)"
@@ -98,7 +98,7 @@ data:
       // Everything else (Grafana, Loki, Alloy, Traefik, MetalLB) logs logfmt with
       // a level field; lines that aren't logfmt just get no level label.
       stage.match {
-        selector = "{app!~\"alarm-service|api-bridge|client-bridge|driver-services|history-service|hub-bridge|ivr-callback-server|notification-services|platform-services|rule-service|scheduler-service|subsystem-service|modelmanager\"}"
+        selector = "{app!~\"api-bridge|client-bridge|driver-services|history-service|hub-bridge|ivr-callback-server|notification-services|platform-services|rule-service|scheduler-service|subsystem-service|modelmanager\"}"
 
         stage.logfmt {
           mapping = { level = "" }
