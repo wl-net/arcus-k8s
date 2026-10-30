@@ -23,14 +23,17 @@ the replay under `too_far_behind`. The `reason` label says why:
   keeps its positions on the node in `/var/lib/arcus/alloy`, so this
   happens only when that directory is new or emptied: a new node, or the
   rollout that added it. Otherwise the node's clock has jumped.
-- `greater_than_max_sample_age`: a line more than a week old.
+- `greater_than_max_sample_age`: a line more than a week old. Alloy sends
+  the last line of a quiet pod's log again every hour, and drops it once it
+  is that old (`stage.drop` in `config/logging/config.alloy`), so this
+  points at the node's clock.
 - `stream_limit` / `max_label_names_per_series`: the Alloy pipeline in
-  `config/logging/alloy.yaml` is producing too many streams or labels.
+  `config/logging/config.alloy` is producing too many streams or labels.
 
 ## Confirm
 
 ```bash
-./arcuscmd.sh logs loki | grep -iE 'rate|limit|too (long|far)' | tail -n 20
+kubectl logs loki-0 --since=1h | grep -E 'level=(warn|error)' | tail -n 20   # "write operation failed" names the stream and why
 kubectl get pod -l app=alloy   # too_far_behind: a pod about as old as the alert is a replay
 ```
 
@@ -53,7 +56,7 @@ service is loud; Error Logs whether it is a service in trouble.
 - Other timestamps, or `too_far_behind` with no new Alloy pod: the node's
   clock (`timedatectl`).
 - Streams or labels: the pipeline change that introduced them in
-  `config/logging/alloy.yaml`.
+  `config/logging/config.alloy`.
 
 ## Related alerts
 

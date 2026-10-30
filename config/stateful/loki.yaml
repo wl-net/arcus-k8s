@@ -57,12 +57,17 @@ spec:
           name: loki-storage
         - mountPath: /etc/loki
           name: config
+        # The compactor builds each retention marker file in /tmp before
+        # storing it in /loki, and reads it back through /tmp to delete the
+        # chunks it lists; read-only, retention stops
+        - mountPath: /tmp
+          name: tmp
       automountServiceAccountToken: false
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
       # 10001 is the image's own loki user, which already owns the data on
-      # existing volumes. Everything Loki writes is under /loki (path_prefix).
+      # existing volumes. Everything Loki keeps is under /loki (path_prefix).
       securityContext:
         runAsNonRoot: true
         runAsUser: 10001
@@ -72,6 +77,9 @@ spec:
           type: RuntimeDefault
       terminationGracePeriodSeconds: 10
       volumes:
+      - name: tmp
+        emptyDir:
+          sizeLimit: 256Mi
       - name: config
         configMap:
           name: loki-config

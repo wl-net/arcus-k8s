@@ -12,7 +12,7 @@
   <conversionRule conversionWord="ver" converterClass="com.iris.log.IrisVersionConverter" />
   <conversionRule conversionWord="ix" converterClass="com.iris.log.IrisMdcConverter" />
 
-  <!-- One line per event, no colour codes: Alloy's pipeline (config/logging/alloy.yaml)
+  <!-- One line per event, no colour codes: Alloy's pipeline (config/logging/config.alloy)
        reads the level from the first character and joins stack traces onto the line
        that raised them, so keep the start of the pattern in step with it.
        After the thread come the place, actor and client address of the message being

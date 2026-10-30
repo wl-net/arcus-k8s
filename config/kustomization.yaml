@@ -64,6 +64,9 @@ configMapGenerator:
 - name: egress-proxy-config
   files:
   - extrafiles/egress-proxy.yaml
+- name: alloy-config
+  files:
+  - logging/config.alloy
 
 images:
 - name: ghcr.io/wl-net/arcusplatform/arcus-api-bridge

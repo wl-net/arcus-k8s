@@ -46,8 +46,9 @@ limits_config:
     period: 720h
   ingestion_burst_size_mb: 16
   ingestion_rate_mb: 8
-  # Loki refuses a whole push when one entry is over max_line_size, and Alloy
-  # then drops every line in that batch, from every service. Cut the long
-  # entry instead (a joined stack trace or a dumped payload) and keep the rest.
+  # An entry over max_line_size gets its push a 400. Loki stores the rest of
+  # that push, but Alloy doesn't retry a 400 and counts the whole batch, from
+  # every service, as dropped. Cut the long entry instead (a joined stack
+  # trace or a dumped payload) and keep it.
   max_line_size: 256KB
   max_line_size_truncate: true

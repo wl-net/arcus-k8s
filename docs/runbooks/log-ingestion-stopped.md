@@ -25,14 +25,17 @@ normal (it waits for the ingester). Longer than that is not.
 ## Fix
 
 - Alloy pod not running: `kubectl describe pod -l app=alloy`; a config
-  error after a change to `config/logging/alloy.yaml` shows in its log
+  error after a change to `config/logging/config.alloy` shows in its log
   (`./arcuscmd.sh validate` checks that file with `alloy validate`).
 - Alloy up, pushes failing: the error names the cause. Connection refused
   means Loki is down ([Monitoring Service Down](monitoring-service-down.md));
   `429` or `400` means Loki is rejecting ([Loki Discarding Logs](loki-discarding-logs.md)).
 - Loki stuck: `kubectl delete pod loki-0`. Its volume keeps the data; a
-  full volume (`kubectl exec loki-0 -- df -h /loki`) needs the retention in
-  `config/extrafiles/loki.yaml` lowered.
+  full disk (`df -h /var/lib/rancher/k3s/storage` on the node: local-path
+  volumes share the node's disk, and the Loki image has no `df`) needs
+  `.config/loki-retention-days` lowered. Retention needs Loki's `/tmp`
+  `emptyDir`; `failed to apply retention` in Loki's log means it isn't
+  running.
 - Alloy collects nothing because inotify ran out: [Alloy Inotify Errors](alloy-inotify-errors.md).
 
 The alert clears once lines arrive again. Lines logged while collection was

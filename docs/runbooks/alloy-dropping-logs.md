@@ -29,9 +29,16 @@ Alloy's own log has the status and Loki's message for each dropped batch
 ## Confirm
 
 ```bash
-kubectl logs -l app=alloy --all-pods --prefix --since=15m | grep -E 'final error|dropped' | tail -n 20   # status and Loki's message, per node
-./arcuscmd.sh logs loki | grep -iE 'error|limit' | tail -n 20
+kubectl logs -l app=alloy --all-pods --prefix --since=1h --tail=-1 | grep 'final error' | tail -n 20   # status and Loki's message, per node
+kubectl logs loki-0 --since=1h | grep -E 'level=(warn|error)' | tail -n 20
+kubectl exec statefulset/prometheus -- wget -qO- http://localhost:9080/api/v1/query \
+  --post-data='query=sum by (status_code) (increase(loki_write_request_duration_seconds_count{job="alloy"}[6h]))'
 ```
+
+With a label selector `kubectl logs` prints only the last 10 lines of each
+pod unless given `--tail=-1`. The last command counts Alloy's pushes by
+Loki's answer: `400` for bad entries, `429` for rate limiting, a `5xx` or
+`-1` (no answer) for Loki in trouble.
 
 ## Fix
 
@@ -47,7 +54,13 @@ kubectl logs -l app=alloy --all-pods --prefix --since=15m | grep -E 'final error
   Discarding Logs showing `too_far_behind`: a replay of lines Loki already
   has ([Loki Discarding Logs](loki-discarding-logs.md) says when it
   happens); nothing is lost.
-- Label or timestamp errors: the Alloy pipeline in `config/logging/alloy.yaml`
+- `timestamp too old` for one line of a pod that has been quiet for a week,
+  every hour: Alloy reopens each pod's log hourly and sends the last line
+  again, and Loki refuses it once it is a week old. Loki stored it when it
+  was new, so nothing is lost. The `stage.drop` at the top of
+  `config/logging/config.alloy` drops lines that old before they are sent;
+  if it still happens, check the node's clock (`timedatectl`).
+- Label or timestamp errors: the Alloy pipeline in `config/logging/config.alloy`
   produced something Loki rejects; `./arcuscmd.sh validate` checks the
   syntax, Loki's log has the rejection.
 

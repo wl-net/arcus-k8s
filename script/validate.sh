@@ -210,13 +210,8 @@ function _validate_monitoring() {
     "$image" -config.file=/check/loki.yaml -verify-config || failed=1
 
   image=$(_manifest_image logging/alloy.yaml)
-  python3 -c '
-import sys, yaml
-for doc in yaml.safe_load_all(open(sys.argv[1])):
-    if doc and doc.get("kind") == "ConfigMap":
-        sys.stdout.write(doc["data"]["config.alloy"])' "$ROOT/config/logging/alloy.yaml" > "$work/config.alloy"
-  _docker_check "alloy.yaml config ($image)" \
-    docker run --rm -v "$work/config.alloy:/check/config.alloy:ro" "$image" validate /check/config.alloy || failed=1
+  _docker_check "config.alloy ($image)" \
+    docker run --rm -v "$ROOT/config/logging/config.alloy:/check/config.alloy:ro" "$image" validate /check/config.alloy || failed=1
 
   # Grafana, provisioned the way the StatefulSet mounts it: rules rendered with the
   # default thresholds, plus the contact points and policy for a Discord webhook
