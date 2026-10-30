@@ -23,10 +23,10 @@ the replay under `too_far_behind`. The `reason` label says why:
   keeps its positions on the node in `/var/lib/arcus/alloy`, so this
   happens only when that directory is new or emptied: a new node, or the
   rollout that added it. Otherwise the node's clock has jumped.
-- `greater_than_max_sample_age`: a line more than a week old. Alloy sends
-  the last line of a quiet pod's log again every hour, and drops it once it
-  is that old (`stage.drop` in `config/logging/config.alloy`), so this
-  points at the node's clock.
+- `greater_than_max_sample_age`: a line more than a week old. Alloy can
+  send a quiet pod's last line again (every hour before v1.21.3, now after
+  it restarts), but drops lines that old before sending (`stage.drop` in
+  `config/logging/config.alloy`), so this points at the node's clock.
 - `stream_limit` / `max_label_names_per_series`: the Alloy pipeline in
   `config/logging/config.alloy` is producing too many streams or labels.
 

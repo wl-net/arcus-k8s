@@ -56,7 +56,7 @@ spec:
       # fsGroup doesn't apply to hostPath, so hand it to 473 before Alloy starts.
       initContainers:
       - name: data-owner
-        image: grafana/alloy:v1.21.1
+        image: grafana/alloy:v1.21.3
         imagePullPolicy: IfNotPresent
         command: ["chown", "473:473", "/var/lib/alloy/data"]
         resources:
@@ -78,7 +78,7 @@ spec:
         - mountPath: /var/lib/alloy/data
           name: data
       containers:
-      - image: grafana/alloy:v1.21.1
+      - image: grafana/alloy:v1.21.3
         imagePullPolicy: IfNotPresent
         name: alloy
         args:

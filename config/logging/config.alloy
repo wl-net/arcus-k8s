@@ -33,12 +33,13 @@ loki.source.kubernetes "pods" {
 loki.process "pods" {
   forward_to = [loki.write.default.receiver]
 
-  // Every hour loki.source.kubernetes reopens each pod's log and sends the
-  // last line again when the pod has written nothing since. Loki keeps one
-  // copy, but once that line is a week old (reject_old_samples_max_age) it
-  // answers 400, which Alloy counts as a dropped batch; a quiet pod such as
-  // local-path-provisioner then fires Log Shipping Dropping Entries hourly.
-  // Loki would refuse these lines anyway, so drop them here.
+  // loki.source.kubernetes can send a pod's last line again when it reopens
+  // the log: every hour before v1.21.3, and still whenever Alloy restarts.
+  // Loki keeps one copy, but once that line is a week old
+  // (reject_old_samples_max_age) it answers 400, which Alloy counts as a
+  // dropped batch; a quiet local-path-provisioner fired Log Shipping Dropping
+  // Entries hourly that way. Loki would refuse these lines anyway, so drop
+  // them here.
   stage.drop {
     older_than          = "167h"
     drop_counter_reason = "older_than_loki_accepts"

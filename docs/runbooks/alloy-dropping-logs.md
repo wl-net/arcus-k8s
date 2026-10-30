@@ -54,10 +54,10 @@ Loki's answer: `400` for bad entries, `429` for rate limiting, a `5xx` or
   Discarding Logs showing `too_far_behind`: a replay of lines Loki already
   has ([Loki Discarding Logs](loki-discarding-logs.md) says when it
   happens); nothing is lost.
-- `timestamp too old` for one line of a pod that has been quiet for a week,
-  every hour: Alloy reopens each pod's log hourly and sends the last line
-  again, and Loki refuses it once it is a week old. Loki stored it when it
-  was new, so nothing is lost. The `stage.drop` at the top of
+- `timestamp too old` for the last line of a pod that has been quiet for a
+  week: Alloy sent that line again (every hour before v1.21.3, now after
+  its own restarts), and Loki refuses it once it is a week old. Loki stored
+  it when it was new, so nothing is lost. The `stage.drop` at the top of
   `config/logging/config.alloy` drops lines that old before they are sent;
   if it still happens, check the node's clock (`timedatectl`).
 - Label or timestamp errors: the Alloy pipeline in `config/logging/config.alloy`
