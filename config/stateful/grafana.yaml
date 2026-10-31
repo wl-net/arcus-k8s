@@ -61,7 +61,7 @@ spec:
           #ports:
           #- containerPort: 3000
           #name: tcp-3000
-        image: grafana/grafana:13.2.5
+        image: grafana/grafana:13.3.0
         imagePullPolicy: IfNotPresent
         name: grafana
         securityContext:
