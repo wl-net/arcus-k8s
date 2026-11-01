@@ -25,6 +25,12 @@ spec:
             configMapKeyRef:
               key: CASSANDRA_CONTACTPOINTS
               name: cluster-config
+        - name: CASSANDRA_LOCAL_DATACENTER
+          valueFrom:
+            configMapKeyRef:
+              key: CASSANDRA_LOCAL_DATACENTER
+              name: cluster-config
+              optional: true
         - name: cassandra_keyspace
           value: production
         - name: BOOTSTRAP_SERVERS
