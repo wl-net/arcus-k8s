@@ -89,6 +89,13 @@ Traffic:
   resume              Restore Route 53 weighted record to its previous value
   auto-resume         Resume traffic if drained for over 4 hours (for cron)
 
+Security:
+  security lockdown   Reduce attack surface: the bridges refuse email and phone changes,
+                        hub factory resets, and deleting accounts, places, hubs, people
+                        and logins, from every client including account owners
+  security unlock     Lift the lockdown
+  security status     Show whether the bridges are locked down
+
 Node:
   upgrade-node        Update and upgrade system packages (apt)
   reboot-node         Drain traffic, silence alerts, and reboot this host
@@ -240,6 +247,9 @@ resume)
   ;;
 auto-resume)
   auto_resume
+  ;;
+security)
+  security "${@:2}"
   ;;
 validate)
   validate_manifests

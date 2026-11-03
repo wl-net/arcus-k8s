@@ -46,6 +46,9 @@ function arcus_status() {
     echo "  Run './arcuscmd.sh resume' to restore traffic."
   fi
 
+  echo ""
+  security_status
+
   # Application services — show pods, not just deployments
   echo ""
   echo "Application Services:"

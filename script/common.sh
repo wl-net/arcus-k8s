@@ -61,6 +61,7 @@ function load() {
     _load_config ARCUS_DISCORD_WEBHOOK discord-webhook
     _load_config ARCUS_EXPECTED_HUBS   expected-hubs
     _load_config ARCUS_LOKI_RETENTION_DAYS loki-retention-days
+    _load_config ARCUS_LOCKDOWN        lockdown
     _load_config ARCUS_ALERT_DISCORD_WEBHOOK    alert-discord-webhook
     _load_config ARCUS_ALERT_PUSHOVER_USER_KEY  alert-pushover-user-key
     _load_config ARCUS_ALERT_PUSHOVER_API_TOKEN alert-pushover-api-token

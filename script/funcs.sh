@@ -23,4 +23,6 @@ _funcs_dir="${BASH_SOURCE[0]%/*}"
 . "${_funcs_dir}/node.sh"
 # shellcheck source=script/notify.sh
 . "${_funcs_dir}/notify.sh"
+# shellcheck source=script/security.sh
+. "${_funcs_dir}/security.sh"
 unset _funcs_dir

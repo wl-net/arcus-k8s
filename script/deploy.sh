@@ -413,6 +413,12 @@ function apply() {
     $KUBECTL apply -k "overlays/${ARCUS_OVERLAY_NAME}-local"
   fi
 
+  # A lockdown is on the Deployments, not in the manifests, so bring it back if
+  # they were recreated. This never lifts one; only 'security unlock' does.
+  if [[ "${ARCUS_LOCKDOWN:-}" == "yes" ]]; then
+    _lockdown_enforce
+  fi
+
   # Remove the ingress-nginx IngressClass left over from pre-Traefik days.
   $KUBECTL delete ingressclass nginx --ignore-not-found > /dev/null
 
