@@ -5,6 +5,12 @@ metadata:
   namespace: kube-system
 spec:
   valuesContent: |-
+    # Local keeps the client's source address. With Cluster, kube-proxy
+    # rewrites every connection to come from the node (10.42.0.1), so
+    # X-Forwarded-For carries that and PROXY protocol headers are ignored.
+    service:
+      spec:
+        externalTrafficPolicy: Local
     ports:
       web:
         exposedPort: 80

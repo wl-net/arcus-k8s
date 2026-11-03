@@ -149,6 +149,10 @@ spec:
             configMapKeyRef:
               key: DEFAULT_SERVICE_LEVEL
               name: arcus-config
+        # Traefik discards any X-Forwarded-For a client sends and sets the real
+        # address (from PROXY protocol). A request to the NodePort skips Traefik.
+        - name: ALLOW_FORWARDEDFOR
+          value: "true"
         image: ghcr.io/wl-net/arcusplatform/arcus-api-bridge:2019.10.0
         imagePullPolicy: IfNotPresent
         name: api-bridge
