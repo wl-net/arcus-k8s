@@ -196,6 +196,12 @@ spec:
             secretKeyRef:
               key: grafana.renderer.token
               name: shared
+        # Without this, a Chromium that lives more than a minute or two
+        # downloads ~95MB of components (TTS engine, suggestion model) into
+        # its profile under /tmp; two of those got the pod evicted from the
+        # 256Mi emptyDir every 1-2 hours on prod (2026-11-04)
+        - name: BROWSER_FLAGS
+          value: "--disable-component-update"
         ports:
         - containerPort: 8081
           name: tcp-8081
