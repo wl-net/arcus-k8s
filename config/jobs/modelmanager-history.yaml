@@ -3,7 +3,7 @@ kind: Job
 metadata:
   labels:
     app: modelmanager-history
-    app.kubernetes.io/version: 2026.3.0
+    app.kubernetes.io/version: 2026.11.0
   name: modelmanager-history
   namespace: default
 spec:
@@ -15,7 +15,7 @@ spec:
       containers:
       - env:
         - name: MODELMANAGER_HOME
-          value: /modelmanager-2026.3.0/history-resources/
+          value: /modelmanager-2026.11.0/history-resources/
         - name: MODELMANAGER_SCHEMA
           value: history
         - name: MODELMANAGER_AUTO
@@ -25,6 +25,14 @@ spec:
             configMapKeyRef:
               key: cassandra_history_contactPoints
               name: cluster-config
+        # The Cassandra driver only uses nodes in its local datacenter, which is
+        # datacenter1 unless set. Optional: older -local tunables lack the key.
+        - name: cassandra_history_local_datacenter
+          valueFrom:
+            configMapKeyRef:
+              key: CASSANDRA_HISTORY_LOCAL_DATACENTER
+              name: cluster-config
+              optional: true
         - name: BOOTSTRAP_SERVERS
           valueFrom:
             configMapKeyRef:
@@ -35,10 +43,10 @@ spec:
             configMapKeyRef:
               key: BOOTSTRAP_SERVERS
               name: cluster-config
-        image: ghcr.io/wl-net/arcusplatform/arcus-modelmanager:2026.3.0
+        image: ghcr.io/wl-net/arcusplatform/arcus-modelmanager:2026.11.0
         imagePullPolicy: IfNotPresent
-        command: ["/modelmanager-2026.3.0/bin/modelmanager"]
-        args: ["-c", "/modelmanager-2026.3.0/conf/arcus-modelmanager.properties"]
+        command: ["/modelmanager-2026.11.0/bin/modelmanager"]
+        args: ["-c", "/modelmanager-2026.11.0/conf/arcus-modelmanager.properties"]
         name: modelmanager-history
         resources: {}
         terminationMessagePath: /dev/termination-log

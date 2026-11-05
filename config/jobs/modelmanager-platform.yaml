@@ -3,7 +3,7 @@ kind: Job
 metadata:
   labels:
     app: modelmanager-platform
-    app.kubernetes.io/version: 2026.3.0
+    app.kubernetes.io/version: 2026.11.0
   name: modelmanager-platform
   namespace: default
 spec:
@@ -15,7 +15,7 @@ spec:
       containers:
       - env:
         - name: MODELMANAGER_HOME
-          value: /modelmanager-2026.3.0/
+          value: /modelmanager-2026.11.0/
         - name: MODELMANAGER_SCHEMA
           value: platform
         - name: MODELMANAGER_AUTO
@@ -25,6 +25,14 @@ spec:
             configMapKeyRef:
               key: CASSANDRA_CONTACTPOINTS
               name: cluster-config
+        # The Cassandra driver only uses nodes in its local datacenter, which is
+        # datacenter1 unless set. Optional: older -local tunables lack the key.
+        - name: cassandra_local_datacenter
+          valueFrom:
+            configMapKeyRef:
+              key: CASSANDRA_LOCAL_DATACENTER
+              name: cluster-config
+              optional: true
         - name: cassandra_keyspace
           value: production
         - name: BOOTSTRAP_SERVERS
@@ -57,10 +65,10 @@ spec:
             secretKeyRef:
               key: questions.aes.secret
               name: shared
-        image: ghcr.io/wl-net/arcusplatform/arcus-modelmanager:2026.3.0
+        image: ghcr.io/wl-net/arcusplatform/arcus-modelmanager:2026.11.0
         imagePullPolicy: IfNotPresent
-        command: ["/modelmanager-2026.3.0/bin/modelmanager"]
-        args: ["-c", "/modelmanager-2026.3.0/conf/arcus-modelmanager.properties", "-P", "production"]
+        command: ["/modelmanager-2026.11.0/bin/modelmanager"]
+        args: ["-c", "/modelmanager-2026.11.0/conf/arcus-modelmanager.properties", "-P", "production"]
         name: modelmanager-platform
         resources: {}
         terminationMessagePath: /dev/termination-log

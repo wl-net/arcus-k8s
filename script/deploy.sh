@@ -785,6 +785,8 @@ function updatehubkeystore() {
 }
 
 function runmodelmanager() {
+  # modelmanager-video is gone (modelmanager no longer ships video-resources);
+  # deleting it still clears the Job a cluster has left from earlier runs.
   $KUBECTL delete job modelmanager-platform modelmanager-history modelmanager-video --ignore-not-found
   $KUBECTL apply -f config/jobs/
 }
