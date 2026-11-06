@@ -6,7 +6,6 @@ metadata:
   name: static-server-service
   namespace: default
 spec:
-  externalTrafficPolicy: Cluster
   ports:
   - port: 80
     protocol: TCP
@@ -14,5 +13,5 @@ spec:
   selector:
     app: static-server
   sessionAffinity: None
-  type: NodePort
+  type: ClusterIP
 

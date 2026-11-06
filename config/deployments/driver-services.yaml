@@ -131,7 +131,6 @@ metadata:
     app: driver-services
   name: driver-services
 spec:
-  externalTrafficPolicy: Cluster
   ports:
   - port: 9100
     name: metrics
@@ -140,4 +139,4 @@ spec:
   selector:
     app: driver-services
   sessionAffinity: None
-  type: NodePort
+  type: ClusterIP

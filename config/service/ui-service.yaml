@@ -6,14 +6,12 @@ metadata:
   name: ui-server-service
   namespace: default
 spec:
-  externalTrafficPolicy: Cluster
   ports:
-  - nodePort: 30787
-    port: 80
+  - port: 80
     protocol: TCP
     targetPort: 8096
   selector:
     app: ui-server
   sessionAffinity: None
-  type: NodePort
+  type: ClusterIP
 

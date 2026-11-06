@@ -117,7 +117,6 @@ metadata:
     app: rule-service
   name: rule-service
 spec:
-  externalTrafficPolicy: Cluster
   ports:
   - port: 9100
     name: metrics
@@ -126,4 +125,4 @@ spec:
   selector:
     app: rule-service
   sessionAffinity: None
-  type: NodePort
+  type: ClusterIP

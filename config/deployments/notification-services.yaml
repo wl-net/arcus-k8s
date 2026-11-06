@@ -224,7 +224,6 @@ metadata:
     app: notification-services
   name: notification-services
 spec:
-  externalTrafficPolicy: Cluster
   ports:
   - port: 9100
     name: metrics
@@ -233,4 +232,4 @@ spec:
   selector:
     app: notification-services
   sessionAffinity: None
-  type: NodePort
+  type: ClusterIP

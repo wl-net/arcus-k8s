@@ -246,7 +246,6 @@ metadata:
     app: hub-bridge
   name: hub-bridge
 spec:
-  externalTrafficPolicy: Cluster
   ports:
   - port: 9100
     name: metrics
@@ -255,4 +254,4 @@ spec:
   selector:
     app: hub-bridge
   sessionAffinity: None
-  type: NodePort
+  type: ClusterIP

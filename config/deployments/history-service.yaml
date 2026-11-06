@@ -117,7 +117,6 @@ metadata:
     app: history-service
   name: history-service
 spec:
-  externalTrafficPolicy: Cluster
   ports:
   - port: 9100
     name: metrics
@@ -126,4 +125,4 @@ spec:
   selector:
     app: history-service
   sessionAffinity: None
-  type: NodePort
+  type: ClusterIP

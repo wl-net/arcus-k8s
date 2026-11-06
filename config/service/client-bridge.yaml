@@ -5,7 +5,6 @@ metadata:
     app: client-bridge
   name: client-bridge-service
 spec:
-  externalTrafficPolicy: Cluster
   ports:
   - port: 80
     protocol: TCP
@@ -13,5 +12,5 @@ spec:
   selector:
     app: client-bridge
   sessionAffinity: None
-  type: NodePort
+  type: ClusterIP
 

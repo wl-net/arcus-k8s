@@ -5,7 +5,6 @@ metadata:
     app: ivr-callback-server
   name: ivr-callback-server-service
 spec:
-  externalTrafficPolicy: Cluster
   ports:
   - port: 80
     protocol: TCP
@@ -13,5 +12,5 @@ spec:
   selector:
     app: ivr-callback-server
   sessionAffinity: None
-  type: NodePort
+  type: ClusterIP
 

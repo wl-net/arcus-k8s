@@ -147,7 +147,6 @@ metadata:
     app: platform-services
   name: platform-services
 spec:
-  externalTrafficPolicy: Cluster
   ports:
   - port: 9100
     name: metrics
@@ -156,4 +155,4 @@ spec:
   selector:
     app: platform-services
   sessionAffinity: None
-  type: NodePort
+  type: ClusterIP

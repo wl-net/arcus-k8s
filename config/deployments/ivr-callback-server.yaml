@@ -78,7 +78,8 @@ spec:
               key: TWILIO_CALLBACK_HOST
               name: arcus-config
         # Traefik discards any X-Forwarded-For a client sends and sets the real
-        # address (from PROXY protocol). A request to the NodePort skips Traefik.
+        # address (from PROXY protocol). The Service is ClusterIP, so only pods
+        # in the cluster can reach the bridge without going through Traefik.
         - name: ALLOW_FORWARDEDFOR
           value: "true"
         image: ghcr.io/wl-net/arcusplatform/arcus-ivr-callback-server:2019.10.0
@@ -145,7 +146,6 @@ metadata:
     app: ivr-callback-server
   name: ivr-callback-server
 spec:
-  externalTrafficPolicy: Cluster
   ports:
     - port: 9100
       name: metrics
@@ -154,4 +154,4 @@ spec:
   selector:
     app: ivr-callback-server
   sessionAffinity: None
-  type: NodePort
+  type: ClusterIP

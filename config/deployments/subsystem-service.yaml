@@ -137,7 +137,6 @@ metadata:
     app: subsystem-service
   name: subsystem-service
 spec:
-  externalTrafficPolicy: Cluster
   ports:
   - port: 9100
     name: metrics
@@ -146,4 +145,4 @@ spec:
   selector:
     app: subsystem-service
   sessionAffinity: None
-  type: NodePort
+  type: ClusterIP
