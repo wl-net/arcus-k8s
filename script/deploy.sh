@@ -282,6 +282,9 @@ function apply() {
   [[ -n "$saved_cluster_tunable" ]] && echo "$saved_cluster_tunable" > "$cluster_tunable"
 
   _keep_deployed_versions "overlays/${ARCUS_OVERLAY_NAME}-local/kustomization.yaml"
+  # Keep each bridge's lockdown setting, or add it when .config/lockdown says so.
+  # This reads the cluster, so it runs before apply changes anything there.
+  _lockdown_patch "overlays/${ARCUS_OVERLAY_NAME}-local"
 
   # Clean up old .yml tunables after migration
   rm -f "overlays/${ARCUS_OVERLAY_NAME}-local/arcus-config-tunable.yml" \
@@ -411,12 +414,6 @@ function apply() {
     echo "No changes to apply."
   else
     $KUBECTL apply -k "overlays/${ARCUS_OVERLAY_NAME}-local"
-  fi
-
-  # A lockdown is on the Deployments, not in the manifests, so bring it back if
-  # they were recreated. This never lifts one; only 'security unlock' does.
-  if [[ "${ARCUS_LOCKDOWN:-}" == "yes" ]]; then
-    _lockdown_enforce
   fi
 
   # Remove the ingress-nginx IngressClass left over from pre-Traefik days.
