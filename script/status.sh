@@ -167,16 +167,15 @@ for r in json.loads(rules):
 }
 
 # Print the build each service runs, grouped so a mixed rollout stands out.
-# The build (version, commit and build time) comes from _app_build; the nginx
-# images carry none, so they show their image tag. The images of one release
-# are built seconds apart, so services group by version and commit, under the
-# build time of the first one listed.
+# The build (version, commit and build time) comes from _app_build, which runs
+# for every service at once; the nginx images carry none, so they show their
+# image tag. The images of one release are built seconds apart, so services
+# group by version and commit, under the build time of the first one listed.
 function _arcus_builds() {
   local -A apps_by_build=() built_at=()
   local -a builds=()
   local app image build built
-  while read -r app image; do
-    IFS='|' read -r build built < <(_app_build "$app") || true
+  while IFS='|' read -r _ app image build built; do
     [[ -n "$build" ]] || build="image tag ${image##*:} (no build info)"
     if [[ -z "${apps_by_build[$build]+x}" ]]; then
       builds+=("$build")
@@ -184,9 +183,22 @@ function _arcus_builds() {
     fi
     apps_by_build[$build]+="${apps_by_build[$build]:+, }$app"
   done < <(
-    # shellcheck disable=SC2086
-    $KUBECTL get deployments $APPS --ignore-not-found \
-      -o jsonpath='{range .items[*]}{.metadata.name}{" "}{.spec.template.spec.containers[0].image}{"\n"}{end}' 2>/dev/null
+    # One line per service, numbered so sort can put them back in order
+    {
+      n=0
+      while read -r app image; do
+        n=$((n + 1))
+        (
+          IFS='|' read -r build built < <(_app_build "$app") || true
+          printf '%d|%s|%s|%s|%s\n' "$n" "$app" "$image" "${build:-}" "${built:-}"
+        ) &
+      done < <(
+        # shellcheck disable=SC2086
+        $KUBECTL get deployments $APPS --ignore-not-found \
+          -o jsonpath='{range .items[*]}{.metadata.name}{" "}{.spec.template.spec.containers[0].image}{"\n"}{end}' 2>/dev/null
+      )
+      wait
+    } | sort -t '|' -k1,1n
   )
   if [[ ${#builds[@]} -eq 0 ]]; then
     echo "  No Arcus deployments found"
@@ -198,6 +210,9 @@ function _arcus_builds() {
   done
 }
 
+# Services whose images are nginx serving files, with no jar and no build banner
+BUILDLESS_APPS='ui-server static-server'
+
 # Print "v<version> (<commit>)|<build time>" for a service, or nothing. It reads
 # META-INF/application.properties from the service's jar in the running pod:
 # the jar's entries are stored uncompressed, so grep finds the lines there. A
@@ -205,6 +220,7 @@ function _arcus_builds() {
 # the service logs at startup, which the kubelet's log rotation eventually drops.
 function _app_build() {
   local app=$1 build
+  [[ " $BUILDLESS_APPS " == *" $app "* ]] && return 0
   build=$($KUBECTL exec "deploy/$app" -- sh -c \
     "grep -a -h -m3 -E '^(application\.version|build\.timestamp|build\.commit)=' /$app-[0-9]*/lib/$app-[0-9]*.jar" 2>/dev/null \
     | awk -F= '{ v[$1] = $2 }
