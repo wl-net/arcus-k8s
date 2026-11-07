@@ -1,5 +1,9 @@
 auth_enabled: false
 
+# Don't send usage statistics to Grafana Labs
+analytics:
+  reporting_enabled: false
+
 server:
   http_listen_port: 3100
 

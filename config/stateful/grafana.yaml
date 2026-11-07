@@ -58,6 +58,15 @@ spec:
           value: loki
         - name: GF_UNIFIED_ALERTING_STATE_HISTORY_LOKI_REMOTE_URL
           value: http://loki-service.default.svc.cluster.local:3100
+        # Don't send usage statistics to Grafana Labs, or check grafana.com for
+        # new Grafana and plugin versions (every 10 minutes); Dependabot
+        # proposes new versions instead
+        - name: GF_ANALYTICS_REPORTING_ENABLED
+          value: "false"
+        - name: GF_ANALYTICS_CHECK_FOR_UPDATES
+          value: "false"
+        - name: GF_ANALYTICS_CHECK_FOR_PLUGIN_UPDATES
+          value: "false"
           #ports:
           #- containerPort: 3000
           #name: tcp-3000

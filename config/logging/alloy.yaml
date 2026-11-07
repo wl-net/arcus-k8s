@@ -86,6 +86,8 @@ spec:
         - /etc/alloy/config.alloy
         - --server.http.listen-addr=0.0.0.0:12345
         - --storage.path=/var/lib/alloy/data
+        # Don't send usage statistics (which components are in use) to Grafana Labs
+        - --disable-reporting
         ports:
         - containerPort: 12345
           name: http
