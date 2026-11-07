@@ -27,7 +27,7 @@ spec:
               name: cluster-config
         env:
         - name: JAVA_OPTS
-          value: "-Xms64m -Dlogback.configurationFile=/config/logback.xml"
+          value: "-Xms64m -Xmx384m -Dlogback.configurationFile=/config/logback.xml"
         - name: BILLING_URL
           valueFrom:
             configMapKeyRef:
