@@ -14,8 +14,7 @@ Kubernetes deployment infrastructure for [Arcus Smart Home](https://github.com/a
 ./arcuscmd.sh k3s                # Install k3s (skip for cloud)
 ./arcuscmd.sh install            # Install infrastructure (traefik, cert-manager)
 ./arcuscmd.sh configure          # Configure domain, secrets, and external services
-./arcuscmd.sh apply              # Deploy Arcus to the cluster
-./arcuscmd.sh modelmanager       # Provision database schemas (first time only)
+./arcuscmd.sh apply              # Provision the database schemas, then deploy Arcus to the cluster
 
 # Day-to-day
 ./arcuscmd.sh update             # Pull latest changes and see what changed

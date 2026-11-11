@@ -27,6 +27,9 @@ resources:
 - configmaps/cluster-config.yaml
 - clusterrole.yaml
 - cronjob/hub-keystore-renewal.yaml
+# Schema migrations, which apply and deploy run before any service changes
+- jobs/modelmanager-platform.yaml
+- jobs/modelmanager-history.yaml
 - stateful/prometheus.yaml
 - stateful/loki.yaml
 - logging/alloy.yaml
@@ -91,5 +94,8 @@ images:
 - name: ghcr.io/wl-net/arcusplatform/arcus-ivr-callback-server
   newTag: 2026.11.1
 - name: ghcr.io/wl-net/arcusplatform/arcus-notification-services
+  newTag: 2026.11.1
+# The schema jobs (config/jobs/), at the services' release; validate checks it keeps up
+- name: ghcr.io/wl-net/arcusplatform/arcus-modelmanager
   newTag: 2026.11.1
 

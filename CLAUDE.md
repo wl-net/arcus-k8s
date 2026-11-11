@@ -27,7 +27,7 @@ config/
   monitoring/                # kube-state-metrics (running image tags, pod restarts, CrashLoopBackOff, OOM kills, Pending pods, stuck rollouts, failed Jobs, node conditions), blackbox exporter (TCP/TLS/HTTP checks), node-exporter (disk space, CPU, memory, swap)
   certprovider/              # Let's Encrypt issuers
   cronjob/                   # Scheduled jobs (hub-keystore renewal)
-  jobs/                      # One-shot Kubernetes jobs
+  jobs/                      # modelmanager schema Jobs, run by apply and deploy --version before services change
   templates/                 # Templates applied at runtime (MetalLB address pool)
 overlays/
   local-production/          # Base overlay for single-node dev deployments
@@ -65,7 +65,7 @@ Secrets are written to `secret/` and local overlay state to `overlays/<overlay>-
 # Deploy
 ./arcuscmd.sh apply          # Deploy/update Arcus configuration
 ./arcuscmd.sh deploy         # Rolling restart of all services, one at a time
-./arcuscmd.sh deploy --version 2026.10.3  # Move services to a release one at a time (or: deploy --version <tag> <svc...>)
+./arcuscmd.sh deploy --version 2026.10.3  # Run the release's schema jobs, then move services to it one at a time (or: deploy --version <tag> <svc...>)
 ./arcuscmd.sh update         # Pull latest changes, show what changed
 ./arcuscmd.sh rollback       # Revert to a previous version
 ./arcuscmd.sh history        # Show recent update history with apply status
@@ -88,7 +88,7 @@ Secrets are written to `secret/` and local overlay state to `overlays/<overlay>-
 ./arcuscmd.sh security lockdown  # Refuse risky client operations on client-bridge and api-bridge (security unlock lifts it, security status shows it)
 ./arcuscmd.sh logs <app>     # Get logs for a service (targets running pods only)
 ./arcuscmd.sh shell <app>    # Get an interactive shell on a pod
-./arcuscmd.sh modelmanager   # Run model manager jobs (provision database schemas)
+./arcuscmd.sh modelmanager   # Run the schema jobs now and wait for them (apply and deploy --version run them first on their own)
 ./arcuscmd.sh deletepod <app>  # Delete pods matching an application
 ./arcuscmd.sh silence [2h]   # Silence Grafana alerts (unsilence to remove)
 ./arcuscmd.sh upgrade-node   # apt dist-upgrade this host
@@ -106,6 +106,7 @@ Secrets are written to `secret/` and local overlay state to `overlays/<overlay>-
 ### Image versions
 - Image tags are centrally managed in `config/kustomization.yaml`.
 - When `apply` changes the tags it updates every service at once. `./arcuscmd.sh deploy --version <tag>` moves services one at a time instead (it pulls the tag first, so one that doesn't exist changes nothing). A tag ahead of `config/kustomization.yaml` is recorded in `.config/image-version/<service>`, and `apply` keeps the service on it until `config/kustomization.yaml` reaches that version, then drops the record. A tag behind it lasts until the next `apply`. `status` lists the services held ahead.
+- modelmanager's tag is in the same list and moves with every release; `validate` fails if it falls behind the services'. Its Jobs in `config/jobs/` make the Cassandra schema changes a release needs, so `apply` and `deploy --version` run them before changing any Deployment, at the newest tag any service will run, wait for them, and stop with no service changed if one fails (printing its log, or why its pod can't start, which also deletes that Job). A job is skipped when its last run succeeded with the same spec at that tag or a newer one, so a release without schema changes costs a few seconds, and moving a service back never runs an older modelmanager over a newer schema. `deploy --pull` always runs them, since a rebuilt tag can bring new changesets; `./arcuscmd.sh modelmanager` runs them on demand; `status` shows each one's last run. They're labelled `arcus.io/role=schema-migration`, and `apply` leaves them out of its `kubectl apply -k` (a Job's pod template can't be changed, only replaced). The overlay's image renames apply to them, they read the keyspace from cluster-config's `CASSANDRA_KEYSPACE` like the services, and they find the install directory with a glob, since the image puts it at `/modelmanager-<version>/` (`-SNAPSHOT` for a private build).
 
 ### Alert rules and dashboards
 - Rules live in `config/grafana/alerting.yaml` in three groups (Node Health, Service Health, Monitoring Health), each rule with a `severity` label: `critical` (users or hubs affected now or without action today; also paged to Pushover), `warning` (working hours), `info`. Give every rule a `summary` and a `description` that ends with first steps.
@@ -209,7 +210,7 @@ Cassandra is the only stateful component that needs backup. It runs outside the 
 GitHub Actions runs on push and PRs to master:
 - **shellcheck** — lints `arcuscmd.sh` and `script/*.sh` with a pinned shellcheck (0.11.0) at the default `style` severity; run `shellcheck -x arcuscmd.sh script/*.sh` locally
 - **cli** — smoke tests: `help` works without kubectl, kubectl-dependent commands fail early without it, the root guard, and unknown subcommands exit non-zero
-- **manifests** — `./arcuscmd.sh validate`: YAML syntax for `config/` and `overlays/`, `config/` kustomize build, kubeconform schemas for the Kubernetes version in `K3S_VERSION`, and the monitoring configs checked by their own programs in Docker (promtool, blackbox `--config.check`, `envoy --mode validate` for the egress proxy, Loki `-verify-config`, `alloy validate`, and a Grafana started against the provisioning files that must load every alert rule and the generated contact points). The overlays aren't built, since they need files `apply` generates.
+- **manifests** — `./arcuscmd.sh validate`: YAML syntax for `config/` and `overlays/`, `config/` kustomize build, kubeconform schemas for the Kubernetes version in `K3S_VERSION`, that every Job in `config/` is a labelled schema job and modelmanager is at the services' release, and the monitoring configs checked by their own programs in Docker (promtool, blackbox `--config.check`, `envoy --mode validate` for the egress proxy, Loki `-verify-config`, `alloy validate`, and a Grafana started against the provisioning files that must load every alert rule and the generated contact points). The overlays aren't built, since they need files `apply` generates.
 
 ## Hardware Requirements
 

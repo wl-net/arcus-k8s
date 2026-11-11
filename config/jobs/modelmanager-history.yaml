@@ -3,10 +3,15 @@ kind: Job
 metadata:
   labels:
     app: modelmanager-history
-    app.kubernetes.io/version: 2026.11.0
+    # apply and deploy run the schema-migration Jobs themselves, before any
+    # service changes, and leave them out of kubectl apply -k
+    arcus.io/role: schema-migration
   name: modelmanager-history
   namespace: default
 spec:
+  # One retry for a passing Cassandra error; the deadline ends a run that hangs
+  backoffLimit: 1
+  activeDeadlineSeconds: 1800
   template:
     metadata:
       labels:
@@ -14,8 +19,6 @@ spec:
     spec:
       containers:
       - env:
-        - name: MODELMANAGER_HOME
-          value: /modelmanager-2026.11.0/history-resources/
         - name: MODELMANAGER_SCHEMA
           value: history
         - name: MODELMANAGER_AUTO
@@ -43,16 +46,35 @@ spec:
             configMapKeyRef:
               key: BOOTSTRAP_SERVERS
               name: cluster-config
-        image: ghcr.io/wl-net/arcusplatform/arcus-modelmanager:2026.11.0
+        # The tag comes from config/kustomization.yaml, the same release as the services
+        image: ghcr.io/wl-net/arcusplatform/arcus-modelmanager
         imagePullPolicy: IfNotPresent
-        command: ["/modelmanager-2026.11.0/bin/modelmanager"]
-        args: ["-c", "/modelmanager-2026.11.0/conf/arcus-modelmanager.properties"]
+        # The image installs to /modelmanager-<version>/ (-SNAPSHOT for a private
+        # build), so the path is looked up rather than written here
+        command:
+        - /bin/sh
+        - -c
+        - |
+          set -- /modelmanager-*/
+          if [ "$#" -ne 1 ] || [ ! -d "$1" ]; then
+            echo "Expected one /modelmanager-*/ directory in the image, found: $*" >&2
+            exit 1
+          fi
+          home=$1
+          export MODELMANAGER_HOME="${home}history-resources/"
+          exec "${home}bin/modelmanager" -c "${home}conf/arcus-modelmanager.properties"
         name: modelmanager-history
-        resources: {}
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            memory: 2Gi
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
       dnsPolicy: ClusterFirst
-      restartPolicy: OnFailure
+      # A failed attempt leaves its pod, and its log, for the retry to sit next to
+      restartPolicy: Never
       schedulerName: default-scheduler
       securityContext: {}
       terminationGracePeriodSeconds: 30

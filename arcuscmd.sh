@@ -54,10 +54,11 @@ Setup:
 Deploy:
   apply               Apply the current configuration to the cluster
   deploy [svc...]     Rolling restart of services (all if none specified)
-                        --pull        Force re-pull images before restarting
-                        --version TAG Move services to image TAG one at a time; apply
-                                        keeps them there until config/kustomization.yaml
-                                        reaches TAG
+                        --pull        Force re-pull images, and run the schema jobs
+                                        again, before restarting
+                        --version TAG Run the schema jobs at TAG, then move services to
+                                        it one at a time; apply keeps them there until
+                                        config/kustomization.yaml reaches TAG
                         -w, --workers N  Restart N services concurrently (default: 1)
   update [--apply]    Pull latest changes and show what changed
   rollback            Revert to a previous version
@@ -65,7 +66,8 @@ Deploy:
   useprodcert         Switch from Let's Encrypt staging to production certificate
   renewcert [cert...] Force cert-manager to re-issue certificates (all if none specified)
   updatehubkeystore   Convert production TLS key to PKCS#8 for hub-bridge
-  modelmanager        Run model manager jobs (provision database schemas)
+  modelmanager        Run the schema jobs now and wait for them (apply and
+                        deploy --version run them before changing services)
 
 Status:
   status              Show services, their builds, certificates, and infrastructure versions
@@ -135,14 +137,12 @@ setup)
     install
     configure
     apply
-    runmodelmanager
     info
   else
     echo "For cloud deployments, ensure kubectl is configured to point at your cluster, then run:"
     echo "  ./arcuscmd.sh install"
     echo "  ./arcuscmd.sh configure"
     echo "  ./arcuscmd.sh apply"
-    echo "  ./arcuscmd.sh modelmanager"
   fi
   ;;
 apply)

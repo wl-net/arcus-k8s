@@ -7,9 +7,10 @@ Rule `job-failed` in [`config/grafana/alerting.yaml`](../../config/grafana/alert
 
 A one-shot job failed. Which one matters:
 
-- **modelmanager-\*** (`./arcuscmd.sh modelmanager`): a Cassandra schema
-  migration did not run. A release that needs a new table fails in odd ways
-  until it does.
+- **modelmanager-\*** (started by `apply`, `deploy --version` or
+  `./arcuscmd.sh modelmanager`): a Cassandra schema migration did not run.
+  apply and deploy stop before changing any service when one fails, so the
+  services are still on the release they were on; the new one waits for it.
 - **hub-keystore-renewal-\***: one run of the CronJob failed. The hub
   certificate was not refreshed this time; [Hub Keystore Renewal Stale](keystore-renewal-stale.md)
   fires if that goes on, [Hub Certificate Expiring](hub-cert-expiring.md) if
@@ -27,8 +28,9 @@ kubectl logs job/<job> -n <namespace>            # the last attempt
 
 - modelmanager: the log is usually a Cassandra connection or authentication
   problem (`.config/cassandra-host`, the credentials in `secret/`), or a
-  keyspace that does not exist yet. Fix it and `./arcuscmd.sh modelmanager`
-  re-runs the jobs.
+  keyspace that does not exist yet. Fix it and run apply (or
+  `deploy --version`) again, which runs the jobs before the services;
+  `./arcuscmd.sh modelmanager` runs them on their own.
 - hub-keystore-renewal: see [Hub Keystore Renewal Stale](keystore-renewal-stale.md);
   `kubectl create job --from=cronjob/hub-keystore-renewal hub-keystore-test`
   retries now.

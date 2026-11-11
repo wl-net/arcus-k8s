@@ -47,6 +47,10 @@ function validate_manifests() {
   fi
 
   echo ""
+  echo "=== Schema Jobs ==="
+  _validate_schema_jobs || errors=$((errors + 1))
+
+  echo ""
   echo "=== Alert Rules ==="
   _validate_alert_rules || errors=$((errors + 1))
 
@@ -65,6 +69,52 @@ function validate_manifests() {
     echo "$errors check(s) failed."
     return 1
   fi
+}
+
+# apply and deploy run the Jobs labelled arcus.io/role=schema-migration
+# themselves and leave them out of kubectl apply -k, which can't change a Job,
+# so a Job in config/ without the label would stop apply the first time it
+# changed. And modelmanager's tag has to keep up with the services', or a
+# release's schema changes don't run before its services start.
+function _validate_schema_jobs() {
+  local rendered jobs unlabelled schema_tag newest failed=0
+  if ! rendered=$($KUBECTL kustomize config 2>/dev/null); then
+    echo "  SKIP: config/ does not build"
+    return 0
+  fi
+  jobs=$(awk '
+    function flush() { if (kind == "Job") print name, role; kind = ""; name = ""; role = ""; meta = 0 }
+    $0 == "---" { flush(); next }
+    $1 == "kind:" && !/^ / { kind = $2 }
+    $0 == "metadata:" { meta = 1; next }
+    meta && !/^  / { meta = 0 }
+    meta && /^  name: / { name = $2 }
+    meta && /^    arcus\.io\/role: / { role = $2 }
+    END { flush() }
+  ' <<< "$rendered")
+  unlabelled=$(awk '$2 != "schema-migration" { printf " %s", $1 }' <<< "$jobs")
+  if [[ -z "$jobs" ]]; then
+    echo "  FAIL: config/ has no schema jobs, so apply would have nothing to run before the services"
+    failed=1
+  elif [[ -n "$unlabelled" ]]; then
+    echo "  FAIL: Jobs without the arcus.io/role: schema-migration label:${unlabelled}"
+    failed=1
+  else
+    echo "  OK:   every Job in config/ is a labelled schema job ($(awk '{ printf "%s%s", sep, $1; sep = ", " }' <<< "$jobs"))"
+  fi
+
+  schema_tag=$(_configured_tag "$(_schema_image)")
+  newest=$(awk '$1 == "newTag:" { gsub(/["\047]/, "", $2); print $2 }' "$ROOT/config/kustomization.yaml" | sort -V | tail -n 1)
+  if [[ -z "$schema_tag" ]]; then
+    echo "  FAIL: config/kustomization.yaml sets no newTag for $(_schema_image)"
+    failed=1
+  elif [[ "$schema_tag" != "$newest" ]]; then
+    echo "  FAIL: modelmanager is at ${schema_tag} in config/kustomization.yaml, behind the services' ${newest}"
+    failed=1
+  else
+    echo "  OK:   modelmanager runs the services' release (${schema_tag})"
+  fi
+  return "$failed"
 }
 
 # Every rule in alerting.yaml needs a runbook in docs/runbooks/<uid>.md (with the

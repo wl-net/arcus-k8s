@@ -72,6 +72,23 @@ function arcus_status() {
       "$(_configured_tag "$(_app_image "${pin##*/}")")"
   done
 
+  # The last run of each schema job, which apply and deploy --version start
+  echo ""
+  echo "Schema Jobs:"
+  local schema
+  schema=$($KUBECTL get jobs -l arcus.io/role=schema-migration -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.metadata.labels.app\.kubernetes\.io/version}{"\t"}{.status.succeeded}{"\t"}{.status.failed}{"\t"}{.status.active}{"\t"}{.status.startTime}{"\t"}{.status.completionTime}{"\n"}{end}' 2>/dev/null) || true
+  if [[ -z "$schema" ]]; then
+    echo "  none run yet (apply runs them)"
+  else
+    awk -F '\t' '{
+      if ($3 + 0 > 0) state = "succeeded " $7
+      else if ($5 + 0 > 0) state = "running since " $6
+      else if ($4 + 0 > 0) state = "FAILED (started " $6 ")"
+      else state = "waiting to start"
+      printf "  %-24s %-12s %s\n", $1, $2, state
+    }' <<< "$schema"
+  fi
+
   # Show pods that are not fully healthy
   local unhealthy
   unhealthy=$($KUBECTL get pods -l '!job-name' -o wide --no-headers 2>/dev/null | awk '

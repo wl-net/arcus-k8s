@@ -238,6 +238,226 @@ function _keep_deployed_versions() {
   fi
 }
 
+# The modelmanager Jobs in config/jobs/ make the Cassandra schema changes a
+# release needs. apply and 'deploy --version' run them at the release's tag
+# before any service changes, and stop if one fails, so a service never starts
+# on a release whose schema changes haven't been made. They carry the label
+# arcus.io/role=schema-migration, which keeps them out of apply's kubectl
+# apply -k: a Job's pod template can't be changed, only replaced.
+
+# The modelmanager image, without its tag, as config/jobs/ names it.
+function _schema_image() {
+  local image
+  image=$(awk '$1 == "image:" { print $2; exit }' "$ROOT/config/jobs/modelmanager-platform.yaml" 2>/dev/null) || true
+  [[ "${image##*/}" == *:* ]] && image=${image%:*}
+  echo "$image"
+}
+
+# The tag the schema jobs run at: modelmanager's in config/kustomization.yaml,
+# or the newest version 'deploy --version' has moved a service ahead to.
+function _schema_tag() {
+  local tag pin version
+  tag=$(_configured_tag "$(_schema_image)")
+  for pin in "$ARCUS_CONFIGDIR"/image-version/*; do
+    [[ -f "$pin" ]] || continue
+    version=$(cat "$pin")
+    if [[ -z "$tag" ]] || _version_newer "$version" "$tag"; then
+      tag=$version
+    fi
+  done
+  echo "$tag"
+}
+
+# Write what the -local overlay renders for the schema jobs into directory $1:
+# each Job as jobs/<name>.yaml, and the ConfigMaps they read as configmaps.yaml.
+function _render_schema_jobs() {
+  mkdir -p "$1/jobs"
+  $KUBECTL kustomize "overlays/${ARCUS_OVERLAY_NAME}-local" | awk -v out="$1" '
+    function flush(  file) {
+      if (kind == "Job" && role == "schema-migration") file = out "/jobs/" name ".yaml"
+      else if (kind == "ConfigMap" && (name == "cluster-config" || name == "arcus-config")) file = out "/configmaps.yaml"
+      if (file != "") { printf "---\n%s", doc >> file; close(file) }
+      doc = ""; kind = ""; name = ""; role = ""; meta = 0
+    }
+    $0 == "---" { flush(); next }
+    {
+      doc = doc $0 "\n"
+      if ($1 == "kind:" && !/^ /) kind = $2
+      if ($0 == "metadata:") { meta = 1; next }
+      if (meta && !/^  /) meta = 0
+      if (meta && /^  name: /) name = $2
+      if (meta && /^    arcus\.io\/role: /) role = $2
+    }
+    END { flush() }
+  '
+}
+
+# A hash of schema job file $1 leaving out its image tag, so a job is run again
+# when anything but the version changes.
+function _schema_spec_hash() {
+  sed -E 's#^( +image: [^ ]+):[^:/ ]+$#\1#' "$1" | sha256sum | cut -c1-16
+}
+
+# Wait for the schema jobs named in $@ to finish. Prints how each one ended,
+# with the reason and the end of the log for a failure; returns non-zero if
+# any failed. A job whose pod can't start (an image that can't be pulled, a
+# missing ConfigMap key) is deleted and counts as failed straight away.
+function _wait_schema_jobs() {
+  local start=$SECONDS next_note=30 failed=0 name state reason stuck
+  local pending=("$@") still
+  while [[ ${#pending[@]} -gt 0 ]]; do
+    sleep 3
+    still=()
+    for name in "${pending[@]}"; do
+      if ! state=$($KUBECTL get job "$name" --ignore-not-found \
+          -o jsonpath='{.metadata.name}{" "}{range .status.conditions[?(@.status=="True")]}{.type}{" "}{end}' 2>/dev/null); then
+        still+=("$name")   # the API didn't answer; ask again
+        continue
+      fi
+      case "$state " in
+        " ")
+          echo "${name}: the Job was deleted before it finished."
+          failed=1
+          ;;
+        *" Complete "*)
+          echo "${name}: done in $((SECONDS - start))s."
+          ;;
+        *" Failed "*)
+          reason=$($KUBECTL get job "$name" -o jsonpath='{.status.conditions[?(@.type=="Failed")].reason}' 2>/dev/null) || true
+          echo "${name}: failed (${reason:-no reason given}). The end of its log:"
+          $KUBECTL logs "job/${name}" --tail=30 2>&1 | sed 's/^/    /' || true
+          failed=1
+          ;;
+        *)
+          stuck=$($KUBECTL get pods -l "batch.kubernetes.io/job-name=${name}" \
+              -o jsonpath='{range .items[*]}{.status.containerStatuses[0].state.waiting.reason}{": "}{.status.containerStatuses[0].state.waiting.message}{"\n"}{end}' 2>/dev/null \
+            | grep -E '^(ErrImagePull|ImagePullBackOff|InvalidImageName|CreateContainerConfigError|CreateContainerError):' | head -n 1) || true
+          if [[ -n "$stuck" ]]; then
+            echo "${name}: its pod can't start: ${stuck}"
+            echo "${name}: deleting the Job, so it doesn't keep retrying."
+            $KUBECTL delete job "$name" --ignore-not-found > /dev/null 2>&1 || true
+            failed=1
+          elif [[ $((SECONDS - start)) -gt 1900 ]]; then
+            # Past the Jobs' activeDeadlineSeconds, which should have failed it
+            echo "${name}: still not finished after $(((SECONDS - start) / 60)) minutes; giving up waiting."
+            failed=1
+          else
+            still+=("$name")
+          fi
+          ;;
+      esac
+    done
+    pending=("${still[@]}")
+    if [[ ${#pending[@]} -gt 0 && $((SECONDS - start)) -ge $next_note ]]; then
+      echo "Still running after $((SECONDS - start))s: ${pending[*]}"
+      next_note=$((next_note + 30))
+    fi
+  done
+  return "$failed"
+}
+
+# Run the schema jobs at image tag $2 (the rendered tag if empty) and wait for
+# them. Returns non-zero, before anything else changes, if one fails.
+#   $1 force: always run them.
+#      auto:  skip a job whose last run succeeded with the same spec at this
+#             tag or a newer one. A newer schema contains an older one, so
+#             moving a service back doesn't run an older modelmanager over it.
+#   $3 required: pull the image first and fail if it can't be pulled, so a tag
+#                that doesn't exist stops here ('deploy --version').
+#      try:      pull it first, keeping the cached copy if that fails ('deploy --pull').
+function _run_schema_jobs() {
+  local dir rc=0
+  dir=$(mktemp -d)
+  _run_schema_jobs_in "$dir" "$@" || rc=$?
+  rm -rf "$dir"
+  return "$rc"
+}
+
+function _run_schema_jobs_in() {
+  local dir=$1 mode=$2 tag=$3 pull=${4:-}
+  local f name image want live live_hash live_image live_ok live_active
+  local to_run=() pulled=""
+
+  if ! _render_schema_jobs "$dir"; then
+    echo "Error: could not render the schema jobs from overlays/${ARCUS_OVERLAY_NAME}-local."
+    return 1
+  fi
+  if ! compgen -G "$dir/jobs/*.yaml" > /dev/null; then
+    echo "Error: overlays/${ARCUS_OVERLAY_NAME}-local renders no Jobs labelled arcus.io/role=schema-migration."
+    return 1
+  fi
+
+  for f in "$dir"/jobs/*.yaml; do
+    name=${f##*/}
+    name=${name%.yaml}
+    [[ -z "$tag" ]] || sed -i -E "s#^( +image: [^ ]+):[^:/ ]+\$#\\1:${tag}#" "$f"
+    image=$(awk '$1 == "image:" { print $2; exit }' "$f")
+    if [[ "${image##*/}" != *:* ]]; then
+      echo "Error: ${name} has no image tag; config/kustomization.yaml should set one for ${image}."
+      return 1
+    fi
+    want=${image##*:}
+
+    if [[ -n "$pull" && " $pulled " != *" $image "* ]]; then
+      echo "Pulling ${image}..."
+      if sudo crictl pull "$image" > /dev/null 2>&1; then
+        pulled+=" $image"
+      elif [[ "$pull" == required ]]; then
+        echo "Error: could not pull ${image}."
+        return 1
+      else
+        echo "Failed to pull ${image}, continuing with the cached image."
+        pulled+=" $image"
+      fi
+    fi
+
+    live=$($KUBECTL get job "$name" --ignore-not-found \
+      -o jsonpath='{.metadata.annotations.arcus\.io/spec-hash}{"|"}{.spec.template.spec.containers[0].image}{"|"}{.status.succeeded}{"|"}{.status.active}') || return 1
+    IFS='|' read -r live_hash live_image live_ok live_active <<< "$live"
+
+    if [[ "${live_active:-0}" -gt 0 ]]; then
+      # An interrupted apply, or ./arcuscmd.sh modelmanager run elsewhere:
+      # don't cut a migration off halfway
+      echo "${name}: a run of ${live_image##*:} is already in progress; waiting for it first."
+      _wait_schema_jobs "$name" || true
+      live=$($KUBECTL get job "$name" --ignore-not-found \
+        -o jsonpath='{.metadata.annotations.arcus\.io/spec-hash}{"|"}{.spec.template.spec.containers[0].image}{"|"}{.status.succeeded}{"|"}{.status.active}') || return 1
+      IFS='|' read -r live_hash live_image live_ok live_active <<< "$live"
+    fi
+
+    if [[ "$mode" != force && "$live_hash" == "$(_schema_spec_hash "$f")" \
+          && "${live_image%:*}" == "${image%:*}" && "${live_ok:-0}" -ge 1 ]] \
+        && ! _version_newer "$want" "${live_image##*:}"; then
+      if [[ "${live_image##*:}" == "$want" ]]; then
+        echo "${name}: already ran at ${want}."
+      else
+        echo "${name}: already ran at ${live_image##*:}, newer than ${want}; leaving the schema as it is."
+      fi
+      continue
+    fi
+    to_run+=("$name")
+  done
+
+  [[ ${#to_run[@]} -gt 0 ]] || return 0
+
+  # The jobs read their hosts and keyspace from these; on a new cluster this
+  # creates them
+  if [[ -f "$dir/configmaps.yaml" ]]; then
+    $KUBECTL apply -f "$dir/configmaps.yaml" > /dev/null || return 1
+  fi
+
+  for name in "${to_run[@]}"; do
+    f="$dir/jobs/${name}.yaml"
+    image=$(awk '$1 == "image:" { print $2; exit }' "$f")
+    $KUBECTL delete job "$name" --ignore-not-found --cascade=foreground --timeout=120s > /dev/null || return 1
+    $KUBECTL label --local -f "$f" -o yaml --overwrite "app.kubernetes.io/version=${image##*:}" \
+      | $KUBECTL annotate --local -f - -o yaml --overwrite "arcus.io/spec-hash=$(_schema_spec_hash "$f")" \
+      | $KUBECTL create -f - > /dev/null || return 1
+    echo "${name}: running modelmanager ${image##*:}..."
+  done
+  _wait_schema_jobs "${to_run[@]}"
+}
+
 function apply() {
   # Apply the configuration
   load
@@ -406,14 +626,22 @@ function apply() {
   ensure_grafana_admin_password
   $KUBECTL create secret generic shared --from-file secret/ --dry-run=client -o yaml | $KUBECTL apply -f - > /dev/null
 
-  # Show what would change before applying.
-  # kubectl diff exits 0 = no diff, 1 = has diff, >1 = error.
+  # The schema changes this release needs, before any Deployment changes
+  if ! _run_schema_jobs auto "$(_schema_tag)"; then
+    echo ""
+    echo "Error: a schema job failed, so no Deployment was changed. Fix the cause and run"
+    echo "apply again; ./arcuscmd.sh modelmanager runs the schema jobs on their own."
+    exit 1
+  fi
+
+  # Show what would change before applying, leaving out the schema jobs, which
+  # were just run. kubectl diff exits 0 = no diff, 1 = has diff, >1 = error.
   local diff_exit=0
-  $KUBECTL diff -k "overlays/${ARCUS_OVERLAY_NAME}-local" 2>/dev/null || diff_exit=$?
+  $KUBECTL diff -k "overlays/${ARCUS_OVERLAY_NAME}-local" -l 'arcus.io/role!=schema-migration' 2>/dev/null || diff_exit=$?
   if [[ $diff_exit -eq 0 ]]; then
     echo "No changes to apply."
   else
-    $KUBECTL apply -k "overlays/${ARCUS_OVERLAY_NAME}-local"
+    $KUBECTL apply -k "overlays/${ARCUS_OVERLAY_NAME}-local" -l 'arcus.io/role!=schema-migration'
   fi
 
   # Remove the ingress-nginx IngressClass left over from pre-Traefik days.
@@ -563,6 +791,21 @@ function deploy_platform() {
         echo "Failed to pull ${image}, continuing with cached image."
       fi
     done
+  fi
+
+  # The schema changes the new version needs, before any service moves to it.
+  # A rebuilt tag ('--pull') can bring new ones too, so then they always run.
+  if [[ $pull -eq 1 || -n "$version" ]]; then
+    _deploy_current_app="schema jobs"
+    local schema_mode=auto schema_pull=required
+    [[ $pull -eq 1 ]] && schema_mode=force
+    [[ -z "$version" ]] && schema_pull=try
+    if ! _run_schema_jobs "$schema_mode" "${version:-$(_schema_tag)}" "$schema_pull"; then
+      echo "Error: a schema job failed, so no services were changed."
+      trap - INT
+      _notify_failure "$mode failed: a schema job failed"
+      return 1
+    fi
   fi
 
   if [[ $workers -eq 1 ]]; then
@@ -781,9 +1024,16 @@ function updatehubkeystore() {
   echo "hub-bridge restarted."
 }
 
+# Run the schema jobs now, whether or not they have run at this version, and
+# wait for them. apply and 'deploy --version' run them on their own.
 function runmodelmanager() {
+  if [[ ! -d "overlays/${ARCUS_OVERLAY_NAME}-local" ]]; then
+    echo "Error: overlay 'overlays/${ARCUS_OVERLAY_NAME}-local' not found."
+    echo "Run './arcuscmd.sh apply', which runs the schema jobs itself."
+    return 1
+  fi
   # modelmanager-video is gone (modelmanager no longer ships video-resources);
   # deleting it still clears the Job a cluster has left from earlier runs.
-  $KUBECTL delete job modelmanager-platform modelmanager-history modelmanager-video --ignore-not-found
-  $KUBECTL apply -f config/jobs/
+  $KUBECTL delete job modelmanager-video --ignore-not-found > /dev/null
+  _run_schema_jobs force "$(_schema_tag)"
 }
