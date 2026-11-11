@@ -303,7 +303,7 @@ function _schema_spec_hash() {
 # any failed. A job whose pod can't start (an image that can't be pulled, a
 # missing ConfigMap key) is deleted and counts as failed straight away.
 function _wait_schema_jobs() {
-  local start=$SECONDS next_note=30 failed=0 name state reason stuck
+  local start=$SECONDS next_note=30 failed=0 name state reason stuck log changes
   local pending=("$@") still
   while [[ ${#pending[@]} -gt 0 ]]; do
     sleep 3
@@ -320,7 +320,19 @@ function _wait_schema_jobs() {
           failed=1
           ;;
         *" Complete "*)
-          echo "${name}: done in $((SECONDS - start))s."
+          # modelmanager lists what it's about to do: "N)  <source>::<id> -
+          # <description>" per changeset, then "Import localization strings",
+          # which it does every run
+          log=$($KUBECTL logs "job/${name}" --tail=-1 2>/dev/null) || true
+          changes=$(grep -E '^[0-9]+\)  ' <<< "$log" | grep -vE '^[0-9]+\)  Import localization strings$') || true
+          if [[ -n "$changes" ]]; then
+            echo "${name}: done in $((SECONDS - start))s. Schema changes made:"
+            sed -E 's/^[0-9]+\)  /    /' <<< "$changes"
+          elif grep -q '^The following upgrade changes will be executed:' <<< "$log"; then
+            echo "${name}: done in $((SECONDS - start))s, no schema changes."
+          else
+            echo "${name}: done in $((SECONDS - start))s."
+          fi
           ;;
         *" Failed "*)
           reason=$($KUBECTL get job "$name" -o jsonpath='{.status.conditions[?(@.type=="Failed")].reason}' 2>/dev/null) || true
@@ -373,9 +385,16 @@ function _run_schema_jobs() {
   return "$rc"
 }
 
+# A schema Job's spec hash, image, succeeded and active counts, and true
+# conditions, separated by |; empty if it doesn't exist
+function _schema_job_live() {
+  $KUBECTL get job "$1" --ignore-not-found \
+    -o jsonpath='{.metadata.annotations.arcus\.io/spec-hash}{"|"}{.spec.template.spec.containers[0].image}{"|"}{.status.succeeded}{"|"}{.status.active}{"|"}{range .status.conditions[?(@.status=="True")]}{.type}{" "}{end}'
+}
+
 function _run_schema_jobs_in() {
   local dir=$1 mode=$2 tag=$3 pull=${4:-}
-  local f name image want live live_hash live_image live_ok live_active
+  local f name image want live live_hash live_image live_ok live_active live_conditions
   local to_run=() pulled=""
 
   if ! _render_schema_jobs "$dir"; then
@@ -411,18 +430,19 @@ function _run_schema_jobs_in() {
       fi
     fi
 
-    live=$($KUBECTL get job "$name" --ignore-not-found \
-      -o jsonpath='{.metadata.annotations.arcus\.io/spec-hash}{"|"}{.spec.template.spec.containers[0].image}{"|"}{.status.succeeded}{"|"}{.status.active}') || return 1
-    IFS='|' read -r live_hash live_image live_ok live_active <<< "$live"
+    live=$(_schema_job_live "$name") || return 1
+    IFS='|' read -r live_hash live_image live_ok live_active live_conditions <<< "$live"
 
-    if [[ "${live_active:-0}" -gt 0 ]]; then
+    # The controller stops updating a Job once it has finished, so a stale
+    # active count on a finished one doesn't mean a run (Jobs from 2020 have them)
+    if [[ "${live_active:-0}" -gt 0 && " $live_conditions " != *" Complete "* \
+          && " $live_conditions " != *" Failed "* ]]; then
       # An interrupted apply, or ./arcuscmd.sh modelmanager run elsewhere:
       # don't cut a migration off halfway
       echo "${name}: a run of ${live_image##*:} is already in progress; waiting for it first."
       _wait_schema_jobs "$name" || true
-      live=$($KUBECTL get job "$name" --ignore-not-found \
-        -o jsonpath='{.metadata.annotations.arcus\.io/spec-hash}{"|"}{.spec.template.spec.containers[0].image}{"|"}{.status.succeeded}{"|"}{.status.active}') || return 1
-      IFS='|' read -r live_hash live_image live_ok live_active <<< "$live"
+      live=$(_schema_job_live "$name") || return 1
+      IFS='|' read -r live_hash live_image live_ok live_active live_conditions <<< "$live"
     fi
 
     if [[ "$mode" != force && "$live_hash" == "$(_schema_spec_hash "$f")" \
