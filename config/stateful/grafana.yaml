@@ -182,7 +182,7 @@ spec:
         app: grafana-renderer
     spec:
       containers:
-      - image: grafana/grafana-image-renderer:v5.12.10
+      - image: grafana/grafana-image-renderer:v5.12.11
         imagePullPolicy: IfNotPresent
         name: grafana-renderer
         securityContext:
