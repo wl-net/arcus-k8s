@@ -50,7 +50,7 @@ function update() {
   local commit_log
   commit_log=$(git -C "$ROOT" --no-pager log --oneline "${before}..${after}")
   echo "$commit_log"
-  _notify_success "Pulled latest changes (${before:0:7} → ${after:0:7})\\n\`\`\`$commit_log\`\`\`"
+  _notify_success "Pulled latest changes (${before:0:7} → ${after:0:7})"$'\n'"\`\`\`"$'\n'"$commit_log"$'\n'"\`\`\`"
 
   local config_changes
   config_changes=$(git -C "$ROOT" --no-pager diff --name-only "${before}..${after}" -- \
