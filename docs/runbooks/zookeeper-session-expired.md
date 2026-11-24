@@ -9,8 +9,11 @@ Every Arcus service holds its cluster membership as ephemeral nodes in
 ZooKeeper, under a session it keeps alive with heartbeats. When the session
 expires, ZooKeeper deletes those nodes, the service loses its cluster ID and
 the platform partitions it owned, and it exits on purpose (`SHUTTING DOWN --
-Lost cluster service id`, exit code 255). Kubernetes restarts it, it
-re-registers, and work resumes; nothing it owned was processed in between.
+Lost cluster service id`, exit code 255). Kubernetes restarts it, and it
+re-registers, unless the same service's copy in another datacenter took the
+cluster ID meanwhile, in which case that copy carries the work and this one
+waits as the standby. Until one of them holds the ID, nothing that service
+owned is processed.
 The services share one ZooKeeper, so usually all of them go at once, and the
 whole platform is out for the minute or so they take to come back. Hubs
 reconnect on their own; a person in the app sees requests fail meanwhile.
@@ -53,9 +56,13 @@ services connected to it were cut off while it rejoined.
 ## Fix
 
 - The services recover on their own once they can reach ZooKeeper; check
-  `./arcuscmd.sh status` that every one is running and none is stuck
-  logging `Unable to reserve cluster id`. (platform-services is a singleton
-  across datacenters; on the standby datacenter that message is normal.)
+  `./arcuscmd.sh status` that every one is running. Every Arcus service is a
+  singleton across datacenters (one copy holds its cluster ID), so
+  `Unable to reserve cluster id` is normal for any service whose copy in
+  another datacenter took the ID while this one was away; this copy waits as
+  the standby. It is only a problem if no datacenter's copy of that service
+  is active, which the other datacenter's dashboards show. Never delete the
+  znode by hand to force it.
 - One member in `.config/zookeeper-host`: put the whole ensemble in it,
   comma-separated, then `./arcuscmd.sh apply` and `./arcuscmd.sh deploy`.
   After that a single member dropping out costs a sub-second failover.

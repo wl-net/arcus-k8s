@@ -39,18 +39,28 @@ Follow what the pod is doing:
 - **OOMKilled** in Last State → [Container OOM Killed](container-oom-killed.md).
 - **ImagePullBackOff** → [Image Pull Failing](image-pull-failing.md).
 - **Pending** → [Pod Stuck Pending](pod-pending.md).
-- **Running but not Ready**: the readiness probe (TCP on the metrics port) is
+- **Running but not Ready**: the readiness probe (`readinessProbe` in
+  `config/deployments/<app>.yaml`: TCP on 9100 for most services, 9082 for
+  hub-bridge, HTTP `/check` on 9081 for client-bridge and api-bridge) is
   failing. The logs usually show a startup error, most often a Cassandra,
   Kafka or ZooKeeper connection problem, in which case check for
   [Datastore Unreachable](datastore-unreachable.md) first. If the service is
   simply stuck, `./arcuscmd.sh deletepod <app>` restarts it.
 - **The pod looks healthy** but Prometheus still cannot scrape it: check the
-  metrics port with `kubectl exec <pod> -- curl -s localhost:9100/metrics | head`
-  and the Prometheus targets page (`kubectl port-forward svc/prometheus-service 9080:9080`,
+  metrics port from the Prometheus pod (the Arcus images have no curl or
+  wget), `kubectl exec statefulset/prometheus -- wget -qO- http://<pod IP>:9100/metrics | head`
+  with the IP from `kubectl get pod -o wide`, and the Prometheus targets page (`kubectl port-forward svc/prometheus-service 9080:9080`,
   then http://localhost:9080/targets).
 
-A just-deployed version that does not come up: `./arcuscmd.sh rollback`, or
-`kubectl rollout undo deployment/<app>` for one service.
+A just-deployed version that does not come up: `./arcuscmd.sh rollback`
+then `./arcuscmd.sh apply` (rollback only checks out the previous commit),
+or `kubectl rollout undo deployment/<app>` for one service.
+
+For the `traefik` job, Traefik runs in `kube-system`, not under an `app`
+label: `kubectl get pods -n kube-system -l app.kubernetes.io/name=traefik`,
+`./arcuscmd.sh httplogs` for its log, and `./arcuscmd.sh install traefik` to
+reinstall it. With Traefik down, every public URL fails too
+([Public Endpoint Unreachable](public-endpoint-unreachable.md)).
 
 ## Related alerts
 

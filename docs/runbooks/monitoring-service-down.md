@@ -19,7 +19,7 @@ as Prometheus down and start with its pod.
 |---|---|
 | grafana | everything; the other datacenters notice through Peer Datacenter Unreachable |
 | prometheus | everything except the Loki rules (Grafana evaluates them) |
-| loki, alloy | Hub Firmware Upgrade Stuck, Alloy Inotify Errors, Log Ingestion Stopped |
+| loki, alloy | ZooKeeper Session Expired (critical), Hub Firmware Upgrade Stuck, Egress To Unlisted Host, Log Flood, Alloy Inotify Errors, Log Ingestion Stopped |
 | kube-state-metrics | Pod Crash Looping, OOM, Image Pull, Workload Unavailable, Pending, Rollout Stuck, Job Failed, Node Not Ready, Node Under Pressure, Keystore Renewal Stale |
 | node-exporter | the disk, memory, CPU and swap alerts |
 | cert-manager | the two certificate alerts |
@@ -41,8 +41,9 @@ For `cert-manager`: `kubectl get pods -n cert-manager`.
   steps; the monitoring pods have limits in `config/stateful/` and
   `config/monitoring/` too.
 - A StatefulSet pod stuck (prometheus-0, loki-0, grafana-0): `kubectl delete pod <pod>`.
-  Their volumes keep the data. A full volume needs its retention lowered
-  (`config/extrafiles/prometheus.yaml`, `loki.yaml`).
+  Their volumes keep the data. A full volume needs its retention lowered:
+  the `--storage.tsdb.retention.*` arguments in `config/stateful/prometheus.yaml`
+  for Prometheus, `.config/loki-retention-days` for Loki.
 - Grafana crash looping after an `apply`: provisioning was rejected (a bad
   alert rule, template or contact point). `kubectl logs grafana-0 --previous`
   names it; fix `config/grafana/alerting.yaml` or `.config/alert-*`,

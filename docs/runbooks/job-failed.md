@@ -36,8 +36,9 @@ kubectl logs job/<job> -n <namespace>            # the last attempt
   retries now.
 - Anything else: the log.
 
-The alert clears 6 hours after the failure, or sooner when the job is
-deleted (`kubectl delete job <job>`).
+The alert clears 6 hours after the job started (for these jobs, within
+minutes of when it failed), or sooner when the job is deleted
+(`kubectl delete job <job>`).
 
 ## Related alerts
 

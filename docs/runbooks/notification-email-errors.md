@@ -17,16 +17,34 @@ reached. Users notice when a reset email never arrives.
 ```
 
 The provider's error says which it is: `401`/`403` is a bad or revoked key,
-`402` or a quota message is credit, a timeout is network.
+`402` or a quota message is credit, a timeout or connection error is network.
+
+Mailgun is reached through the egress proxy (`egress-proxy:3128`), so a
+network error can be the proxy rather than the provider. Its connection log
+shows whether the calls got out, in Grafana Explore (Loki):
+
+```logql
+{app="egress-proxy"} |= "api.mailgun.net" | logfmt
+```
+
+`code=200` is a tunnel that opened (`flags=SI` on it only means the idle
+connection was closed by the proxy afterwards); `code=503` with `flags=UF`
+(upstream connection failure) is the proxy failing to reach Mailgun. No lines
+at all means notification-services isn't reaching the proxy. A key or credit
+problem still shows `code=200` here, since the proxy only sees the tunnel.
 
 ## Fix
 
-- Bad key: put the new one in `secret/` (`email.provider.apikey`) and
-  `./arcuscmd.sh apply`; the secret is pushed to the cluster by apply, not by
-  configure.
+- Bad key: put the new one in `secret/` (`mailgunemail.provider.apikey` for
+  Mailgun, `email.provider.apikey` for SendGrid) and `./arcuscmd.sh apply`;
+  the secret is pushed to the cluster by apply, not by configure.
 - Out of credit or suspended: the provider's dashboard.
-- Network: `kubectl exec deploy/notification-services -- curl -sI https://api.sendgrid.com`
-  (or the provider in use) to see whether the cluster can reach it.
+- Network: first [Service Down](service-down.md) for `egress-proxy` (neither
+  replica ready means nothing gets out). The notification-services image has
+  no curl, so test the path from a throwaway pod:
+  `kubectl run egress-test --rm -i --restart=Never --image=curlimages/curl -- -sI -x http://egress-proxy:3128 https://api.mailgun.net`.
+  SendGrid's client ignores the proxy settings and connects directly; drop
+  the `-x` option to test that.
 - Sender domain not verified or DNS records changed: the provider's bounce
   reason says so; fix the SPF/DKIM records.
 
@@ -36,3 +54,4 @@ again (ask for another reset email).
 ## Related alerts
 
 - [Service Down](service-down.md) for notification-services — nothing sends at all.
+- [Service Down](service-down.md) for egress-proxy — no SMS, voice or Mailgun email gets out.

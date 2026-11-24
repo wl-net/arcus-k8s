@@ -40,11 +40,16 @@ df -h; free -m                            # out of disk or memory is the usual r
   if the clock is right.
 - The node is hung or lost: `./arcuscmd.sh reboot-node` from the node if you
   can log in; it drains Route 53 and silences alerts first. If you cannot,
-  drain from another datacenter with `./arcuscmd.sh drain` there, then power
-  cycle.
+  set this datacenter's weighted record to 0 by hand in the Route 53 console
+  (the record with this datacenter's `route53-set-identifier`), then power
+  cycle. Do not run `./arcuscmd.sh drain` on another datacenter for this: it
+  only changes the record of the datacenter it runs on, so it would drain the
+  healthy one.
 
 Afterwards `./arcuscmd.sh status` should show every service ready;
-`./arcuscmd.sh resume` restores the weighted record if you drained.
+`./arcuscmd.sh resume` restores the weighted record if you drained with
+`drain` or `reboot-node`. A weight set by hand in the console has to be put
+back there.
 
 ## Related alerts
 

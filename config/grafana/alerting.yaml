@@ -438,7 +438,7 @@ groups:
       __dashboardUid__: arcus-overview
       __panelId__: "1"
       summary: '{{ $labels.job }} is down'
-      description: '{{ $labels.job }} has had no ready pod answering on its metrics port for more than 5 minutes. First steps: ./arcuscmd.sh status to see which pods are not ready, then kubectl describe pod and ./arcuscmd.sh logs <app> for the service behind {{ $labels.job }}; for a blackbox-* job, check the blackbox-exporter pod first.'
+      description: '{{ $labels.job }} has had no ready pod answering on its metrics port for more than 5 minutes. First steps: ./arcuscmd.sh status to see which pods are not ready, then kubectl describe pod and ./arcuscmd.sh logs <app> for the service behind {{ $labels.job }}; for a blackbox-* job, check the blackbox-exporter pod first; for traefik, kubectl get pods -n kube-system -l app.kubernetes.io/name=traefik and ./arcuscmd.sh httplogs.'
       runbook_url: https://github.com/wl-net/arcus-k8s/blob/PLACEHOLDER_RUNBOOK_REF/docs/runbooks/service-down.md
   - uid: pod-crash-looping
     title: Pod Crash Looping
@@ -1310,7 +1310,7 @@ groups:
       __dashboardUid__: arcus-overview
       __panelId__: "63"
       summary: '{{ $labels.app }} lost its ZooKeeper session and restarted'
-      description: '{{ $labels.app }} logged "Zookeeper session expired" in the last 10 minutes. A service that loses its session drops its cluster membership and exits, Kubernetes restarts it, and everything it owned waits until it re-registers; usually every service goes at once. A session only expires when the client cannot reach any member in its connect string for longer than the session timeout, so with a single member in .config/zookeeper-host that member being away is enough. First steps: kubectl get pods for the restarts, ./arcuscmd.sh logs <app> | grep -i zookeeper, then the ZooKeeper servers'' logs for the minute before (a follower losing the leader, or a restart).'
+      description: '{{ $labels.app }} logged "Zookeeper session expired" in the last 10 minutes. A service that loses its session drops its cluster membership and exits, and Kubernetes restarts it; its work waits until this copy re-registers or its copy in another datacenter takes over. Usually every service goes at once. A session only expires when the client cannot reach any member in its connect string for longer than the session timeout, so with a single member in .config/zookeeper-host that member being away is enough. First steps: kubectl get pods for the restarts, ./arcuscmd.sh logs <app> --previous | grep -i zookeeper (the restarted container has no expiry line), then the ZooKeeper servers'' logs for the minute before (a follower losing the leader, or a restart).'
       runbook_url: https://github.com/wl-net/arcus-k8s/blob/PLACEHOLDER_RUNBOOK_REF/docs/runbooks/zookeeper-session-expired.md
   - uid: keystore-renewal-stale
     title: Hub Keystore Renewal Stale
@@ -1362,7 +1362,7 @@ groups:
       __dashboardUid__: arcus-cluster
       __panelId__: "23"
       summary: 'hub-keystore-renewal has not succeeded for {{ printf "%.0f" $values.B.Value }} hours'
-      description: 'The CronJob runs every 6 hours to copy cert-manager''s renewed certificate into hub-keystore, and a stuck run blocks the ones after it (concurrencyPolicy: Forbid). First steps: kubectl get jobs,pods | grep hub-keystore-renewal and kubectl logs job/<name> for the last run; delete a stuck job or pod, then test a run with kubectl create job --from=cronjob/hub-keystore-renewal hub-keystore-test.'
+      description: 'The CronJob runs every 6 hours to copy cert-manager''s renewed certificate into hub-keystore. A hung run is stopped after 10 minutes, so this means its runs are failing, or the CronJob is suspended or missing. The certificate hub-bridge serves is unchanged, so hubs are not affected yet. First steps: kubectl get cronjob hub-keystore-renewal, then kubectl get jobs | grep hub-keystore-renewal and kubectl logs job/<name> for the last run''s error; after fixing it, test with kubectl create job --from=cronjob/hub-keystore-renewal hub-keystore-test.'
       runbook_url: https://github.com/wl-net/arcus-k8s/blob/PLACEHOLDER_RUNBOOK_REF/docs/runbooks/keystore-renewal-stale.md
   - uid: hub-tls-failing
     title: Hub TLS Failing
@@ -1414,7 +1414,7 @@ groups:
       __dashboardUid__: arcus-cluster
       __panelId__: "22"
       summary: 'hub-bridge is not completing TLS handshakes on 8082'
-      description: 'hub-bridge has stopped completing TLS handshakes on 8082, where it serves the certificate in the hub-keystore secret. First steps: kubectl get pods -l app=hub-bridge and ./arcuscmd.sh logs hub-bridge for keystore or TLS errors, and kubectl get secret hub-keystore; ./arcuscmd.sh updatehubkeystore recreates the secret from nginx-production-tls and restarts hub-bridge.'
+      description: 'hub-bridge has stopped completing TLS handshakes on 8082, where it serves the certificate in the hub-keystore secret. First steps: check Active Sessions on the overview dashboard; if hubs are still connected, only the probe is failing (see the runbook, usually the cipher list) and nothing needs restarting. Otherwise kubectl get pods -l app=hub-bridge and ./arcuscmd.sh logs hub-bridge for keystore or TLS errors, and kubectl get secret hub-keystore; ./arcuscmd.sh updatehubkeystore recreates the secret from nginx-production-tls and restarts hub-bridge.'
       runbook_url: https://github.com/wl-net/arcus-k8s/blob/PLACEHOLDER_RUNBOOK_REF/docs/runbooks/hub-tls-failing.md
   - uid: hub-cert-expiring
     title: Hub Certificate Expiring
@@ -1737,7 +1737,7 @@ groups:
       __dashboardUid__: arcus-cluster
       __panelId__: "30"
       summary: '{{ $labels.job }} is down'
-      description: 'Prometheus has not been able to scrape {{ $labels.job }} ({{ $labels.instance }}) for 5 minutes. Users are not affected, but the alerts that read from it are blind: with Loki or Alloy down the log alerts stop, with Grafana down nothing alerts at all (the other datacenters notice through Peer Datacenter Unreachable). First steps: kubectl get pods -l app={{ $labels.job }}, kubectl describe pod and kubectl logs for it; for kubelet-cadvisor, kubectl get --raw /api/v1/nodes/{{ $labels.instance }}/proxy/metrics/cadvisor.'
+      description: 'Prometheus has not been able to scrape {{ $labels.job }} ({{ $labels.instance }}) for 5 minutes. Users are not affected, but the alerts that read from it are blind: with Loki or Alloy down the log alerts stop, with Grafana down nothing alerts at all (the other datacenters notice through Peer Datacenter Unreachable). First steps: kubectl get pods -l app={{ $labels.job }}, kubectl describe pod and kubectl logs for it; for cert-manager, kubectl get pods -n cert-manager; for kubelet-cadvisor, kubectl get --raw /api/v1/nodes/{{ $labels.instance }}/proxy/metrics/cadvisor.'
       runbook_url: https://github.com/wl-net/arcus-k8s/blob/PLACEHOLDER_RUNBOOK_REF/docs/runbooks/monitoring-service-down.md
   - uid: pod-pending
     title: Pod Stuck Pending
@@ -1843,7 +1843,7 @@ groups:
       __dashboardUid__: arcus-cluster
       __panelId__: "12"
       summary: 'Rollout of {{ $labels.deployment }} is stuck'
-      description: 'The new pods of {{ $labels.deployment }} did not become ready within the 10 minute progress deadline, so the Deployment has given up. The old pod keeps serving (maxUnavailable is 0), so the service runs the previous version. Workload Unavailable does not fire in this case. First steps: kubectl rollout status deployment/{{ $labels.deployment }}, kubectl get pods -l app={{ $labels.deployment }} and ./arcuscmd.sh logs {{ $labels.deployment }} on the new pod; kubectl rollout undo deployment/{{ $labels.deployment }} goes back to the previous version.'
+      description: 'The new pods of {{ $labels.deployment }} did not become ready within the 10 minute progress deadline, so the Deployment has given up. The old pod keeps serving (maxUnavailable is 0), so the service runs the previous version. Workload Unavailable does not fire in this case. First steps: kubectl rollout status deployment/{{ $labels.deployment }}, kubectl get pods -l app={{ $labels.deployment }} --sort-by=.metadata.creationTimestamp (newest last) and kubectl logs <new pod> (./arcuscmd.sh logs may pick the old one); kubectl rollout undo deployment/{{ $labels.deployment }} goes back to the previous version.'
       runbook_url: https://github.com/wl-net/arcus-k8s/blob/PLACEHOLDER_RUNBOOK_REF/docs/runbooks/rollout-stuck.md
   - uid: job-failed
     title: Job Failed
@@ -1897,7 +1897,7 @@ groups:
       __dashboardUid__: arcus-cluster
       __panelId__: "14"
       summary: 'Job {{ $labels.job_name }} failed'
-      description: '{{ $labels.job_name }} in namespace {{ $labels.namespace }} failed in the last 6 hours (its retries are used up). For a modelmanager-* job the schema migration did not run; for a hub-keystore-renewal-* job the hub certificate was not refreshed (Hub Certificate Expiring fires if that goes on). First steps: kubectl logs job/{{ $labels.job_name }} -n {{ $labels.namespace }} and kubectl describe job/{{ $labels.job_name }} -n {{ $labels.namespace }}. ./arcuscmd.sh modelmanager re-runs the modelmanager jobs. The alert clears 6 hours after the failure, or when the job is deleted.'
+      description: '{{ $labels.job_name }} in namespace {{ $labels.namespace }}, started in the last 6 hours, has failed (its retries are used up). For a modelmanager-* job the schema migration did not run; for a hub-keystore-renewal-* job the hub certificate was not refreshed (Hub Certificate Expiring fires if that goes on). First steps: kubectl logs job/{{ $labels.job_name }} -n {{ $labels.namespace }} and kubectl describe job/{{ $labels.job_name }} -n {{ $labels.namespace }}. ./arcuscmd.sh modelmanager re-runs the modelmanager jobs. The alert clears 6 hours after the job started, or when the job is deleted.'
       runbook_url: https://github.com/wl-net/arcus-k8s/blob/PLACEHOLDER_RUNBOOK_REF/docs/runbooks/job-failed.md
   - uid: public-endpoint-unreachable
     title: Public Endpoint Unreachable
@@ -1948,8 +1948,8 @@ groups:
     annotations:
       __dashboardUid__: arcus-cluster
       __panelId__: "22"
-      summary: '{{ $labels.instance }} is not answering from the internet side'
-      description: 'The probe resolves the public name and connects like a user or hub would, and has failed for 5 minutes (unreachable, not a 2xx/3xx answer, or an invalid certificate). DNS, the Route 53 record, port forwarding, Traefik or the certificate can be at fault; the in-cluster services may well be fine. A drained cluster still passes, because the name then points at the other datacenter. First steps: ./arcuscmd.sh check and ./arcuscmd.sh info, then curl -v {{ $labels.instance }} from outside the LAN; for hub.<domain>:8082, openssl s_client -connect against it.'
+      summary: '{{ $labels.instance }} is not answering at its public address'
+      description: 'The probe resolves the public name through public DNS and connects over HTTPS like the app or a browser would, and has failed for 5 minutes (unreachable, not a 2xx/3xx answer, or an invalid certificate). DNS, the Route 53 record, port forwarding, Traefik or the certificate can be at fault; the in-cluster services may well be fine. A drained cluster still passes, because the name then points at the other datacenter. First steps: ./arcuscmd.sh check and ./arcuscmd.sh info, then curl -v {{ $labels.instance }} from outside the LAN.'
       runbook_url: https://github.com/wl-net/arcus-k8s/blob/PLACEHOLDER_RUNBOOK_REF/docs/runbooks/public-endpoint-unreachable.md
   # The realm counts login failures by cause; the label_replace keeps the cause
   # as a label so increase() (which strips the metric name) does not see

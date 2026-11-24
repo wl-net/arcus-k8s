@@ -28,7 +28,8 @@ whether the whole service is affected or one place.
   offline. Remove or fix the schedule in the app.
 - Every command fails and the datastores are fine: the service is stuck;
   `./arcuscmd.sh deletepod scheduler-service`. If a release introduced it,
-  `./arcuscmd.sh history` and `./arcuscmd.sh rollback`.
+  `./arcuscmd.sh history`, then `./arcuscmd.sh rollback` and
+  `./arcuscmd.sh apply` (rollback only checks out the previous commit).
 - Partitions missing from the Scheduler Partitions panel: the service lost
   its partition assignment; a restart re-registers.
 

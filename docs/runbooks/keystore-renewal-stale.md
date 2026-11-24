@@ -13,8 +13,12 @@ the last successful run, and it has weeks left unless this coincides with a
 renewal. [Hub Certificate Expiring](hub-cert-expiring.md) fires if the copy
 falls behind for real.
 
-The CronJob has `concurrencyPolicy: Forbid`, so one stuck run blocks every
-run after it; that is the usual cause.
+A hung run can't hold the others back for long: each run is stopped after
+10 minutes (`activeDeadlineSeconds: 600`), which is there because
+`concurrencyPolicy: Forbid` would otherwise queue every later run behind it.
+So 13 hours without a success means the runs are failing (each one tries
+twice, `backoffLimit: 1`), or the CronJob is suspended or missing.
+[Job Failed](job-failed.md) fires for each failed run.
 
 ## Confirm
 
@@ -26,12 +30,15 @@ kubectl logs job/<name>                   # the last run
 
 ## Fix
 
-- A job stuck Running or a pod stuck ContainerCreating:
-  `kubectl delete job <name>`; the next scheduled run starts clean.
 - A job that fails every time: its log says why. A missing
   `nginx-production-tls` Secret (the certificate was never issued in
   production, see `./arcuscmd.sh status`), or RBAC after an upgrade
   (`./arcuscmd.sh apply` reapplies the role).
+- Jobs failing with `DeadlineExceeded` (`kubectl describe job <name>`): the
+  run hit the 10 minute limit. A pod stuck ContainerCreating or
+  ImagePullBackOff (the `alpine/openssl` or `alpine/k8s` image can't be
+  pulled; `kubectl describe pod`), or hub-bridge's restart not finishing
+  (see [Deployment Rollout Stuck](rollout-stuck.md)).
 - The CronJob is suspended or missing: `kubectl get cronjob`;
   `./arcuscmd.sh apply` recreates it.
 

@@ -47,7 +47,8 @@ By the reason code:
 - **The hub itself** (full flash, failing SD card): a reboot or a factory
   reset from the hub's button; replace it if that does not help.
 
-The alert clears 6 hours after the last failure.
+The alert clears about 2 hours after the hub's last failure, once there is
+none left in the last 2 hours.
 
 ## Related alerts
 

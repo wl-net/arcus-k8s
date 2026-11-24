@@ -6,7 +6,13 @@ Rule `public-endpoint-unreachable` in [`config/grafana/alerting.yaml`](../../con
 ## What it means
 
 The blackbox exporter resolves the public name through public DNS and
-connects the way a user or hub would. It failed: the name does not resolve
+connects to it over HTTPS the way the app or a browser would. It checks
+`https://<domain>/`, `https://client.<domain>/`, `https://static.<domain>/`
+and the admin domain's `/api/health`, not the hubs' port 8082 ([Hub TLS
+Failing](hub-tls-failing.md) covers that). The probe runs inside the cluster,
+so it reaches the public address from this datacenter's own network rather
+than from the internet; `dig` and `curl` from outside the LAN (below) show
+what users see. It failed: the name does not resolve
 to a working address, the port is closed, TLS fails (expired or wrong
 certificate), or the answer is not a 2xx/3xx. The in-cluster services may
 be fine; the path to them is not.

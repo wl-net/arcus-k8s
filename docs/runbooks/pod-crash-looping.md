@@ -30,11 +30,14 @@ By what the previous logs and Last State say:
   ([Datastore Unreachable](datastore-unreachable.md)). Kafka topics or a
   Cassandra keyspace missing after a fresh install: `./arcuscmd.sh modelmanager`.
 - **Exit code 143 or 137 without OOM**: the liveness probe killed it because
-  the metrics port did not answer in time. A JVM that takes long to start on
+  the probed port did not answer in time (9100 for most services, 9082 for
+  hub-bridge, HTTP `/check` on 9081 for client-bridge and api-bridge). A JVM that takes long to start on
   a loaded node can hit this; check [Node CPU Saturated](node-cpu-saturated.md)
   and the probe's `initialDelaySeconds` in `config/deployments/<app>.yaml`.
 - **A new image**: `./arcuscmd.sh history` shows what changed;
-  `./arcuscmd.sh rollback` or `kubectl rollout undo deployment/<app>` goes back.
+  `./arcuscmd.sh rollback` then `./arcuscmd.sh apply` (rollback only checks
+  out the previous commit), or `kubectl rollout undo deployment/<app>` for
+  one service, goes back.
 - **hub-keystore-renewal or a modelmanager job**: these are Jobs, see
   [Job Failed](job-failed.md).
 

@@ -39,8 +39,10 @@ The usual places that grow:
 3. Container logs: a pod logging far more than the rest shows up on the
    Log Volume by Service panel of the overview dashboard; fix the service or
    lower its log level in `config/extrafiles/logback.xml`.
-4. Prometheus or Loki volumes: retention is set in `config/extrafiles/prometheus.yaml`
-   (30 days or 4GB) and `config/extrafiles/loki.yaml`; lower it and `./arcuscmd.sh apply`.
+4. Prometheus or Loki volumes: Prometheus keeps 30 days or 4GB (the
+   `--storage.tsdb.retention.*` arguments in `config/stateful/prometheus.yaml`),
+   Loki keeps `.config/loki-retention-days` (default 7); lower one and
+   `./arcuscmd.sh apply`.
 5. Old tarballs and backups: move them off the node.
 
 The alert clears on its own once usage is back under 80%.

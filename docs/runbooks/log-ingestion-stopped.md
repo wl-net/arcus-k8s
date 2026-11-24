@@ -6,9 +6,12 @@ Rule `log-ingestion-stopped` in [`config/grafana/alerting.yaml`](../../config/gr
 ## What it means
 
 Nothing is reaching Loki. Users are not affected, but there are no logs to
-debug with, and every alert evaluated from Loki ([Hub Firmware Upgrade Stuck](hub-firmware-upgrade-stuck.md),
-[Alloy Inotify Errors](alloy-inotify-errors.md)) is blind. Alloy (the
-collector DaemonSet) is down or cannot push, or Loki is refusing everything.
+debug with, and every alert evaluated from Loki is blind meanwhile:
+[ZooKeeper Session Expired](zookeeper-session-expired.md) (critical),
+[Hub Firmware Upgrade Stuck](hub-firmware-upgrade-stuck.md),
+[Egress To Unlisted Host](egress-unlisted-host.md), [Log Flood](log-flood.md)
+and [Alloy Inotify Errors](alloy-inotify-errors.md). Alloy (the collector
+DaemonSet) is down or cannot push, or Loki is refusing everything.
 
 ## Confirm
 
