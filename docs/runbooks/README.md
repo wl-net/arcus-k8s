@@ -83,7 +83,7 @@ node or pod with the alert's labels where the description does.
 | [Datastore Unreachable](datastore-unreachable.md) | warning | Fires when the blackbox exporter has not been able to open a TCP connection to a Cassandra, Kafka or ZooKeeper host for 2 minutes |
 | [Datastore Still Unreachable](datastore-still-unreachable.md) | critical | Fires when the blackbox exporter has not been able to open a TCP connection to a Cassandra, Kafka or ZooKeeper host for an hour |
 | [Datastore Quorum Lost](datastore-quorum-lost.md) | critical | Fires when half or more of a Cassandra, Kafka or ZooKeeper datastore's hosts (the only one, when one is listed) have not accepted TCP connections from this datacenter for 2 minutes |
-| [ZooKeeper Session Expired](zookeeper-session-expired.md) | critical | Fires as soon as a service has logged that its ZooKeeper session expired in the last 10 minutes |
+| [ZooKeeper Session Expired](zookeeper-session-expired.md) | warning | Fires as soon as a service has logged that its ZooKeeper session expired in the last 10 minutes |
 | [Hub Keystore Renewal Stale](keystore-renewal-stale.md) | warning | Fires when the `hub-keystore-renewal` CronJob has not completed successfully for 13 hours |
 | [Hub TLS Failing](hub-tls-failing.md) | critical | Fires when the blackbox exporter has not been able to complete a TLS handshake with hub-bridge on port 8082 for 5 minutes |
 | [Hub Certificate Expiring](hub-cert-expiring.md) | critical | Fires when the certificate hub-bridge serves on port 8082 expires in less than 21 days (for 1 hour) |

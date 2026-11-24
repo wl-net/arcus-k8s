@@ -1,6 +1,6 @@
 # ZooKeeper Session Expired
 
-Severity **critical** · group Service Health · fires as soon as a service has logged that its ZooKeeper session expired in the last 10 minutes.
+Severity **warning** · group Service Health · fires as soon as a service has logged that its ZooKeeper session expired in the last 10 minutes.
 Rule `zookeeper-session-expired` in [`config/grafana/alerting.yaml`](../../config/grafana/alerting.yaml).
 
 ## What it means
@@ -14,6 +14,9 @@ re-registers, and work resumes; nothing it owned was processed in between.
 The services share one ZooKeeper, so usually all of them go at once, and the
 whole platform is out for the minute or so they take to come back. Hubs
 reconnect on their own; a person in the app sees requests fail meanwhile.
+That is over before anyone could act, so this is a warning for working hours
+rather than a page. A service that does not come back pages on its own, as
+Service Down, Workload Unavailable or Pod Crash Looping.
 
 A session is global to the ensemble, not to one server. A client whose
 connect string lists every member fails over to another one in under a second
@@ -67,4 +70,4 @@ services connected to it were cut off while it rejoined.
 - [Datastore Unreachable](datastore-unreachable.md) — the probed member could not be reached at all.
 - [Datastore Quorum Lost](datastore-quorum-lost.md) — most of the ensemble out of reach from this datacenter, the usual cause of every service expiring at once.
 - [Log Flood](log-flood.md) — a service that lost its partitions and is retrying in a tight loop.
-- [Service Down](service-down.md), [Workload Unavailable](workload-unavailable.md) — a service that did not come back.
+- [Service Down](service-down.md), [Workload Unavailable](workload-unavailable.md), [Pod Crash Looping](pod-crash-looping.md) — a service that did not come back; these page.

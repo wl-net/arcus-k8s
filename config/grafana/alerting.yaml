@@ -1302,7 +1302,10 @@ groups:
     noDataState: OK
     execErrState: KeepLast
     labels:
-      severity: critical
+      # Not a page: the services restart and are back within a minute, before anyone
+      # could act. One that does not come back pages as Service Down, Workload
+      # Unavailable or Pod Crash Looping.
+      severity: warning
     annotations:
       __dashboardUid__: arcus-overview
       __panelId__: "63"
